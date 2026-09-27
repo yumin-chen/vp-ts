@@ -1,8 +1,10 @@
 {
-  "name": "@lib/module",
+  "name": "@yumin-chen/create",
   "version": "0.0.0",
+  "bin": "./dist/main.mjs",
   "files": [
-    "dist"
+    "dist",
+    "templates"
   ],
   "type": "module",
   "exports": {

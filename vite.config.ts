@@ -2,7 +2,7 @@ import { defineConfig } from "vite-plus";
 
 export default defineConfig({
   create: {
-    defaultTemplate: "vp-ts",
+    defaultTemplate: "@yumin-chen",
     templates: [
       {
         name: "vp-ts",

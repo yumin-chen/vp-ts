@@ -1,6 +1,16 @@
 import { defineConfig } from "vite-plus";
 
 export default defineConfig({
+  create: {
+    defaultTemplate: "vp-ts",
+    templates: [
+      {
+        name: "vp-ts",
+        description: "TypeScript starter template",
+        template: "./templates/vp-ts",
+      },
+    ],
+  },
   pack: {
     entry: ["./src/main.ts"],
     format: "esm",

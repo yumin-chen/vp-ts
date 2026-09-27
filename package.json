@@ -14,9 +14,9 @@
     "dev": "vp pack --watch",
     "start": "node --import @oxc-node/core/register src/main.ts",
     "test": "vp test",
-    "check": "vp check --fix",
-    "fmt": "vp fmt",
-    "lint": "vp lint --fix",
+    "check": "vp check",
+    "fmt": "vp fmt .",
+    "lint": "vp lint",
     "prepublishOnly": "vp run build",
     "prepare": "vp config"
   },

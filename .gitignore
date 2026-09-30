@@ -1,13 +1,14 @@
-# compiled output files and executables
-build
-out
-dist
-target
+# target / build directories
+target/
+build/
+out/
+dist/
 
 # dependencies
-vendor
-node_modules
+node_modules/
 
-# log files
-logs
+# logs
 *.log
+
+# NAPI output
+*.node

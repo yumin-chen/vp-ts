@@ -1,0 +1,17 @@
+{
+  "name": "@lib/module-linux-x64-musl",
+  "version": "0.0.0",
+  "cpu": [
+    "x64"
+  ],
+  "main": "my-addon.linux-x64-musl.node",
+  "files": [
+    "my-addon.linux-x64-musl.node"
+  ],
+  "os": [
+    "linux"
+  ],
+  "libc": [
+    "musl"
+  ]
+}

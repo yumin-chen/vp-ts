@@ -10,6 +10,10 @@
 export declare const __napiBindingTarget: 'native' | 'wasm32-wasi' | 'wasm32-wasip1'
 
 export declare class Ksuid {
+  /** Configure default toString encoding ("crockford" or "base62") and optional custom alphabet. */
+  static setDefaultEncoding(encoding: string, alphabet?: string | undefined | null): void
+  /** Get current default toString encoding ("base62" or "crockford"). */
+  static getDefaultEncoding(): string
   /** Create a new Ksuid with an optional timestamp (in seconds since UNIX epoch) and optional 16-byte payload. */
   constructor(timestamp?: number | undefined | null, payload?: Uint8Array | undefined | null)
   /** Timestamp is now, payload is randomly generated or provided. */
@@ -24,8 +28,8 @@ export declare class Ksuid {
   static fromSeconds(seconds?: number | undefined | null, payload?: Uint8Array | undefined | null): Ksuid
   /** Create a Ksuid from Crockford Base32 encoded string with optional custom alphabet. */
   static fromCrockfordBase32(str: string, alphabet?: string | undefined | null): Ksuid
-  /** Base62 string representation. */
-  toString(): string
+  /** String representation with optional encoding ("base62" or "crockford") and optional custom alphabet. */
+  toString(encoding?: string | undefined | null, alphabet?: string | undefined | null): string
   /** Base62 string representation (explicit alias). */
   toBase62(): string
   /** Encode Ksuid to Crockford Base32 string with optional custom 32-character alphabet. */

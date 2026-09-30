@@ -1,8 +1,13 @@
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
+use std::sync::atomic::{AtomicU8, Ordering};
+use std::sync::Mutex;
 use svix_ksuid::{Ksuid as InnerKsuid, KsuidLike};
 
 const DEFAULT_CROCKFORD_ALPHABET: &[u8; 32] = b"0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+
+static DEFAULT_ENCODING: AtomicU8 = AtomicU8::new(0); // 0 = Base62, 1 = Crockford
+static DEFAULT_ALPHABET: Mutex<Option<String>> = Mutex::new(None);
 
 fn get_5bit(bytes: &[u8; 20], chunk: usize) -> u8 {
   let bit_idx = chunk * 5;
@@ -185,6 +190,43 @@ pub struct Ksuid {
 
 #[napi]
 impl Ksuid {
+  /// Configure default toString encoding ("crockford" or "base62") and optional custom alphabet.
+  #[napi]
+  pub fn set_default_encoding(encoding: String, alphabet: Option<String>) -> Result<()> {
+    match encoding.to_lowercase().as_str() {
+      "crockford" | "crockford_base32" | "base32" => {
+        DEFAULT_ENCODING.store(1, Ordering::SeqCst);
+        let mut guard = DEFAULT_ALPHABET.lock().map_err(|_| {
+          Error::new(Status::GenericFailure, "Failed to lock default alphabet")
+        })?;
+        *guard = alphabet;
+        Ok(())
+      }
+      "base62" => {
+        DEFAULT_ENCODING.store(0, Ordering::SeqCst);
+        let mut guard = DEFAULT_ALPHABET.lock().map_err(|_| {
+          Error::new(Status::GenericFailure, "Failed to lock default alphabet")
+        })?;
+        *guard = None;
+        Ok(())
+      }
+      _ => Err(Error::new(
+        Status::InvalidArg,
+        format!("Unsupported encoding: {}. Choose 'crockford' or 'base62'.", encoding),
+      )),
+    }
+  }
+
+  /// Get current default toString encoding ("base62" or "crockford").
+  #[napi]
+  pub fn get_default_encoding() -> String {
+    if DEFAULT_ENCODING.load(Ordering::SeqCst) == 1 {
+      "crockford".to_string()
+    } else {
+      "base62".to_string()
+    }
+  }
+
   /// Create a new Ksuid with an optional timestamp (in seconds since UNIX epoch) and optional 16-byte payload.
   #[napi(constructor)]
   pub fn new(timestamp: Option<i64>, payload: Option<Uint8Array>) -> Result<Self> {
@@ -278,10 +320,28 @@ impl Ksuid {
     Ok(Ksuid { inner })
   }
 
-  /// Base62 string representation.
+  /// String representation with optional encoding ("base62" or "crockford") and optional custom alphabet.
   #[napi]
-  pub fn to_string(&self) -> String {
-    self.inner.to_string()
+  pub fn to_string(&self, encoding: Option<String>, alphabet: Option<String>) -> Result<String> {
+    let enc = match encoding {
+      Some(e) => e,
+      None => Self::get_default_encoding(),
+    };
+
+    match enc.to_lowercase().as_str() {
+      "crockford" | "crockford_base32" | "base32" => {
+        let alpha = match alphabet {
+          Some(a) => Some(a),
+          None => DEFAULT_ALPHABET.lock().unwrap().clone(),
+        };
+        self.to_crockford_base32(alpha)
+      }
+      "base62" => Ok(self.inner.to_string()),
+      _ => Err(Error::new(
+        Status::InvalidArg,
+        format!("Unsupported encoding: {}. Choose 'crockford' or 'base62'.", enc),
+      )),
+    }
   }
 
   /// Base62 string representation (explicit alias).

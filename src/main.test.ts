@@ -2,6 +2,7 @@ import { expect, test } from "vite-plus/test";
 import { Ksuid, shuffleAlphabet } from "../index.js";
 
 test("Ksuid now and formatting", () => {
+  Ksuid.setDefaultEncoding("base62");
   const ksuid = Ksuid.now();
   expect(ksuid.toString().length).toBeGreaterThan(0);
   expect(ksuid.toBase62()).toBe(ksuid.toString());
@@ -19,6 +20,7 @@ test("Ksuid creation with explicit payload and timestamp", () => {
 });
 
 test("Ksuid base62 roundtrip", () => {
+  Ksuid.setDefaultEncoding("base62");
   const ksuid = Ksuid.now();
   const base62Str = ksuid.toString();
   const parsed = Ksuid.fromBase62(base62Str);
@@ -51,6 +53,29 @@ test("Ksuid Crockford Base32 custom and shuffled alphabets", () => {
 
   const parsedCustom = Ksuid.fromCrockfordBase32(customCrockford, shuffledAlpha);
   expect(parsedCustom.equals(ksuid)).toBe(true);
+});
+
+test("Ksuid configurable default toString encoding", () => {
+  const ksuid = Ksuid.now();
+
+  // Explicit override in toString
+  expect(ksuid.toString("crockford")).toBe(ksuid.toCrockfordBase32());
+  expect(ksuid.toString("base62")).toBe(ksuid.toBase62());
+
+  // Configure global default to Crockford
+  Ksuid.setDefaultEncoding("crockford");
+  expect(Ksuid.getDefaultEncoding()).toBe("crockford");
+  expect(ksuid.toString()).toBe(ksuid.toCrockfordBase32());
+
+  // Configure global default with custom shuffled alphabet
+  const customAlpha = shuffleAlphabet("0123456789ABCDEFGHJKMNPQRSTVWXYZ", "custom-seed");
+  Ksuid.setDefaultEncoding("crockford", customAlpha);
+  expect(ksuid.toString()).toBe(ksuid.toCrockfordBase32(customAlpha));
+
+  // Reset back to base62
+  Ksuid.setDefaultEncoding("base62");
+  expect(Ksuid.getDefaultEncoding()).toBe("base62");
+  expect(ksuid.toString()).toBe(ksuid.toBase62());
 });
 
 test("Ksuid fromBytes roundtrip", () => {

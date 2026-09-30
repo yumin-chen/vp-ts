@@ -1,18 +1,47 @@
 {
-  "name": "my-addon",
-  "version": "0.1.0",
-  "main": "index.js",
+  "name": "@lib/module",
+  "version": "0.0.0",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "exports": {
+    ".": "./dist/main.mjs",
+    "./package.json": "./package.json"
+  },
   "types": "index.d.ts",
   "scripts": {
-    "build": "napi build --platform",
-    "build:release": "napi build --platform --release",
-    "test": "node --test test.cjs",
-    "prepare": "node patch-cli.js"
+    "build": "npm run build:napi && vp pack",
+    "build:napi": "node patch-cli.cjs && napi build --platform --esm",
+    "build:release": "node patch-cli.cjs && napi build --platform --esm --release",
+    "dev": "vp pack --watch",
+    "start": "vp run src/main.ts",
+    "test": "node --test test.cjs && vp test",
+    "check": "vp check src/",
+    "fmt": "vp fmt src/",
+    "lint": "vp lint src/",
+    "prepublishOnly": "vp run build",
+    "prepare": "vp config"
   },
   "napi": {
     "binaryName": "my-addon"
   },
   "devDependencies": {
-    "@napi-rs/cli": "^3"
+    "@napi-rs/cli": "^3",
+    "@types/node": "^26.6.2",
+    "vite-plus": "1.0.0"
+  },
+  "peerDependencies": {
+    "typescript": "^7.0.2"
+  },
+  "overrides": {
+    "vite": "npm:@voidzero-dev/vite-plus-core@1.0.0"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "npm",
+      "version": "11.11.0",
+      "onFail": "download"
+    }
   }
 }

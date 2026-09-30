@@ -12,7 +12,7 @@ export declare const __napiBindingTarget: 'native' | 'wasm32-wasi' | 'wasm32-was
 export declare class Ksuid {
   /**
    * Create a Ksuid using constructor options.
-   * Options: { timestamp?: number, payload?: Uint8Array, timestampSize?: "32bit" | "48bit", enc?: "base62" | "base32", alphabet?: string }
+   * Options: { timestamp?: number, payload?: Uint8Array, timestampSize?: "32bit" | "48bit" | "64bit", enc?: "base62" | "base32", alphabet?: string }
    */
   constructor(options?: KsuidOptions | undefined | null)
   /** Create a new Ksuid with optional options. */
@@ -21,7 +21,7 @@ export declare class Ksuid {
   static new(options?: KsuidOptions | undefined | null): Ksuid
   /** Create a Ksuid from seconds timestamp (32bit) and optional payload. */
   static fromSeconds(seconds?: number | undefined | null, payload?: Uint8Array | undefined | null): Ksuid
-  /** Create a Ksuid from milliseconds timestamp (48bit) and optional payload. */
+  /** Create a Ksuid from milliseconds timestamp (48bit/64bit) and optional payload. */
   static fromMilliseconds(ms?: number | undefined | null, payload?: Uint8Array | undefined | null): Ksuid
   /** Parse a Ksuid from a base62 string (optional custom alphabet and timestampSize). */
   static fromBase62(base62: string, alphabet?: string | undefined | null, timestampSize?: string | undefined | null): Ksuid
@@ -37,7 +37,7 @@ export declare class Ksuid {
   enc(): string
   /** Returns the configured alphabet, if any. */
   alphabet(): string | null
-  /** Returns the timestampSize ("32bit" or "48bit"). */
+  /** Returns the timestampSize ("32bit", "48bit", or "64bit"). */
   timestampSize(): string
   /** Returns the base62 string representation (optional custom alphabet). */
   toBase62(alphabet?: string | undefined | null): string
@@ -49,7 +49,7 @@ export declare class Ksuid {
   toString(): string
   /** Returns the 20 bytes of the Ksuid. */
   bytes(): Uint8Array
-  /** Returns the payload bytes (16 bytes for 32bit, 15 bytes for 48bit). */
+  /** Returns the payload bytes (16 bytes for 32bit, 15 bytes for 48bit/64bit). */
   payload(): Uint8Array
   /** Returns the timestamp in seconds since UNIX epoch. */
   timestampSeconds(): number

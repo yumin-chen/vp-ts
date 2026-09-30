@@ -1,8 +1,14 @@
 const assert = require("node:assert/strict");
 const test = require("node:test");
 
-const { add } = require("./index.js");
+const { parse, stringify } = require("./index.js");
 
-test("adds two numbers", () => {
-  assert.equal(add(2, 3), 5);
+void test("parses TOML string into object", () => {
+  const obj = parse('title = "TOML Example"\n');
+  assert.deepEqual(obj, { title: "TOML Example" });
+});
+
+void test("stringifies object into TOML string", () => {
+  const str = stringify({ title: "TOML Example" });
+  assert.equal(str, 'title = "TOML Example"\n');
 });

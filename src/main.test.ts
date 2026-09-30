@@ -55,12 +55,24 @@ test("Ksuid Crockford Base32 custom and shuffled alphabets", () => {
   expect(parsedCustom.equals(ksuid)).toBe(true);
 });
 
-test("Ksuid configurable default toString encoding", () => {
+test("Ksuid toString with options object ({ enc: 'base32' / 'base62' })", () => {
+  Ksuid.setDefaultEncoding("base62");
   const ksuid = Ksuid.now();
 
-  // Explicit override in toString
-  expect(ksuid.toString("crockford")).toBe(ksuid.toCrockfordBase32());
-  expect(ksuid.toString("base62")).toBe(ksuid.toBase62());
+  // Test enc option
+  expect(ksuid.toString({ enc: "base32" })).toBe(ksuid.toCrockfordBase32());
+  expect(ksuid.toString({ enc: "crockford" })).toBe(ksuid.toCrockfordBase32());
+  expect(ksuid.toString({ enc: "base62" })).toBe(ksuid.toBase62());
+
+  // Test with custom alphabet in options object
+  const customAlpha = shuffleAlphabet("0123456789ABCDEFGHJKMNPQRSTVWXYZ", "opt-seed");
+  expect(ksuid.toString({ enc: "base32", alphabet: customAlpha })).toBe(
+    ksuid.toCrockfordBase32(customAlpha),
+  );
+});
+
+test("Ksuid configurable default toString encoding", () => {
+  const ksuid = Ksuid.now();
 
   // Configure global default to Crockford
   Ksuid.setDefaultEncoding("crockford");

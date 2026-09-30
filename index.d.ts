@@ -10,7 +10,7 @@
 export declare const __napiBindingTarget: 'native' | 'wasm32-wasi' | 'wasm32-wasip1'
 
 export declare class Ksuid {
-  /** Configure default toString encoding ("crockford" or "base62") and optional custom alphabet. */
+  /** Configure default toString encoding ("crockford" / "base32" or "base62") and optional custom alphabet. */
   static setDefaultEncoding(encoding: string, alphabet?: string | undefined | null): void
   /** Get current default toString encoding ("base62" or "crockford"). */
   static getDefaultEncoding(): string
@@ -28,8 +28,8 @@ export declare class Ksuid {
   static fromSeconds(seconds?: number | undefined | null, payload?: Uint8Array | undefined | null): Ksuid
   /** Create a Ksuid from Crockford Base32 encoded string with optional custom alphabet. */
   static fromCrockfordBase32(str: string, alphabet?: string | undefined | null): Ksuid
-  /** String representation with optional encoding ("base62" or "crockford") and optional custom alphabet. */
-  toString(encoding?: string | undefined | null, alphabet?: string | undefined | null): string
+  /** String representation with optional encoding string or options object ({ enc: "base32" | "base62", alphabet?: string }). */
+  toString(options?: string | ToStringOptions | undefined | null, alphabet?: string | undefined | null): string
   /** Base62 string representation (explicit alias). */
   toBase62(): string
   /** Encode Ksuid to Crockford Base32 string with optional custom 32-character alphabet. */
@@ -48,3 +48,9 @@ export declare class Ksuid {
 
 /** Utility function to shuffle an alphabet deterministically with an optional seed (or randomly if no seed is provided). */
 export declare function shuffleAlphabet(alphabet: string, seed?: string | undefined | null): string
+
+export interface ToStringOptions {
+  enc?: string
+  encoding?: string
+  alphabet?: string
+}

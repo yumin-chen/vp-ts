@@ -9,6 +9,14 @@ const DEFAULT_CROCKFORD_ALPHABET: &[u8; 32] = b"0123456789ABCDEFGHJKMNPQRSTVWXYZ
 static DEFAULT_ENCODING: AtomicU8 = AtomicU8::new(0); // 0 = Base62, 1 = Crockford
 static DEFAULT_ALPHABET: Mutex<Option<String>> = Mutex::new(None);
 
+#[napi(object)]
+#[derive(Default)]
+pub struct ToStringOptions {
+  pub enc: Option<String>,
+  pub encoding: Option<String>,
+  pub alphabet: Option<String>,
+}
+
 fn get_5bit(bytes: &[u8; 20], chunk: usize) -> u8 {
   let bit_idx = chunk * 5;
   let byte_idx = bit_idx / 8;
@@ -190,7 +198,7 @@ pub struct Ksuid {
 
 #[napi]
 impl Ksuid {
-  /// Configure default toString encoding ("crockford" or "base62") and optional custom alphabet.
+  /// Configure default toString encoding ("crockford" / "base32" or "base62") and optional custom alphabet.
   #[napi]
   pub fn set_default_encoding(encoding: String, alphabet: Option<String>) -> Result<()> {
     match encoding.to_lowercase().as_str() {
@@ -212,7 +220,7 @@ impl Ksuid {
       }
       _ => Err(Error::new(
         Status::InvalidArg,
-        format!("Unsupported encoding: {}. Choose 'crockford' or 'base62'.", encoding),
+        format!("Unsupported encoding: {}. Choose 'crockford', 'base32', or 'base62'.", encoding),
       )),
     }
   }
@@ -320,17 +328,31 @@ impl Ksuid {
     Ok(Ksuid { inner })
   }
 
-  /// String representation with optional encoding ("base62" or "crockford") and optional custom alphabet.
+  /// String representation with optional encoding string or options object ({ enc: "base32" | "base62", alphabet?: string }).
   #[napi]
-  pub fn to_string(&self, encoding: Option<String>, alphabet: Option<String>) -> Result<String> {
-    let enc = match encoding {
+  pub fn to_string(
+    &self,
+    options: Option<Either<String, ToStringOptions>>,
+    alphabet: Option<String>,
+  ) -> Result<String> {
+    let (enc_opt, custom_alpha) = match options {
+      Some(Either::A(enc_str)) => (Some(enc_str), alphabet),
+      Some(Either::B(opts)) => {
+        let enc = opts.enc.or(opts.encoding);
+        let alpha = opts.alphabet.or(alphabet);
+        (enc, alpha)
+      }
+      None => (None, alphabet),
+    };
+
+    let enc = match enc_opt {
       Some(e) => e,
       None => Self::get_default_encoding(),
     };
 
     match enc.to_lowercase().as_str() {
       "crockford" | "crockford_base32" | "base32" => {
-        let alpha = match alphabet {
+        let alpha = match custom_alpha {
           Some(a) => Some(a),
           None => DEFAULT_ALPHABET.lock().unwrap().clone(),
         };
@@ -339,7 +361,7 @@ impl Ksuid {
       "base62" => Ok(self.inner.to_string()),
       _ => Err(Error::new(
         Status::InvalidArg,
-        format!("Unsupported encoding: {}. Choose 'crockford' or 'base62'.", enc),
+        format!("Unsupported encoding: {}. Choose 'crockford', 'base32', or 'base62'.", enc),
       )),
     }
   }

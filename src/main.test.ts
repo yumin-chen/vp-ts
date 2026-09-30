@@ -1,6 +1,6 @@
 import { expect, test } from "vite-plus/test";
 import {
-  KsuidClient,
+  Ksuid,
   generateKsuid,
   getKsuidTime,
   encodeCrockford,
@@ -28,19 +28,19 @@ test("crockford encoding and custom alphabet shuffle", () => {
   expect(convertFromCrockford(crockford, customAlphabet)).toBe(ksuid);
 });
 
-test("KsuidClient class options and crockford encoding", () => {
-  const customAlphabet = "ZYXWVUTSRQPONMKJHGFEDCBA98765432";
-  const client = new KsuidClient({
-    encoding: "crockford",
+test("Ksuid class options and crockford encoding with shuffled alphabet", () => {
+  const customAlphabet = "FxnXM1kBN6cuhsAvjW3Co7l2RePyY8DwaU04Tzt9fHQrqSVKdpimLGIJOgb5ZE";
+  const client = new Ksuid({
     alphabet: customAlphabet,
+    encoding: "crockford",
   });
 
   const str = client.toString();
   expect(str.length).toBeGreaterThan(0);
 
-  const parsed = KsuidClient.parse(str, {
-    encoding: "crockford",
+  const parsed = Ksuid.parse(str, {
     alphabet: customAlphabet,
+    encoding: "crockford",
   });
 
   expect(parsed.toBase62()).toBe(client.toBase62());

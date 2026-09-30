@@ -1,18 +1,21 @@
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
-use svix_ksuid::{Ksuid, KsuidLike};
+use svix_ksuid::{Ksuid as SvixKsuid, KsuidLike};
 
 pub const DEFAULT_CROCKFORD_ALPHABET: &[u8; 32] = b"0123456789ABCDEFGHJKMNPQRSTVWXYZ";
 
 fn get_alphabet(custom: Option<String>) -> Result<(Vec<u8>, bool)> {
   match custom {
     Some(s) => {
-      let bytes = s.into_bytes();
-      if bytes.len() != 32 {
+      let mut bytes = s.into_bytes();
+      if bytes.len() < 32 {
         return Err(Error::new(
           Status::InvalidArg,
-          format!("Custom alphabet must be exactly 32 characters, got {}", bytes.len()),
+          format!("Custom alphabet must be at least 32 characters, got {}", bytes.len()),
         ));
+      }
+      if bytes.len() > 32 {
+        bytes.truncate(32);
       }
       Ok((bytes, false))
     }
@@ -29,16 +32,23 @@ fn normalize_char(c: char) -> char {
 }
 
 fn find_digit_index(c: char, alphabet: &[u8], is_standard: bool) -> Result<usize> {
-  let target = if is_standard {
-    normalize_char(c)
+  if is_standard {
+    let target = normalize_char(c);
+    alphabet
+      .iter()
+      .position(|&b| (b as char).to_ascii_uppercase() == target)
+      .ok_or_else(|| Error::new(Status::InvalidArg, format!("Invalid character in string: {}", c)))
   } else {
-    c.to_ascii_uppercase()
-  };
-
-  alphabet
-    .iter()
-    .position(|&b| (b as char).to_ascii_uppercase() == target)
-    .ok_or_else(|| Error::new(Status::InvalidArg, format!("Invalid character in string: {}", c)))
+    alphabet
+      .iter()
+      .position(|&b| (b as char) == c)
+      .or_else(|| {
+        alphabet
+          .iter()
+          .position(|&b| (b as char).to_ascii_uppercase() == c.to_ascii_uppercase())
+      })
+      .ok_or_else(|| Error::new(Status::InvalidArg, format!("Invalid character in string: {}", c)))
+  }
 }
 
 #[napi(object)]
@@ -52,14 +62,14 @@ pub struct KsuidOptions {
 }
 
 #[napi]
-pub struct KsuidClient {
+pub struct Ksuid {
   bytes: [u8; 20],
   encoding: String,
   custom_alphabet: Option<String>,
 }
 
 #[napi]
-impl KsuidClient {
+impl Ksuid {
   #[napi(constructor)]
   pub fn new(options: Option<KsuidOptions>) -> Result<Self> {
     let opts = options.unwrap_or_default();
@@ -94,13 +104,13 @@ impl KsuidClient {
         arr.copy_from_slice(slice);
         arr
       } else {
-        let ksuid = Ksuid::from_base62(&s).map_err(|e| {
+        let ksuid = SvixKsuid::from_base62(&s).map_err(|e| {
           Error::new(Status::InvalidArg, format!("Invalid Base62 KSUID string: {}", e))
         })?;
         *ksuid.bytes()
       }
     } else {
-      *Ksuid::new(None, None).bytes()
+      *SvixKsuid::new(None, None).bytes()
     };
 
     Ok(Self {
@@ -131,14 +141,14 @@ impl KsuidClient {
         .unwrap_or_else(|| String::from_utf8_lossy(DEFAULT_CROCKFORD_ALPHABET).to_string());
       encode_bytes_custom(Uint8Array::from(self.bytes.to_vec()), alpha)
     } else {
-      let ksuid = Ksuid::from_bytes(self.bytes);
+      let ksuid = SvixKsuid::from_bytes(self.bytes);
       Ok(ksuid.to_string())
     }
   }
 
   #[napi]
   pub fn to_base62(&self) -> String {
-    let ksuid = Ksuid::from_bytes(self.bytes);
+    let ksuid = SvixKsuid::from_bytes(self.bytes);
     ksuid.to_string()
   }
 
@@ -157,33 +167,33 @@ impl KsuidClient {
 
   #[napi]
   pub fn timestamp_seconds(&self) -> i64 {
-    let ksuid = Ksuid::from_bytes(self.bytes);
+    let ksuid = SvixKsuid::from_bytes(self.bytes);
     ksuid.timestamp_seconds()
   }
 }
 
 #[napi]
 pub fn new_ksuid() -> String {
-  Ksuid::new(None, None).to_string()
+  SvixKsuid::new(None, None).to_string()
 }
 
 #[napi]
 pub fn ksuid_from_base62(base62: String) -> Result<String> {
-  let ksuid = Ksuid::from_base62(&base62)
+  let ksuid = SvixKsuid::from_base62(&base62)
     .map_err(|e| Error::new(Status::InvalidArg, format!("Invalid KSUID base62 string: {}", e)))?;
   Ok(ksuid.to_string())
 }
 
 #[napi]
 pub fn ksuid_to_bytes(base62: String) -> Result<Uint8Array> {
-  let ksuid = Ksuid::from_base62(&base62)
+  let ksuid = SvixKsuid::from_base62(&base62)
     .map_err(|e| Error::new(Status::InvalidArg, format!("Invalid KSUID base62 string: {}", e)))?;
   Ok(Uint8Array::from(ksuid.bytes().to_vec()))
 }
 
 #[napi]
 pub fn ksuid_timestamp_seconds(base62: String) -> Result<i64> {
-  let ksuid = Ksuid::from_base62(&base62)
+  let ksuid = SvixKsuid::from_base62(&base62)
     .map_err(|e| Error::new(Status::InvalidArg, format!("Invalid KSUID base62 string: {}", e)))?;
   Ok(ksuid.timestamp_seconds())
 }
@@ -290,7 +300,7 @@ pub fn decode_bytes_custom(input: String, alphabet: String) -> Result<Uint8Array
 
 #[napi]
 pub fn ksuid_to_crockford(base62: String, custom_alphabet: Option<String>) -> Result<String> {
-  let ksuid = Ksuid::from_base62(&base62)
+  let ksuid = SvixKsuid::from_base62(&base62)
     .map_err(|e| Error::new(Status::InvalidArg, format!("Invalid KSUID base62 string: {}", e)))?;
   let bytes = Uint8Array::from(ksuid.bytes().to_vec());
   let alpha = custom_alphabet.unwrap_or_else(|| String::from_utf8_lossy(DEFAULT_CROCKFORD_ALPHABET).to_string());
@@ -307,6 +317,6 @@ pub fn ksuid_from_crockford(crockford: String, custom_alphabet: Option<String>) 
   }
   let mut array = [0u8; 20];
   array.copy_from_slice(data);
-  let ksuid = Ksuid::from_bytes(array);
+  let ksuid = SvixKsuid::from_bytes(array);
   Ok(ksuid.to_string())
 }

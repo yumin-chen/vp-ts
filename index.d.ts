@@ -9,10 +9,10 @@
  */
 export declare const __napiBindingTarget: 'native' | 'wasm32-wasi' | 'wasm32-wasip1'
 
-export declare class KsuidClient {
+export declare class Ksuid {
   constructor(options?: KsuidOptions | undefined | null)
-  static now(options?: KsuidOptions | undefined | null): KsuidClient
-  static parse(input: string, options?: KsuidOptions | undefined | null): KsuidClient
+  static now(options?: KsuidOptions | undefined | null): Ksuid
+  static parse(input: string, options?: KsuidOptions | undefined | null): Ksuid
   toString(): string
   toBase62(): string
   toCrockford(customAlphabet?: string | undefined | null): string

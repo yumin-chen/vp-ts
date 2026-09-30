@@ -3,7 +3,7 @@ const test = require('node:test')
 
 test('ksuid and crockford base32 functions', async () => {
   const {
-    KsuidClient,
+    Ksuid,
     newKsuid,
     ksuidFromBase62,
     ksuidToBytes,
@@ -39,7 +39,7 @@ test('ksuid and crockford base32 functions', async () => {
   assert.equal(crockfordDecode('4ZQ'), 5111)
 
   // Custom alphabet shuffle
-  const customAlphabet = 'ZYXWVUTSRQPONMKJHGFEDCBA98765432' // reversed alphabet
+  const customAlphabet = 'FxnXM1kBN6cuhsAvjW3Co7l2RePyY8DwaU04Tzt9fHQrqSVKdpimLGIJOgb5ZE'
   const encodedCustom = crockfordEncode(65535, customAlphabet)
   const decodedCustom = crockfordDecode(encodedCustom, customAlphabet)
   assert.equal(decodedCustom, 65535)
@@ -55,20 +55,20 @@ test('ksuid and crockford base32 functions', async () => {
   const restoredKsuid = ksuidFromCrockford(crockfordKsuid, customAlphabet)
   assert.equal(restoredKsuid, id)
 
-  // KsuidClient with constructor options & configurable toString()
-  const defaultClient = new KsuidClient()
+  // Ksuid with constructor options & custom alphabet
+  const defaultClient = new Ksuid()
   assert.equal(defaultClient.toString().length, 27)
 
-  const crockfordClient = new KsuidClient({
-    encoding: 'crockford',
+  const crockfordClient = new Ksuid({
     alphabet: customAlphabet,
+    encoding: 'crockford',
   })
   const crockfordString = crockfordClient.toString()
   assert.ok(crockfordString.length > 0)
 
-  const parsedClient = KsuidClient.parse(crockfordString, {
-    encoding: 'crockford',
+  const parsedClient = Ksuid.parse(crockfordString, {
     alphabet: customAlphabet,
+    encoding: 'crockford',
   })
   assert.equal(parsedClient.toBase62(), crockfordClient.toBase62())
 })

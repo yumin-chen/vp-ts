@@ -49,7 +49,6 @@ impl CrockfordBase32 {
     }
 
     if is_default {
-      // Map aliases for default Crockford Base32
       decode_map[b'o' as usize] = 0;
       decode_map[b'O' as usize] = 0;
       decode_map[b'i' as usize] = 1;
@@ -318,7 +317,6 @@ impl Ksuid {
     }
   }
 
-  /// Create a Ksuid from a Crockford Base32 string (using default or custom encoder).
   #[napi(factory)]
   pub fn from_crockford_base32(s: String, encoder: Option<&CrockfordBase32>) -> Result<Self> {
     let default_enc;
@@ -348,7 +346,6 @@ impl Ksuid {
     self.inner.to_base62()
   }
 
-  /// Encode this Ksuid as a Crockford Base32 string (using default or custom encoder).
   #[napi]
   pub fn to_crockford_base32(&self, encoder: Option<&CrockfordBase32>) -> String {
     let default_enc;
@@ -362,9 +359,20 @@ impl Ksuid {
     enc.encode_bytes(self.inner.bytes().as_slice())
   }
 
+  /// Convert Ksuid to string representation.
+  /// Accepts optional encoding ("base62", "crockfordBase32", "base32") and optional custom encoder.
   #[napi]
-  pub fn to_string(&self) -> String {
-    self.inner.to_string()
+  pub fn to_string(&self, encoding: Option<String>, encoder: Option<&CrockfordBase32>) -> Result<String> {
+    match encoding.as_deref() {
+      Some("crockfordBase32") | Some("crockford_base32") | Some("base32") => {
+        Ok(self.to_crockford_base32(encoder))
+      }
+      Some("base62") | None => Ok(self.inner.to_base62()),
+      Some(other) => Err(Error::new(
+        Status::InvalidArg,
+        format!("Unsupported encoding: '{}'. Expected 'base62' or 'crockfordBase32'", other),
+      )),
+    }
   }
 
   #[napi]
@@ -520,7 +528,6 @@ impl KsuidMs {
     }
   }
 
-  /// Create a KsuidMs from a Crockford Base32 string (using default or custom encoder).
   #[napi(factory)]
   pub fn from_crockford_base32(s: String, encoder: Option<&CrockfordBase32>) -> Result<Self> {
     let default_enc;
@@ -550,7 +557,6 @@ impl KsuidMs {
     self.inner.to_base62()
   }
 
-  /// Encode this KsuidMs as a Crockford Base32 string (using default or custom encoder).
   #[napi]
   pub fn to_crockford_base32(&self, encoder: Option<&CrockfordBase32>) -> String {
     let default_enc;
@@ -564,9 +570,20 @@ impl KsuidMs {
     enc.encode_bytes(self.inner.bytes().as_slice())
   }
 
+  /// Convert KsuidMs to string representation.
+  /// Accepts optional encoding ("base62", "crockfordBase32", "base32") and optional custom encoder.
   #[napi]
-  pub fn to_string(&self) -> String {
-    self.inner.to_string()
+  pub fn to_string(&self, encoding: Option<String>, encoder: Option<&CrockfordBase32>) -> Result<String> {
+    match encoding.as_deref() {
+      Some("crockfordBase32") | Some("crockford_base32") | Some("base32") => {
+        Ok(self.to_crockford_base32(encoder))
+      }
+      Some("base62") | None => Ok(self.inner.to_base62()),
+      Some(other) => Err(Error::new(
+        Status::InvalidArg,
+        format!("Unsupported encoding: '{}'. Expected 'base62' or 'crockfordBase32'", other),
+      )),
+    }
   }
 
   #[napi]

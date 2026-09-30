@@ -1,7 +1,15 @@
 import { expect, test } from "vite-plus/test";
-import { CrockfordBase32, Ksuid, KsuidMs, generateKsuid, generateKsuidMs } from "./main.ts";
+import {
+  CrockfordBase32,
+  Ksuid,
+  KsuidMs,
+  generateKsuid,
+  generateKsuidMs,
+  setDefaultEncoding,
+} from "./main.ts";
 
 test("Ksuid - creation and base62 conversion", () => {
+  setDefaultEncoding("base62");
   const ksuid = Ksuid.now();
   expect(ksuid.toBase62().length).toBe(27);
   expect(ksuid.toString()).toBe(ksuid.toBase62());
@@ -101,7 +109,31 @@ test("Ksuid - Crockford Base32 encoding & roundtrip", () => {
   expect(restoredCustom.equals(ksuid)).toBe(true);
 });
 
+test("Ksuid - configure toString to use Crockford Base32", () => {
+  const ksuid = Ksuid.now();
+  expect(ksuid.toString("crockfordBase32").length).toBe(32);
+
+  // Globally configure default encoding to crockfordBase32
+  setDefaultEncoding("crockfordBase32");
+  expect(ksuid.toString().length).toBe(32);
+  expect(generateKsuid().length).toBe(32);
+
+  // Configure with shuffled alphabet encoder
+  const customEncoder = CrockfordBase32.defaultEncoder().shuffle("app-seed");
+  setDefaultEncoding("crockfordBase32", customEncoder);
+  const c32Str = ksuid.toString();
+  expect(c32Str.length).toBe(32);
+
+  const restored = Ksuid.fromCrockfordBase32(c32Str, customEncoder);
+  expect(restored.equals(ksuid)).toBe(true);
+
+  // Reset default back to base62
+  setDefaultEncoding("base62");
+  expect(ksuid.toString().length).toBe(27);
+});
+
 test("Helper generator functions", () => {
+  setDefaultEncoding("base62");
   const str1 = generateKsuid();
   const str2 = generateKsuidMs();
   expect(typeof str1).toBe("string");

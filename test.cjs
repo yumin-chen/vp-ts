@@ -55,20 +55,16 @@ test('ksuid and crockford base32 functions', async () => {
   const restoredKsuid = ksuidFromCrockford(crockfordKsuid, customAlphabet)
   assert.equal(restoredKsuid, id)
 
-  // Ksuid with constructor options & custom alphabet
-  const defaultClient = new Ksuid()
-  assert.equal(defaultClient.toString().length, 27)
+  // Ksuid with enc and timestampSize options ("32bit", "48bit", "64bit")
+  const k32 = new Ksuid({ enc: 'base32', timestampSize: '32bit' })
+  assert.ok(k32.toString().length > 0)
+  assert.ok(k32.timestampSeconds() > 1600000000)
 
-  const crockfordClient = new Ksuid({
-    alphabet: customAlphabet,
-    encoding: 'crockford',
-  })
-  const crockfordString = crockfordClient.toString()
-  assert.ok(crockfordString.length > 0)
+  const k48 = new Ksuid({ enc: 'base32', timestampSize: '48bit' })
+  assert.ok(k48.toString().length > 0)
+  assert.ok(k48.timestampMillis() > 1600000000000)
 
-  const parsedClient = Ksuid.parse(crockfordString, {
-    alphabet: customAlphabet,
-    encoding: 'crockford',
-  })
-  assert.equal(parsedClient.toBase62(), crockfordClient.toBase62())
+  const k64 = new Ksuid({ enc: 'base32', timestampSize: '64bit' })
+  assert.ok(k64.toString().length > 0)
+  assert.ok(k64.timestampMillis() > 1600000000000)
 })

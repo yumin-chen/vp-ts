@@ -54,8 +54,10 @@ fn find_digit_index(c: char, alphabet: &[u8], is_standard: bool) -> Result<usize
 #[napi(object)]
 #[derive(Default)]
 pub struct KsuidOptions {
-  pub encoding: Option<String>, // "base62" or "crockford"
+  pub enc: Option<String>,
+  pub encoding: Option<String>,
   pub alphabet: Option<String>,
+  pub timestamp_size: Option<String>,
   pub bytes: Option<Uint8Array>,
   pub string: Option<String>,
   pub timestamp: Option<i64>,
@@ -65,6 +67,7 @@ pub struct KsuidOptions {
 pub struct Ksuid {
   bytes: [u8; 20],
   encoding: String,
+  timestamp_size: String,
   custom_alphabet: Option<String>,
 }
 
@@ -73,7 +76,11 @@ impl Ksuid {
   #[napi(constructor)]
   pub fn new(options: Option<KsuidOptions>) -> Result<Self> {
     let opts = options.unwrap_or_default();
-    let encoding = opts.encoding.unwrap_or_else(|| "base62".to_string());
+    let encoding = opts
+      .enc
+      .or(opts.encoding)
+      .unwrap_or_else(|| "base62".to_string());
+    let ts_size = opts.timestamp_size.unwrap_or_else(|| "32bit".to_string());
     let custom_alphabet = opts.alphabet;
 
     let ksuid_bytes = if let Some(b) = opts.bytes {
@@ -110,12 +117,53 @@ impl Ksuid {
         *ksuid.bytes()
       }
     } else {
-      *SvixKsuid::new(None, None).bytes()
+      let mut arr = [0u8; 20];
+      let random_ksuid = SvixKsuid::new(None, None);
+      let rand_bytes = random_ksuid.bytes();
+
+      match ts_size.as_str() {
+        "48bit" => {
+          let ms = opts.timestamp.map(|t| t as u64).unwrap_or_else(|| {
+            std::time::SystemTime::now()
+              .duration_since(std::time::UNIX_EPOCH)
+              .unwrap_or_default()
+              .as_millis() as u64
+          });
+          arr[0] = (ms >> 40) as u8;
+          arr[1] = (ms >> 32) as u8;
+          arr[2] = (ms >> 24) as u8;
+          arr[3] = (ms >> 16) as u8;
+          arr[4] = (ms >> 8) as u8;
+          arr[5] = ms as u8;
+          arr[6..20].copy_from_slice(&rand_bytes[6..20]);
+        }
+        "64bit" => {
+          let ms = opts.timestamp.map(|t| t as u64).unwrap_or_else(|| {
+            std::time::SystemTime::now()
+              .duration_since(std::time::UNIX_EPOCH)
+              .unwrap_or_default()
+              .as_millis() as u64
+          });
+          arr[0..8].copy_from_slice(&ms.to_be_bytes());
+          arr[8..20].copy_from_slice(&rand_bytes[8..20]);
+        }
+        _ => {
+          if let Some(ts) = opts.timestamp {
+            let secs = ts as u32;
+            arr[0..4].copy_from_slice(&secs.to_be_bytes());
+            arr[4..20].copy_from_slice(&rand_bytes[4..20]);
+          } else {
+            arr.copy_from_slice(rand_bytes);
+          }
+        }
+      }
+      arr
     };
 
     Ok(Self {
       bytes: ksuid_bytes,
       encoding,
+      timestamp_size: ts_size,
       custom_alphabet,
     })
   }
@@ -167,8 +215,39 @@ impl Ksuid {
 
   #[napi]
   pub fn timestamp_seconds(&self) -> i64 {
-    let ksuid = SvixKsuid::from_bytes(self.bytes);
-    ksuid.timestamp_seconds()
+    match self.timestamp_size.as_str() {
+      "48bit" | "64bit" => self.timestamp_millis() / 1000,
+      _ => SvixKsuid::from_bytes(self.bytes).timestamp_seconds(),
+    }
+  }
+
+  #[napi]
+  pub fn timestamp_millis(&self) -> i64 {
+    match self.timestamp_size.as_str() {
+      "48bit" => {
+        let ms = ((self.bytes[0] as u64) << 40)
+          | ((self.bytes[1] as u64) << 32)
+          | ((self.bytes[2] as u64) << 24)
+          | ((self.bytes[3] as u64) << 16)
+          | ((self.bytes[4] as u64) << 8)
+          | (self.bytes[5] as u64);
+        ms as i64
+      }
+      "64bit" => {
+        let ms = u64::from_be_bytes([
+          self.bytes[0],
+          self.bytes[1],
+          self.bytes[2],
+          self.bytes[3],
+          self.bytes[4],
+          self.bytes[5],
+          self.bytes[6],
+          self.bytes[7],
+        ]);
+        ms as i64
+      }
+      _ => (SvixKsuid::from_bytes(self.bytes).timestamp_seconds() as i64) * 1000,
+    }
   }
 }
 

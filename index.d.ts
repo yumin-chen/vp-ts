@@ -18,6 +18,7 @@ export declare class Ksuid {
   toCrockford(customAlphabet?: string | undefined | null): string
   bytes(): Uint8Array
   timestampSeconds(): number
+  timestampMillis(): number
 }
 
 export declare function crockfordDecode(input: string, customAlphabet?: string | undefined | null): number
@@ -33,8 +34,10 @@ export declare function ksuidFromBase62(base62: string): string
 export declare function ksuidFromCrockford(crockford: string, customAlphabet?: string | undefined | null): string
 
 export interface KsuidOptions {
+  enc?: string
   encoding?: string
   alphabet?: string
+  timestampSize?: string
   bytes?: Uint8Array
   string?: string
   timestamp?: number

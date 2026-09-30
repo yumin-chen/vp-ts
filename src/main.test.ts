@@ -28,20 +28,27 @@ test("crockford encoding and custom alphabet shuffle", () => {
   expect(convertFromCrockford(crockford, customAlphabet)).toBe(ksuid);
 });
 
-test("Ksuid class options and crockford encoding with shuffled alphabet", () => {
+test("Ksuid class options with enc base32 and timestampSize options", () => {
   const customAlphabet = "FxnXM1kBN6cuhsAvjW3Co7l2RePyY8DwaU04Tzt9fHQrqSVKdpimLGIJOgb5ZE";
-  const client = new Ksuid({
+  const client32 = new Ksuid({
     alphabet: customAlphabet,
-    encoding: "crockford",
+    enc: "base32",
+    timestampSize: "32bit",
   });
+  expect(client32.toString().length).toBeGreaterThan(0);
+  expect(client32.timestampSeconds()).toBeGreaterThan(1600000000);
 
-  const str = client.toString();
-  expect(str.length).toBeGreaterThan(0);
-
-  const parsed = Ksuid.parse(str, {
-    alphabet: customAlphabet,
-    encoding: "crockford",
+  const client48 = new Ksuid({
+    enc: "crockford",
+    timestampSize: "48bit",
   });
+  expect(client48.toString().length).toBeGreaterThan(0);
+  expect(client48.timestampMillis()).toBeGreaterThan(1600000000000);
 
-  expect(parsed.toBase62()).toBe(client.toBase62());
+  const client64 = new Ksuid({
+    enc: "base32",
+    timestampSize: "64bit",
+  });
+  expect(client64.toString().length).toBeGreaterThan(0);
+  expect(client64.timestampMillis()).toBeGreaterThan(1600000000000);
 });

@@ -3,6 +3,9 @@ build
 out
 dist
 target
+*.node
+index.js
+index.d.ts
 
 # dependencies
 vendor

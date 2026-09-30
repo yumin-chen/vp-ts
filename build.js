@@ -1,4 +1,6 @@
 import { NapiCli } from "@napi-rs/cli";
+import fs from "node:fs";
+import path from "node:path";
 
 async function run() {
   const args = process.argv.slice(2);
@@ -19,7 +21,14 @@ async function run() {
     useNapiCross,
     crossCompile,
     useCross,
+    outputDir: "build",
   });
+
+  if (fs.existsSync("build")) {
+    for (const file of fs.readdirSync("build")) {
+      fs.copyFileSync(path.join("build", file), path.join(".", file));
+    }
+  }
 }
 
 void run().catch((err) => {

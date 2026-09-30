@@ -1,7 +1,5 @@
-import console from "node:console";
+import { nanoid } from "../index.js";
 
 export const main = () => {
-  return "Hello, world!";
+  return nanoid();
 };
-
-console.log(main());

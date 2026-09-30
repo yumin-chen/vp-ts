@@ -9,4 +9,61 @@
  */
 export declare const __napiBindingTarget: 'native' | 'wasm32-wasi' | 'wasm32-wasip1'
 
-export declare function add(left: number, right: number): number
+export declare class Ksuid {
+  /**
+   * Create a new Ksuid.
+   * If no arguments are passed, generates a new KSUID with current timestamp and random payload.
+   * If a string is passed, parses it as a Base62 KSUID string.
+   * If a Uint8Array or Buffer is passed, creates KSUID from 20 raw bytes.
+   */
+  constructor(value?: string | Uint8Array | undefined | null)
+  /** Generates a new KSUID with current timestamp and optional payload. */
+  static now(payload?: Uint8Array | undefined | null): Ksuid
+  /** Create a KSUID from optional timestamp (seconds or ISO string) and optional payload. */
+  static new(timestamp?: number | string | undefined | null, payload?: Uint8Array | undefined | null): Ksuid
+  /** Parses a KSUID from a Base62 string. */
+  static fromBase62(base62: string): Ksuid
+  /** Parses a KSUID from a Base62 string (alias for `fromBase62`). */
+  static fromString(s: string): Ksuid
+  /** Create a KSUID from 20 raw bytes. */
+  static fromBytes(bytes: Uint8Array): Ksuid
+  /** Create a KSUID from seconds timestamp and optional payload. */
+  static fromSeconds(seconds?: number | undefined | null, payload?: Uint8Array | undefined | null): Ksuid
+  /** Convert KSUID to Base62 string. */
+  toBase62(): string
+  /** Convert KSUID to string (Base62 representation). */
+  toString(): string
+  /** Returns the raw 20 bytes of the KSUID as a Uint8Array. */
+  bytes(): Uint8Array
+  /** Returns the 16-byte payload of the KSUID as a Uint8Array. */
+  payload(): Uint8Array
+  /** Returns the timestamp in seconds since Unix epoch. */
+  timestampSeconds(): number
+  /** Returns the timestamp as an ISO string. */
+  timestampIso(): string
+  /** Compare two KSUIDs. Returns -1 if self < other, 0 if self == other, 1 if self > other. */
+  compare(other: Ksuid): number
+  /** Check equality with another KSUID. */
+  equals(other: Ksuid): boolean
+}
+
+export declare class KsuidMs {
+  /** Create a new KsuidMs. */
+  constructor(value?: string | Uint8Array | undefined | null)
+  static now(payload?: Uint8Array | undefined | null): KsuidMs
+  static new(timestamp?: number | string | undefined | null, payload?: Uint8Array | undefined | null): KsuidMs
+  static fromBase62(base62: string): KsuidMs
+  static fromString(s: string): KsuidMs
+  static fromBytes(bytes: Uint8Array): KsuidMs
+  static fromSeconds(seconds?: number | undefined | null, payload?: Uint8Array | undefined | null): KsuidMs
+  static fromMilliseconds(millis?: number | undefined | null, payload?: Uint8Array | undefined | null): KsuidMs
+  toBase62(): string
+  toString(): string
+  bytes(): Uint8Array
+  payload(): Uint8Array
+  timestampSeconds(): number
+  timestampMilliseconds(): number
+  timestampIso(): string
+  compare(other: KsuidMs): number
+  equals(other: KsuidMs): boolean
+}

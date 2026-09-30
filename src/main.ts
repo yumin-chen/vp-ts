@@ -1,8 +1,25 @@
-import console from "node:console";
-import { add } from "../index.js";
+import { Ksuid as NativeKsuid, KsuidMs as NativeKsuidMs } from "../index.js";
 
-export const main = () => {
-  return `Hello, world! 2 + 3 = ${add(2, 3)}`;
+export const Ksuid = NativeKsuid as typeof NativeKsuid & {
+  PAYLOAD_BYTES: number;
+  BYTE_SIZE: number;
 };
+Ksuid.PAYLOAD_BYTES = 16;
+Ksuid.BYTE_SIZE = 20;
 
-console.log(main());
+export const KsuidMs = NativeKsuidMs as typeof NativeKsuidMs & {
+  PAYLOAD_BYTES: number;
+  BYTE_SIZE: number;
+};
+KsuidMs.PAYLOAD_BYTES = 12;
+KsuidMs.BYTE_SIZE = 20;
+
+export function generateKsuid(payload?: Uint8Array): string {
+  return Ksuid.now(payload).toBase62();
+}
+
+export function generateKsuidMs(payload?: Uint8Array): string {
+  return KsuidMs.now(payload).toBase62();
+}
+
+export default Ksuid;

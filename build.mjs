@@ -1,4 +1,16 @@
-import { NapiCli } from '@napi-rs/cli'
+import fs from 'node:fs'
+import path from 'node:path'
+
+// Redirect staging directory before importing @napi-rs/cli
+const origMkdtemp = fs.promises.mkdtemp
+fs.promises.mkdtemp = function (prefix, options) {
+  if (typeof prefix === 'string' && prefix.startsWith('/.')) {
+    prefix = path.join('/tmp', path.basename(prefix))
+  }
+  return origMkdtemp.call(this, prefix, options)
+}
+
+const { NapiCli } = await import('@napi-rs/cli')
 
 export async function build(options = {}) {
   const cli = new NapiCli()

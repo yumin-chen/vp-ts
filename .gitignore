@@ -1,3 +1,17 @@
-target/
-node_modules/
+# compiled output files and executables
+build
+out
+dist
+target
 *.node
+.*.tmp
+.*.napi-stage*
+.napi-rs*
+
+# dependencies
+vendor
+node_modules
+
+# log files
+logs
+*.log

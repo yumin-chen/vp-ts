@@ -716,7 +716,8 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`)
 }
 
-const { Ksuid, shuffleAlphabet } = nativeBinding
+const { Ksuid, KsuidMs, shuffleAlphabet } = nativeBinding
 export { Ksuid }
+export { KsuidMs }
 export { shuffleAlphabet }
 export const __napiBindingTarget = __napiLoadedBindingTarget

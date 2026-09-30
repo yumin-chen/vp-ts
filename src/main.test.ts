@@ -1,5 +1,5 @@
 import { expect, test } from "vite-plus/test";
-import { Ksuid, shuffleAlphabet } from "../index.js";
+import { Ksuid, KsuidMs, shuffleAlphabet } from "../index.js";
 
 test("Ksuid now and formatting", () => {
   Ksuid.setDefaultEncoding("base62");
@@ -9,6 +9,19 @@ test("Ksuid now and formatting", () => {
   expect(ksuid.bytes().length).toBe(20);
   expect(ksuid.payloadBytes().length).toBe(16);
   expect(ksuid.timestampSeconds()).toBeGreaterThan(1600000000);
+  expect(ksuid.timestampMs()).toBe(ksuid.timestampSeconds() * 1000);
+});
+
+test("KsuidMs 48-bit millisecond resolution timestamp precision", () => {
+  const ksuidMs = KsuidMs.now();
+  const tsMs = ksuidMs.timestampMs();
+  expect(tsMs).toBeGreaterThan(1600000000000);
+  expect(ksuidMs.bytes().length).toBe(20);
+
+  const base62Str = ksuidMs.toString();
+  const parsed = KsuidMs.fromBase62(base62Str);
+  expect(parsed.timestampMs()).toBe(tsMs);
+  expect(parsed.equals(ksuidMs)).toBe(true);
 });
 
 test("Ksuid creation with explicit payload and timestamp", () => {

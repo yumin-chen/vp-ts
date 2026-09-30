@@ -2,7 +2,7 @@ use napi::bindgen_prelude::*;
 use napi_derive::napi;
 use std::sync::atomic::{AtomicU8, Ordering};
 use std::sync::Mutex;
-use svix_ksuid::{Ksuid as InnerKsuid, KsuidLike};
+use svix_ksuid::{Ksuid as InnerKsuid, KsuidLike, KsuidMs as InnerKsuidMs};
 
 const DEFAULT_CROCKFORD_ALPHABET: &[u8; 32] = b"0123456789ABCDEFGHJKMNPQRSTVWXYZ";
 
@@ -15,6 +15,14 @@ pub struct ToStringOptions {
   pub enc: Option<String>,
   pub encoding: Option<String>,
   pub alphabet: Option<String>,
+}
+
+#[napi(object)]
+#[derive(Default)]
+pub struct CreateOptions {
+  pub timestamp: Option<i64>,
+  pub payload: Option<Uint8Array>,
+  pub timestamp_precision: Option<String>,
 }
 
 fn get_5bit(bytes: &[u8; 20], chunk: usize) -> u8 {
@@ -261,13 +269,7 @@ impl Ksuid {
     let inner = match (timestamp, payload_bytes) {
       (Some(ts), Some(p)) => InnerKsuid::from_seconds(Some(ts), Some(&p)),
       (Some(ts), None) => InnerKsuid::from_seconds(Some(ts), None),
-      (None, Some(p)) => InnerKsuid::new_raw(
-        std::time::SystemTime::now()
-          .duration_since(std::time::UNIX_EPOCH)
-          .map_err(|e| Error::new(Status::GenericFailure, e.to_string()))?
-          .as_secs() as u32,
-        Some(&p),
-      ),
+      (None, Some(p)) => InnerKsuid::from_seconds(None, Some(&p)),
       (None, None) => InnerKsuid::from_seconds(None, None),
     };
 
@@ -396,6 +398,12 @@ impl Ksuid {
     self.inner.timestamp_seconds()
   }
 
+  /// Timestamp in milliseconds since UNIX epoch.
+  #[napi]
+  pub fn timestamp_ms(&self) -> i64 {
+    self.inner.timestamp_seconds() * 1000
+  }
+
   /// Compare two Ksuids: returns -1 if self < other, 0 if equal, 1 if self > other.
   #[napi]
   pub fn compare_to(&self, other: &Ksuid) -> i32 {
@@ -409,6 +417,180 @@ impl Ksuid {
   /// Check equality with another Ksuid instance.
   #[napi]
   pub fn equals(&self, other: &Ksuid) -> bool {
+    self.inner == other.inner
+  }
+}
+
+/// KsuidMs: 48-bit timestamp resolution (milliseconds since epoch) + 14-byte payload.
+#[napi]
+pub struct KsuidMs {
+  inner: InnerKsuidMs,
+}
+
+#[napi]
+impl KsuidMs {
+  /// Create a new KsuidMs with an optional timestamp (in milliseconds since UNIX epoch) and optional 14-byte payload.
+  #[napi(constructor)]
+  pub fn new(timestamp_ms: Option<i64>, payload: Option<Uint8Array>) -> Result<Self> {
+    let payload_bytes = match payload {
+      Some(arr) => {
+        let slice: &[u8] = arr.as_ref();
+        if slice.len() != InnerKsuidMs::PAYLOAD_BYTES {
+          return Err(Error::new(
+            Status::InvalidArg,
+            format!(
+              "Payload for KsuidMs must be exactly {} bytes long, got {}",
+              InnerKsuidMs::PAYLOAD_BYTES,
+              slice.len()
+            ),
+          ));
+        }
+        let mut bytes = [0u8; InnerKsuidMs::PAYLOAD_BYTES];
+        bytes.copy_from_slice(slice);
+        Some(bytes)
+      }
+      None => None,
+    };
+
+    let inner = match (timestamp_ms, payload_bytes) {
+      (Some(ts), Some(p)) => InnerKsuidMs::from_millis(Some(ts), Some(&p)),
+      (Some(ts), None) => InnerKsuidMs::from_millis(Some(ts), None),
+      (None, Some(p)) => InnerKsuidMs::from_millis(None, Some(&p)),
+      (None, None) => InnerKsuidMs::from_millis(None, None),
+    };
+
+    Ok(KsuidMs { inner })
+  }
+
+  /// Timestamp is now in milliseconds, payload is randomly generated or provided.
+  #[napi(factory)]
+  pub fn now(payload: Option<Uint8Array>) -> Result<Self> {
+    Self::new(None, payload)
+  }
+
+  /// Create KsuidMs from base62 string.
+  #[napi(factory)]
+  pub fn from_base62(base62: String) -> Result<Self> {
+    let inner = InnerKsuidMs::from_base62(&base62).map_err(|e| {
+      Error::new(
+        Status::InvalidArg,
+        format!("Invalid base62 KSUID-MS string: {}", e),
+      )
+    })?;
+    Ok(KsuidMs { inner })
+  }
+
+  /// Create KsuidMs from 20 raw bytes.
+  #[napi(factory)]
+  pub fn from_bytes(bytes: Uint8Array) -> Result<Self> {
+    let slice: &[u8] = bytes.as_ref();
+    if slice.len() != 20 {
+      return Err(Error::new(
+        Status::InvalidArg,
+        format!("KSUID-MS bytes must be exactly 20 bytes long, got {}", slice.len()),
+      ));
+    }
+    let mut arr = [0u8; 20];
+    arr.copy_from_slice(slice);
+    let inner = InnerKsuidMs::from_bytes(arr);
+    Ok(KsuidMs { inner })
+  }
+
+  /// Create a KsuidMs from Crockford Base32 encoded string with optional custom alphabet.
+  #[napi(factory)]
+  pub fn from_crockford_base32(str: String, alphabet: Option<String>) -> Result<Self> {
+    let raw_bytes = decode_crockford(&str, alphabet.as_deref())?;
+    let inner = InnerKsuidMs::from_bytes(raw_bytes);
+    Ok(KsuidMs { inner })
+  }
+
+  /// Base62 string representation.
+  #[napi]
+  pub fn to_string(
+    &self,
+    options: Option<Either<String, ToStringOptions>>,
+    alphabet: Option<String>,
+  ) -> Result<String> {
+    let (enc_opt, custom_alpha) = match options {
+      Some(Either::A(enc_str)) => (Some(enc_str), alphabet),
+      Some(Either::B(opts)) => {
+        let enc = opts.enc.or(opts.encoding);
+        let alpha = opts.alphabet.or(alphabet);
+        (enc, alpha)
+      }
+      None => (None, alphabet),
+    };
+
+    let enc = match enc_opt {
+      Some(e) => e,
+      None => Ksuid::get_default_encoding(),
+    };
+
+    match enc.to_lowercase().as_str() {
+      "crockford" | "crockford_base32" | "base32" => {
+        let alpha = match custom_alpha {
+          Some(a) => Some(a),
+          None => DEFAULT_ALPHABET.lock().unwrap().clone(),
+        };
+        self.to_crockford_base32(alpha)
+      }
+      "base62" => Ok(self.inner.to_string()),
+      _ => Err(Error::new(
+        Status::InvalidArg,
+        format!("Unsupported encoding: {}. Choose 'crockford', 'base32', or 'base62'.", enc),
+      )),
+    }
+  }
+
+  /// Base62 string representation.
+  #[napi]
+  pub fn to_base62(&self) -> String {
+    self.inner.to_base62()
+  }
+
+  /// Encode KsuidMs to Crockford Base32 string with optional custom 32-character alphabet.
+  #[napi]
+  pub fn to_crockford_base32(&self, alphabet: Option<String>) -> Result<String> {
+    encode_crockford(self.inner.bytes(), alphabet.as_deref())
+  }
+
+  /// 20-byte slice representing the KsuidMs.
+  #[napi]
+  pub fn bytes(&self) -> Uint8Array {
+    Uint8Array::from(&self.inner.bytes()[..])
+  }
+
+  /// 14-byte payload portion of the KsuidMs.
+  #[napi]
+  pub fn payload_bytes(&self) -> Uint8Array {
+    Uint8Array::from(self.inner.payload())
+  }
+
+  /// Timestamp in milliseconds since UNIX epoch.
+  #[napi]
+  pub fn timestamp_ms(&self) -> i64 {
+    self.inner.timestamp_millis()
+  }
+
+  /// Timestamp in seconds since UNIX epoch.
+  #[napi]
+  pub fn timestamp_seconds(&self) -> i64 {
+    self.inner.timestamp_millis() / 1000
+  }
+
+  /// Compare two KsuidMs: returns -1 if self < other, 0 if equal, 1 if self > other.
+  #[napi]
+  pub fn compare_to(&self, other: &KsuidMs) -> i32 {
+    match self.inner.cmp(&other.inner) {
+      std::cmp::Ordering::Less => -1,
+      std::cmp::Ordering::Equal => 0,
+      std::cmp::Ordering::Greater => 1,
+    }
+  }
+
+  /// Check equality with another KsuidMs instance.
+  #[napi]
+  pub fn equals(&self, other: &KsuidMs) -> bool {
     self.inner == other.inner
   }
 }

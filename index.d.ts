@@ -40,10 +40,50 @@ export declare class Ksuid {
   payloadBytes(): Uint8Array
   /** Timestamp in seconds since UNIX epoch. */
   timestampSeconds(): number
+  /** Timestamp in milliseconds since UNIX epoch. */
+  timestampMs(): number
   /** Compare two Ksuids: returns -1 if self < other, 0 if equal, 1 if self > other. */
   compareTo(other: Ksuid): number
   /** Check equality with another Ksuid instance. */
   equals(other: Ksuid): boolean
+}
+
+/** KsuidMs: 48-bit timestamp resolution (milliseconds since epoch) + 14-byte payload. */
+export declare class KsuidMs {
+  /** Create a new KsuidMs with an optional timestamp (in milliseconds since UNIX epoch) and optional 14-byte payload. */
+  constructor(timestampMs?: number | undefined | null, payload?: Uint8Array | undefined | null)
+  /** Timestamp is now in milliseconds, payload is randomly generated or provided. */
+  static now(payload?: Uint8Array | undefined | null): KsuidMs
+  /** Create KsuidMs from base62 string. */
+  static fromBase62(base62: string): KsuidMs
+  /** Create KsuidMs from 20 raw bytes. */
+  static fromBytes(bytes: Uint8Array): KsuidMs
+  /** Create a KsuidMs from Crockford Base32 encoded string with optional custom alphabet. */
+  static fromCrockfordBase32(str: string, alphabet?: string | undefined | null): KsuidMs
+  /** Base62 string representation. */
+  toString(options?: string | ToStringOptions | undefined | null, alphabet?: string | undefined | null): string
+  /** Base62 string representation. */
+  toBase62(): string
+  /** Encode KsuidMs to Crockford Base32 string with optional custom 32-character alphabet. */
+  toCrockfordBase32(alphabet?: string | undefined | null): string
+  /** 20-byte slice representing the KsuidMs. */
+  bytes(): Uint8Array
+  /** 14-byte payload portion of the KsuidMs. */
+  payloadBytes(): Uint8Array
+  /** Timestamp in milliseconds since UNIX epoch. */
+  timestampMs(): number
+  /** Timestamp in seconds since UNIX epoch. */
+  timestampSeconds(): number
+  /** Compare two KsuidMs: returns -1 if self < other, 0 if equal, 1 if self > other. */
+  compareTo(other: KsuidMs): number
+  /** Check equality with another KsuidMs instance. */
+  equals(other: KsuidMs): boolean
+}
+
+export interface CreateOptions {
+  timestamp?: number
+  payload?: Uint8Array
+  timestampPrecision?: string
 }
 
 /** Utility function to shuffle an alphabet deterministically with an optional seed (or randomly if no seed is provided). */

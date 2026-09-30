@@ -1,12 +1,11 @@
 # compiled output files and executables
-build
-out
-dist
-target
+target/
+*.node
+index.js
+index.d.ts
 
 # dependencies
-vendor
-node_modules
+node_modules/
 
 # log files
 logs

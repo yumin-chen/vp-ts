@@ -9,4 +9,31 @@
  */
 export declare const __napiBindingTarget: 'native' | 'wasm32-wasi' | 'wasm32-wasip1'
 
-export declare function add(left: number, right: number): number
+export declare class Ksuid {
+  /** Create a new Ksuid with an optional timestamp (in seconds since UNIX epoch) and optional 16-byte payload. */
+  constructor(timestamp?: number | undefined | null, payload?: Uint8Array | undefined | null)
+  /** Timestamp is now, payload is randomly generated or provided. */
+  static now(payload?: Uint8Array | undefined | null): Ksuid
+  /** Create a Ksuid from base62 string representation. */
+  static fromBase62(base62: string): Ksuid
+  /** Alias for from_base62 / FromStr logic. */
+  static fromStr(s: string): Ksuid
+  /** Create a Ksuid from 20 raw bytes. */
+  static fromBytes(bytes: Uint8Array): Ksuid
+  /** Explicitly create Ksuid from timestamp seconds and optional payload. */
+  static fromSeconds(seconds?: number | undefined | null, payload?: Uint8Array | undefined | null): Ksuid
+  /** Base62 string representation. */
+  toString(): string
+  /** Base62 string representation (explicit alias). */
+  toBase62(): string
+  /** 20-byte slice representing the Ksuid. */
+  bytes(): Uint8Array
+  /** 16-byte payload portion of the Ksuid. */
+  payloadBytes(): Uint8Array
+  /** Timestamp in seconds since UNIX epoch. */
+  timestampSeconds(): number
+  /** Compare two Ksuids: returns -1 if self < other, 0 if equal, 1 if self > other. */
+  compareTo(other: Ksuid): number
+  /** Check equality with another Ksuid instance. */
+  equals(other: Ksuid): boolean
+}

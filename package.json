@@ -1,5 +1,5 @@
 {
-  "name": "@lib/addon",
+  "name": "@lib/ksuid",
   "version": "0.0.0",
   "types": "index.d.ts",
   "type": "module",
@@ -17,7 +17,7 @@
     "prepare": "vp config"
   },
   "napi": {
-    "binaryName": "my-addon",
+    "binaryName": "ksuid",
     "targets": [
       "x86_64-apple-darwin",
       "aarch64-apple-darwin",

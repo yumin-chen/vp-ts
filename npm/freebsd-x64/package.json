@@ -1,12 +1,12 @@
 {
-  "name": "my-addon-freebsd-x64",
+  "name": "@lib/ksuid-freebsd-x64",
   "version": "0.1.0",
   "cpu": [
     "x64"
   ],
-  "main": "my-addon.freebsd-x64.node",
+  "main": "ksuid.freebsd-x64.node",
   "files": [
-    "my-addon.freebsd-x64.node"
+    "ksuid.freebsd-x64.node"
   ],
   "os": [
     "freebsd"

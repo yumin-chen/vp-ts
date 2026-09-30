@@ -1,11 +1,13 @@
 import { NapiCli } from '@napi-rs/cli'
 
+import { resolve } from 'node:path'
+
 export async function build(options = {}) {
   const cli = new NapiCli()
   return await cli.build({
     platform: true,
     esm: true,
-    outputDir: '.',
+    outputDir: 'build',
     ...options,
   })
 }

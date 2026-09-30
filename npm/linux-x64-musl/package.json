@@ -1,12 +1,12 @@
 {
-  "name": "my-addon-linux-x64-musl",
+  "name": "@lib/ksuid-linux-x64-musl",
   "version": "0.1.0",
   "cpu": [
     "x64"
   ],
-  "main": "my-addon.linux-x64-musl.node",
+  "main": "ksuid.linux-x64-musl.node",
   "files": [
-    "my-addon.linux-x64-musl.node"
+    "ksuid.linux-x64-musl.node"
   ],
   "os": [
     "linux"

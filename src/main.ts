@@ -1,8 +1,9 @@
 import console from "node:console";
-import { add } from "../index.js";
+import { Ksuid } from "../index.js";
 
 export const main = () => {
-  return `Hello, world! 2 + 3 = ${add(2, 3)}`;
+  const ksuid = Ksuid.now();
+  return `Ksuid generated: ${ksuid.toString()}`;
 };
 
 console.log(main());

@@ -1,12 +1,12 @@
 {
-  "name": "my-addon-linux-arm64-gnu",
+  "name": "@lib/ksuid-linux-arm64-gnu",
   "version": "0.1.0",
   "cpu": [
     "arm64"
   ],
-  "main": "my-addon.linux-arm64-gnu.node",
+  "main": "ksuid.linux-arm64-gnu.node",
   "files": [
-    "my-addon.linux-arm64-gnu.node"
+    "ksuid.linux-arm64-gnu.node"
   ],
   "os": [
     "linux"

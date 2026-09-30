@@ -1,0 +1,24 @@
+{
+  "name": "@lib/ksuid-wasm32-wasi",
+  "version": "0.1.0",
+  "main": "ksuid.wasi.cjs",
+  "files": [
+    "ksuid.wasm32-wasi.wasm",
+    "ksuid.wasi.cjs",
+    "ksuid.wasi.d.cts",
+    "ksuid.wasi-browser.js",
+    "wasi-worker.mjs",
+    "wasi-worker-browser.mjs"
+  ],
+  "engines": {
+    "node": "^20.19.0 || ^22.13.0 || >=23.5.0"
+  },
+  "types": "ksuid.wasi.d.cts",
+  "browser": "ksuid.wasi-browser.js",
+  "type": "module",
+  "dependencies": {
+    "@napi-rs/wasm-runtime": "~1.2.4",
+    "@emnapi/core": "1.11.3",
+    "@emnapi/runtime": "1.11.3"
+  }
+}

@@ -2,7 +2,12 @@
 build
 out
 dist
+dist-test
 target
+*.node
+.*.tmp
+.*.napi-stage*
+.napi-rs*
 
 # dependencies
 vendor

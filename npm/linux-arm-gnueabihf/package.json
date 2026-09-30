@@ -1,0 +1,14 @@
+{
+  "name": "@lib/ksuid-linux-arm-gnueabihf",
+  "version": "0.1.0",
+  "cpu": [
+    "arm"
+  ],
+  "main": "ksuid.linux-arm-gnueabihf.node",
+  "files": [
+    "ksuid.linux-arm-gnueabihf.node"
+  ],
+  "os": [
+    "linux"
+  ]
+}

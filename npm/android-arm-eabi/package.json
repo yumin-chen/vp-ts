@@ -1,0 +1,14 @@
+{
+  "name": "@lib/ksuid-android-arm-eabi",
+  "version": "0.1.0",
+  "cpu": [
+    "arm"
+  ],
+  "main": "ksuid.android-arm-eabi.node",
+  "files": [
+    "ksuid.android-arm-eabi.node"
+  ],
+  "os": [
+    "android"
+  ]
+}

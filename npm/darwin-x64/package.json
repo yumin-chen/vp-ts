@@ -1,0 +1,14 @@
+{
+  "name": "@lib/ksuid-darwin-x64",
+  "version": "0.1.0",
+  "cpu": [
+    "x64"
+  ],
+  "main": "ksuid.darwin-x64.node",
+  "files": [
+    "ksuid.darwin-x64.node"
+  ],
+  "os": [
+    "darwin"
+  ]
+}

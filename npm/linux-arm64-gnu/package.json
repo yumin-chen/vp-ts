@@ -1,0 +1,17 @@
+{
+  "name": "@lib/ksuid-linux-arm64-gnu",
+  "version": "0.1.0",
+  "cpu": [
+    "arm64"
+  ],
+  "main": "ksuid.linux-arm64-gnu.node",
+  "files": [
+    "ksuid.linux-arm64-gnu.node"
+  ],
+  "os": [
+    "linux"
+  ],
+  "libc": [
+    "glibc"
+  ]
+}

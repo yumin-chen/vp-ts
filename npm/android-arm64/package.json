@@ -1,0 +1,14 @@
+{
+  "name": "@lib/ksuid-android-arm64",
+  "version": "0.1.0",
+  "cpu": [
+    "arm64"
+  ],
+  "main": "ksuid.android-arm64.node",
+  "files": [
+    "ksuid.android-arm64.node"
+  ],
+  "os": [
+    "android"
+  ]
+}

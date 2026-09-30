@@ -1,0 +1,17 @@
+{
+  "name": "@lib/ksuid-linux-x64-musl",
+  "version": "0.1.0",
+  "cpu": [
+    "x64"
+  ],
+  "main": "ksuid.linux-x64-musl.node",
+  "files": [
+    "ksuid.linux-x64-musl.node"
+  ],
+  "os": [
+    "linux"
+  ],
+  "libc": [
+    "musl"
+  ]
+}

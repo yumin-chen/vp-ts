@@ -1,0 +1,14 @@
+{
+  "name": "@lib/ksuid-win32-ia32-msvc",
+  "version": "0.1.0",
+  "cpu": [
+    "ia32"
+  ],
+  "main": "ksuid.win32-ia32-msvc.node",
+  "files": [
+    "ksuid.win32-ia32-msvc.node"
+  ],
+  "os": [
+    "win32"
+  ]
+}

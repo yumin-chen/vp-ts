@@ -1,34 +1,58 @@
 {
-  "name": "@lib/module",
-  "version": "0.0.0",
+  "name": "@lib/ksuid",
+  "version": "0.1.0",
+  "types": "index.d.ts",
+  "type": "module",
   "files": [
     "dist"
   ],
-  "type": "module",
   "exports": {
     ".": "./dist/main.mjs",
     "./package.json": "./package.json"
   },
   "scripts": {
-    "build": "vp pack",
+    "build": "node build.mjs && vp pack",
+    "build:napi": "node build.mjs",
+    "build:release": "node build.mjs --release",
     "dev": "vp pack --watch",
     "start": "vp run src/main.ts",
-    "test": "vp test",
-    "check": "vp check",
-    "fmt": "vp fmt",
-    "lint": "vp lint",
+    "test": "node --test test.cjs && vp test",
+    "check": "vp check src/",
+    "fmt": "vp fmt src/",
+    "lint": "vp lint src/",
     "prepublishOnly": "vp run build",
     "prepare": "vp config"
   },
+  "napi": {
+    "binaryName": "ksuid",
+    "targets": [
+      "x86_64-apple-darwin",
+      "aarch64-apple-darwin",
+      "x86_64-pc-windows-msvc",
+      "i686-pc-windows-msvc",
+      "aarch64-pc-windows-msvc",
+      "x86_64-unknown-linux-gnu",
+      "aarch64-unknown-linux-gnu",
+      "armv7-unknown-linux-gnueabihf",
+      "x86_64-unknown-linux-musl",
+      "aarch64-unknown-linux-musl",
+      "aarch64-linux-android",
+      "armv7-linux-androideabi",
+      "x86_64-unknown-freebsd",
+      "wasm32-wasip1-threads"
+    ]
+  },
   "devDependencies": {
+    "@napi-rs/cli": "^3",
     "@types/node": "^26.6.2",
-    "vite-plus": "^1.0.0-rc.1"
+    "emnapi": "^1.4.0",
+    "vite-plus": "1.0.0"
   },
   "peerDependencies": {
     "typescript": "^7.0.2"
   },
   "overrides": {
-    "vite": "npm:@voidzero-dev/vite-plus-core@1.0.0-rc.1"
+    "vite": "npm:@voidzero-dev/vite-plus-core@1.0.0"
   },
   "devEngines": {
     "packageManager": {

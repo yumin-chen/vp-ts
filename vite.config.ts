@@ -13,6 +13,10 @@ export default defineConfig({
       resolveDepSubpath: true,
     },
   },
+  test: {
+    include: ["src/**/*.{test,spec}.ts"],
+    exclude: ["examples/**", "node_modules/**"],
+  },
   staged: {
     "*": "vp check --fix",
   },

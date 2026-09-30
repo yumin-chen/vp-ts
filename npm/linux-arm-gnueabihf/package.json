@@ -1,0 +1,14 @@
+{
+  "name": "@lib/module-linux-arm-gnueabihf",
+  "version": "0.0.0",
+  "cpu": [
+    "arm"
+  ],
+  "main": "my-addon.linux-arm-gnueabihf.node",
+  "files": [
+    "my-addon.linux-arm-gnueabihf.node"
+  ],
+  "os": [
+    "linux"
+  ]
+}

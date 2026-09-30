@@ -1,0 +1,14 @@
+{
+  "name": "@lib/module-freebsd-x64",
+  "version": "0.0.0",
+  "cpu": [
+    "x64"
+  ],
+  "main": "my-addon.freebsd-x64.node",
+  "files": [
+    "my-addon.freebsd-x64.node"
+  ],
+  "os": [
+    "freebsd"
+  ]
+}

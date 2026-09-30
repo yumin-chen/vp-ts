@@ -1,0 +1,17 @@
+{
+  "name": "@lib/module-linux-x64-gnu",
+  "version": "0.0.0",
+  "cpu": [
+    "x64"
+  ],
+  "main": "my-addon.linux-x64-gnu.node",
+  "files": [
+    "my-addon.linux-x64-gnu.node"
+  ],
+  "os": [
+    "linux"
+  ],
+  "libc": [
+    "glibc"
+  ]
+}

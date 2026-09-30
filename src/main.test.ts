@@ -14,8 +14,43 @@ import { main } from "./main.ts";
 
 test("main returns string with Ksuid details", () => {
   const result = main();
-  expect(result).toContain("Ksuid:");
+  expect(result).toContain("Ksuid (base32 32bit):");
   expect(result).toContain("equals: true");
+});
+
+test("Ksuid creation via constructor options", () => {
+  const defaultKsuid = new Ksuid();
+  expect(defaultKsuid.timestampSize()).toBe("32bit");
+  expect(defaultKsuid.enc()).toBe("base62");
+  expect(defaultKsuid.alphabet()).toBeNull();
+  expect(defaultKsuid.payload()).toHaveLength(16);
+
+  // Configure enc: "base32" and timestampSize: "48bit"
+  const stdB32 = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+  const customB32 = shuffleAlphabet(stdB32, 777);
+
+  const ksuid32B32 = new Ksuid({
+    timestamp: 1621627443,
+    timestampSize: "32bit",
+    enc: "base32",
+    alphabet: customB32,
+  });
+
+  expect(ksuid32B32.timestampSize()).toBe("32bit");
+  expect(ksuid32B32.enc()).toBe("base32");
+  expect(ksuid32B32.alphabet()).toBe(customB32);
+  expect(ksuid32B32.toString()).toBe(ksuid32B32.toBase32());
+
+  const ksuid48B32 = new Ksuid({
+    timestamp: 1621627443000,
+    timestampSize: "48bit",
+    enc: "base32",
+  });
+
+  expect(ksuid48B32.timestampSize()).toBe("48bit");
+  expect(ksuid48B32.timestampMilliseconds()).toBe(1621627443000);
+  expect(ksuid48B32.payload()).toHaveLength(15);
+  expect(ksuid48B32.toString()).toBe(ksuid48B32.toBase32());
 });
 
 test("Ksuid creation and conversion", () => {

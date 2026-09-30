@@ -245,65 +245,176 @@ pub fn decode_u64_crockford(input: &str, alphabet: Option<String>) -> napi::Resu
   Ok(n)
 }
 
+#[napi(object)]
+pub struct KsuidOptions {
+  pub timestamp: Option<f64>,
+  pub payload: Option<Uint8Array>,
+  pub timestamp_size: Option<String>,
+  pub enc: Option<String>,
+  pub alphabet: Option<String>,
+}
+
+#[derive(Clone)]
+enum KsuidEnum {
+  Sec(RawKsuid),
+  Ms(RawKsuidMs),
+}
+
 #[napi(js_name = "Ksuid")]
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct JsKsuid {
-  inner: RawKsuid,
+  inner: KsuidEnum,
+  enc: String,
+  alphabet: Option<String>,
 }
 
 #[napi]
 impl JsKsuid {
-  /// Create a new Ksuid with current timestamp and optional 16-byte payload.
-  #[napi(factory)]
-  pub fn now(payload: Option<Uint8Array>) -> napi::Result<JsKsuid> {
-    let p = parse_payload(payload, KSUID_PAYLOAD_BYTES)?;
-    Ok(JsKsuid {
-      inner: RawKsuid::now(p.as_deref()),
-    })
+  /// Create a Ksuid using constructor options.
+  /// Options: { timestamp?: number, payload?: Uint8Array, timestampSize?: "32bit" | "48bit", enc?: "base62" | "base32", alphabet?: string }
+  #[napi(constructor)]
+  pub fn new_constructor(options: Option<KsuidOptions>) -> napi::Result<JsKsuid> {
+    let opts = options.unwrap_or(KsuidOptions {
+      timestamp: None,
+      payload: None,
+      timestamp_size: None,
+      enc: None,
+      alphabet: None,
+    });
+
+    let ts_size = opts.timestamp_size.as_deref().unwrap_or("32bit");
+    let enc = opts.enc.unwrap_or_else(|| "base62".to_string());
+    let alphabet = opts.alphabet;
+
+    if enc != "base62" && enc != "base32" {
+      return Err(napi::Error::from_reason(format!(
+        "Invalid enc: '{}'. Expected 'base62' or 'base32'",
+        enc
+      )));
+    }
+
+    let inner = match ts_size {
+      "32bit" | "32" => {
+        let p = parse_payload(opts.payload, KSUID_PAYLOAD_BYTES)?;
+        let secs = opts.timestamp.map(|s| s as i64);
+        KsuidEnum::Sec(RawKsuid::from_seconds(secs, p.as_deref()))
+      }
+      "48bit" | "48" => {
+        let p = parse_payload(opts.payload, KSUID_MS_PAYLOAD_BYTES)?;
+        let ms = opts.timestamp.map(|v| v as i64);
+        KsuidEnum::Ms(RawKsuidMs::from_millis(ms, p.as_deref()))
+      }
+      other => return Err(napi::Error::from_reason(format!(
+        "Invalid timestampSize: '{}'. Expected '32bit' or '48bit'",
+        other
+      ))),
+    };
+
+    Ok(JsKsuid { inner, enc, alphabet })
   }
 
-  /// Create a Ksuid with optional timestamp (in seconds since epoch) and optional 16-byte payload.
+  /// Create a new Ksuid with optional options.
   #[napi(factory)]
-  pub fn new(timestamp_seconds: Option<f64>, payload: Option<Uint8Array>) -> napi::Result<JsKsuid> {
-    let p = parse_payload(payload, KSUID_PAYLOAD_BYTES)?;
-    let secs = timestamp_seconds.map(|s| s as i64);
-    Ok(JsKsuid {
-      inner: RawKsuid::from_seconds(secs, p.as_deref()),
-    })
+  pub fn now(options: Option<KsuidOptions>) -> napi::Result<JsKsuid> {
+    Self::new_constructor(options)
   }
 
-  /// Create a Ksuid from seconds timestamp and optional payload.
+  /// Create a new Ksuid with optional options.
+  #[napi(factory)]
+  pub fn new(options: Option<KsuidOptions>) -> napi::Result<JsKsuid> {
+    Self::new_constructor(options)
+  }
+
+  /// Create a Ksuid from seconds timestamp (32bit) and optional payload.
   #[napi(factory)]
   pub fn from_seconds(seconds: Option<f64>, payload: Option<Uint8Array>) -> napi::Result<JsKsuid> {
     let p = parse_payload(payload, KSUID_PAYLOAD_BYTES)?;
     let secs = seconds.map(|s| s as i64);
     Ok(JsKsuid {
-      inner: RawKsuid::from_seconds(secs, p.as_deref()),
+      inner: KsuidEnum::Sec(RawKsuid::from_seconds(secs, p.as_deref())),
+      enc: "base62".to_string(),
+      alphabet: None,
     })
   }
 
-  /// Parse a Ksuid from a base62 string (optional custom alphabet).
+  /// Create a Ksuid from milliseconds timestamp (48bit) and optional payload.
   #[napi(factory)]
-  pub fn from_base62(base62: String, alphabet: Option<String>) -> napi::Result<JsKsuid> {
-    match alphabet {
-      None => RawKsuid::from_base62(&base62)
-        .map(|inner| JsKsuid { inner })
-        .map_err(|e| napi::Error::from_reason(e.to_string())),
-      Some(ref alph) => {
-        if alph.as_bytes().len() != 62 {
-          return Err(napi::Error::from_reason("Base62 alphabet must be exactly 62 characters"));
+  pub fn from_milliseconds(ms: Option<f64>, payload: Option<Uint8Array>) -> napi::Result<JsKsuid> {
+    let p = parse_payload(payload, KSUID_MS_PAYLOAD_BYTES)?;
+    let m = ms.map(|v| v as i64);
+    Ok(JsKsuid {
+      inner: KsuidEnum::Ms(RawKsuidMs::from_millis(m, p.as_deref())),
+      enc: "base62".to_string(),
+      alphabet: None,
+    })
+  }
+
+  /// Parse a Ksuid from a base62 string (optional custom alphabet and timestampSize).
+  #[napi(factory)]
+  pub fn from_base62(
+    base62: String,
+    alphabet: Option<String>,
+    timestamp_size: Option<String>,
+  ) -> napi::Result<JsKsuid> {
+    let ts_size = timestamp_size.as_deref().unwrap_or("32bit");
+    let alph_clone = alphabet.clone();
+    match ts_size {
+      "32bit" | "32" => match alphabet {
+        None => RawKsuid::from_base62(&base62)
+          .map(|inner| JsKsuid {
+            inner: KsuidEnum::Sec(inner),
+            enc: "base62".to_string(),
+            alphabet: None,
+          })
+          .map_err(|e| napi::Error::from_reason(e.to_string())),
+        Some(ref alph) => {
+          if alph.as_bytes().len() != 62 {
+            return Err(napi::Error::from_reason("Base62 alphabet must be exactly 62 characters"));
+          }
+          let bytes = base_encode::from_str(&base62, 62, alph.as_bytes())
+            .ok_or_else(|| napi::Error::from_reason("Failed to decode Base62 string"))?;
+          if bytes.len() != KSUID_BYTES {
+            return Err(napi::Error::from_reason("Decoded bytes length mismatch for Ksuid"));
+          }
+          let mut arr = [0u8; KSUID_BYTES];
+          arr.copy_from_slice(&bytes);
+          Ok(JsKsuid {
+            inner: KsuidEnum::Sec(RawKsuid::from_bytes(arr)),
+            enc: "base62".to_string(),
+            alphabet: alph_clone,
+          })
         }
-        let bytes = base_encode::from_str(&base62, 62, alph.as_bytes())
-          .ok_or_else(|| napi::Error::from_reason("Failed to decode Base62 string"))?;
-        if bytes.len() != KSUID_BYTES {
-          return Err(napi::Error::from_reason("Decoded bytes length mismatch for Ksuid"));
+      },
+      "48bit" | "48" => match alphabet {
+        None => RawKsuidMs::from_base62(&base62)
+          .map(|inner| JsKsuid {
+            inner: KsuidEnum::Ms(inner),
+            enc: "base62".to_string(),
+            alphabet: None,
+          })
+          .map_err(|e| napi::Error::from_reason(e.to_string())),
+        Some(ref alph) => {
+          if alph.as_bytes().len() != 62 {
+            return Err(napi::Error::from_reason("Base62 alphabet must be exactly 62 characters"));
+          }
+          let bytes = base_encode::from_str(&base62, 62, alph.as_bytes())
+            .ok_or_else(|| napi::Error::from_reason("Failed to decode Base62 string"))?;
+          if bytes.len() != KSUID_BYTES {
+            return Err(napi::Error::from_reason("Decoded bytes length mismatch for Ksuid"));
+          }
+          let mut arr = [0u8; KSUID_BYTES];
+          arr.copy_from_slice(&bytes);
+          Ok(JsKsuid {
+            inner: KsuidEnum::Ms(RawKsuidMs::from_bytes(arr)),
+            enc: "base62".to_string(),
+            alphabet: alph_clone,
+          })
         }
-        let mut arr = [0u8; KSUID_BYTES];
-        arr.copy_from_slice(&bytes);
-        Ok(JsKsuid {
-          inner: RawKsuid::from_bytes(arr),
-        })
-      }
+      },
+      other => Err(napi::Error::from_reason(format!(
+        "Invalid timestampSize: '{}'. Expected '32bit' or '48bit'",
+        other
+      ))),
     }
   }
 
@@ -311,33 +422,60 @@ impl JsKsuid {
   #[napi(factory)]
   pub fn from_str(base62: String) -> napi::Result<JsKsuid> {
     RawKsuid::from_str(&base62)
-      .map(|inner| JsKsuid { inner })
+      .map(|inner| JsKsuid {
+        inner: KsuidEnum::Sec(inner),
+        enc: "base62".to_string(),
+        alphabet: None,
+      })
       .map_err(|e| napi::Error::from_reason(e.to_string()))
   }
 
-  /// Parse a Ksuid from a Crockford Base32 string (optional custom alphabet).
+  /// Parse a Ksuid from a Crockford Base32 string (optional custom alphabet and timestampSize).
   #[napi(factory)]
-  pub fn from_base32(encoded: String, alphabet: Option<String>) -> napi::Result<JsKsuid> {
-    let bytes = decode_base32_bytes(&encoded, alphabet)?;
+  pub fn from_base32(
+    encoded: String,
+    alphabet: Option<String>,
+    timestamp_size: Option<String>,
+  ) -> napi::Result<JsKsuid> {
+    let bytes = decode_base32_bytes(&encoded, alphabet.clone())?;
     if bytes.len() != KSUID_BYTES {
       return Err(napi::Error::from_reason("Decoded Base32 length mismatch for Ksuid"));
     }
     let mut arr = [0u8; KSUID_BYTES];
     arr.copy_from_slice(&bytes);
-    Ok(JsKsuid {
-      inner: RawKsuid::from_bytes(arr),
-    })
+
+    let ts_size = timestamp_size.as_deref().unwrap_or("32bit");
+    match ts_size {
+      "32bit" | "32" => Ok(JsKsuid {
+        inner: KsuidEnum::Sec(RawKsuid::from_bytes(arr)),
+        enc: "base32".to_string(),
+        alphabet,
+      }),
+      "48bit" | "48" => Ok(JsKsuid {
+        inner: KsuidEnum::Ms(RawKsuidMs::from_bytes(arr)),
+        enc: "base32".to_string(),
+        alphabet,
+      }),
+      other => Err(napi::Error::from_reason(format!(
+        "Invalid timestampSize: '{}'. Expected '32bit' or '48bit'",
+        other
+      ))),
+    }
   }
 
   /// Alias for from_base32.
   #[napi(factory)]
-  pub fn from_crockford_base32(encoded: String, alphabet: Option<String>) -> napi::Result<JsKsuid> {
-    Self::from_base32(encoded, alphabet)
+  pub fn from_crockford_base32(
+    encoded: String,
+    alphabet: Option<String>,
+    timestamp_size: Option<String>,
+  ) -> napi::Result<JsKsuid> {
+    Self::from_base32(encoded, alphabet, timestamp_size)
   }
 
-  /// Create a Ksuid from 20 raw bytes.
+  /// Create a Ksuid from 20 raw bytes (optional timestampSize).
   #[napi(factory)]
-  pub fn from_bytes(bytes: Uint8Array) -> napi::Result<JsKsuid> {
+  pub fn from_bytes(bytes: Uint8Array, timestamp_size: Option<String>) -> napi::Result<JsKsuid> {
     let slice = bytes.as_ref();
     if slice.len() != KSUID_BYTES {
       return Err(napi::Error::from_reason(format!(
@@ -347,30 +485,83 @@ impl JsKsuid {
     }
     let mut arr = [0u8; KSUID_BYTES];
     arr.copy_from_slice(slice);
-    Ok(JsKsuid {
-      inner: RawKsuid::from_bytes(arr),
-    })
+
+    let ts_size = timestamp_size.as_deref().unwrap_or("32bit");
+    match ts_size {
+      "32bit" | "32" => Ok(JsKsuid {
+        inner: KsuidEnum::Sec(RawKsuid::from_bytes(arr)),
+        enc: "base62".to_string(),
+        alphabet: None,
+      }),
+      "48bit" | "48" => Ok(JsKsuid {
+        inner: KsuidEnum::Ms(RawKsuidMs::from_bytes(arr)),
+        enc: "base62".to_string(),
+        alphabet: None,
+      }),
+      other => Err(napi::Error::from_reason(format!(
+        "Invalid timestampSize: '{}'. Expected '32bit' or '48bit'",
+        other
+      ))),
+    }
+  }
+
+  /// Returns the configured encoding ("base62" or "base32").
+  #[napi]
+  pub fn enc(&self) -> String {
+    self.enc.clone()
+  }
+
+  /// Returns the configured alphabet, if any.
+  #[napi]
+  pub fn alphabet(&self) -> Option<String> {
+    self.alphabet.clone()
+  }
+
+  /// Returns the timestampSize ("32bit" or "48bit").
+  #[napi]
+  pub fn timestamp_size(&self) -> String {
+    match self.inner {
+      KsuidEnum::Sec(_) => "32bit".to_string(),
+      KsuidEnum::Ms(_) => "48bit".to_string(),
+    }
   }
 
   /// Returns the base62 string representation (optional custom alphabet).
   #[napi]
   pub fn to_base62(&self, alphabet: Option<String>) -> napi::Result<String> {
-    match alphabet {
-      None => Ok(self.inner.to_base62()),
-      Some(ref alph) => {
-        if alph.as_bytes().len() != 62 {
-          return Err(napi::Error::from_reason("Base62 alphabet must be exactly 62 characters"));
+    let alph_to_use = alphabet.or_else(|| self.alphabet.clone());
+    match self.inner {
+      KsuidEnum::Sec(k) => match alph_to_use {
+        None => Ok(k.to_base62()),
+        Some(ref alph) => {
+          if alph.as_bytes().len() != 62 {
+            return Err(napi::Error::from_reason("Base62 alphabet must be exactly 62 characters"));
+          }
+          base_encode::to_string(k.bytes(), 62, alph.as_bytes())
+            .ok_or_else(|| napi::Error::from_reason("Failed to encode Base62 string"))
         }
-        base_encode::to_string(self.inner.bytes(), 62, alph.as_bytes())
-          .ok_or_else(|| napi::Error::from_reason("Failed to encode Base62 string"))
-      }
+      },
+      KsuidEnum::Ms(k) => match alph_to_use {
+        None => Ok(k.to_base62()),
+        Some(ref alph) => {
+          if alph.as_bytes().len() != 62 {
+            return Err(napi::Error::from_reason("Base62 alphabet must be exactly 62 characters"));
+          }
+          base_encode::to_string(k.bytes(), 62, alph.as_bytes())
+            .ok_or_else(|| napi::Error::from_reason("Failed to encode Base62 string"))
+        }
+      },
     }
   }
 
   /// Returns Crockford Base32 string representation (optional custom alphabet).
   #[napi]
   pub fn to_base32(&self, alphabet: Option<String>) -> napi::Result<String> {
-    encode_base32_bytes(self.inner.bytes(), alphabet)
+    let alph_to_use = alphabet.or_else(|| self.alphabet.clone());
+    match self.inner {
+      KsuidEnum::Sec(k) => encode_base32_bytes(k.bytes(), alph_to_use),
+      KsuidEnum::Ms(k) => encode_base32_bytes(k.bytes(), alph_to_use),
+    }
   }
 
   /// Alias for to_base32.
@@ -379,34 +570,58 @@ impl JsKsuid {
     self.to_base32(alphabet)
   }
 
-  /// Returns string representation.
+  /// Returns string representation using configured enc and alphabet.
   #[napi]
-  pub fn to_string(&self) -> String {
-    self.inner.to_string()
+  pub fn to_string(&self) -> napi::Result<String> {
+    if self.enc == "base32" {
+      self.to_base32(self.alphabet.clone())
+    } else {
+      self.to_base62(self.alphabet.clone())
+    }
   }
 
   /// Returns the 20 bytes of the Ksuid.
   #[napi]
   pub fn bytes(&self) -> Uint8Array {
-    Uint8Array::new(self.inner.bytes().to_vec())
+    match self.inner {
+      KsuidEnum::Sec(k) => Uint8Array::new(k.bytes().to_vec()),
+      KsuidEnum::Ms(k) => Uint8Array::new(k.bytes().to_vec()),
+    }
   }
 
-  /// Returns the 16 bytes of payload.
+  /// Returns the payload bytes (16 bytes for 32bit, 15 bytes for 48bit).
   #[napi]
   pub fn payload(&self) -> Uint8Array {
-    Uint8Array::new(self.inner.payload().to_vec())
+    match self.inner {
+      KsuidEnum::Sec(k) => Uint8Array::new(k.payload().to_vec()),
+      KsuidEnum::Ms(k) => Uint8Array::new(k.payload().to_vec()),
+    }
   }
 
   /// Returns the timestamp in seconds since UNIX epoch.
   #[napi]
   pub fn timestamp_seconds(&self) -> f64 {
-    self.inner.timestamp_seconds() as f64
+    match self.inner {
+      KsuidEnum::Sec(k) => k.timestamp_seconds() as f64,
+      KsuidEnum::Ms(k) => (k.timestamp_millis() / 1000) as f64,
+    }
+  }
+
+  /// Returns the timestamp in milliseconds since UNIX epoch.
+  #[napi]
+  pub fn timestamp_milliseconds(&self) -> f64 {
+    match self.inner {
+      KsuidEnum::Sec(k) => (k.timestamp_seconds() as f64) * 1000.0,
+      KsuidEnum::Ms(k) => k.timestamp_millis() as f64,
+    }
   }
 
   /// Compare this Ksuid with another Ksuid (-1, 0, 1).
   #[napi]
   pub fn compare(&self, other: &JsKsuid) -> i32 {
-    match self.inner.cmp(&other.inner) {
+    let b1 = self.bytes();
+    let b2 = other.bytes();
+    match b1.as_ref().cmp(b2.as_ref()) {
       std::cmp::Ordering::Less => -1,
       std::cmp::Ordering::Equal => 0,
       std::cmp::Ordering::Greater => 1,
@@ -416,7 +631,7 @@ impl JsKsuid {
   /// Check if equal to another Ksuid.
   #[napi]
   pub fn equals(&self, other: &JsKsuid) -> bool {
-    self.inner == other.inner
+    self.bytes().as_ref() == other.bytes().as_ref()
   }
 }
 
@@ -618,12 +833,12 @@ pub fn generate_ksuid(alphabet: Option<String>) -> napi::Result<String> {
 #[napi]
 pub fn parse_ksuid(encoded: String, alphabet: Option<String>) -> napi::Result<JsKsuid> {
   match alphabet {
-    None => JsKsuid::from_base62(encoded, None),
+    None => JsKsuid::from_base62(encoded, None, None),
     Some(ref alph) => {
       if alph.as_bytes().len() == 32 {
-        JsKsuid::from_base32(encoded, alphabet)
+        JsKsuid::from_base32(encoded, alphabet, None)
       } else if alph.as_bytes().len() == 62 {
-        JsKsuid::from_base62(encoded, alphabet)
+        JsKsuid::from_base62(encoded, alphabet, None)
       } else {
         Err(napi::Error::from_reason("Alphabet must be 32 or 62 characters"))
       }

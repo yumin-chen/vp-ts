@@ -12,10 +12,13 @@ test('creates and converts Ksuid', async () => {
     shuffleAlphabet,
   } = await import('./index.js')
 
-  const ksuid = Ksuid.now()
-  assert.equal(typeof ksuid.toBase62(), 'string')
+  const ksuid = new Ksuid({ enc: 'base32', timestampSize: '48bit' })
+  assert.equal(ksuid.enc(), 'base32')
+  assert.equal(ksuid.timestampSize(), '48bit')
+  assert.equal(typeof ksuid.toString(), 'string')
+  assert.equal(ksuid.toString().length, 32)
   assert.equal(ksuid.bytes().length, 20)
-  assert.equal(ksuid.payload().length, 16)
+  assert.equal(ksuid.payload().length, 15)
 
   const timestamp = 1621627443
   const payload = Buffer.alloc(16, 12)

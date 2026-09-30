@@ -10,36 +10,51 @@
 export declare const __napiBindingTarget: 'native' | 'wasm32-wasi' | 'wasm32-wasip1'
 
 export declare class Ksuid {
-  /** Create a new Ksuid with current timestamp and optional 16-byte payload. */
-  static now(payload?: Uint8Array | undefined | null): Ksuid
-  /** Create a Ksuid with optional timestamp (in seconds since epoch) and optional 16-byte payload. */
-  static new(timestampSeconds?: number | undefined | null, payload?: Uint8Array | undefined | null): Ksuid
-  /** Create a Ksuid from seconds timestamp and optional payload. */
+  /**
+   * Create a Ksuid using constructor options.
+   * Options: { timestamp?: number, payload?: Uint8Array, timestampSize?: "32bit" | "48bit", enc?: "base62" | "base32", alphabet?: string }
+   */
+  constructor(options?: KsuidOptions | undefined | null)
+  /** Create a new Ksuid with optional options. */
+  static now(options?: KsuidOptions | undefined | null): Ksuid
+  /** Create a new Ksuid with optional options. */
+  static new(options?: KsuidOptions | undefined | null): Ksuid
+  /** Create a Ksuid from seconds timestamp (32bit) and optional payload. */
   static fromSeconds(seconds?: number | undefined | null, payload?: Uint8Array | undefined | null): Ksuid
-  /** Parse a Ksuid from a base62 string (optional custom alphabet). */
-  static fromBase62(base62: string, alphabet?: string | undefined | null): Ksuid
+  /** Create a Ksuid from milliseconds timestamp (48bit) and optional payload. */
+  static fromMilliseconds(ms?: number | undefined | null, payload?: Uint8Array | undefined | null): Ksuid
+  /** Parse a Ksuid from a base62 string (optional custom alphabet and timestampSize). */
+  static fromBase62(base62: string, alphabet?: string | undefined | null, timestampSize?: string | undefined | null): Ksuid
   /** Parse a Ksuid from string (implements FromStr). */
   static fromStr(base62: string): Ksuid
-  /** Parse a Ksuid from a Crockford Base32 string (optional custom alphabet). */
-  static fromBase32(encoded: string, alphabet?: string | undefined | null): Ksuid
+  /** Parse a Ksuid from a Crockford Base32 string (optional custom alphabet and timestampSize). */
+  static fromBase32(encoded: string, alphabet?: string | undefined | null, timestampSize?: string | undefined | null): Ksuid
   /** Alias for from_base32. */
-  static fromCrockfordBase32(encoded: string, alphabet?: string | undefined | null): Ksuid
-  /** Create a Ksuid from 20 raw bytes. */
-  static fromBytes(bytes: Uint8Array): Ksuid
+  static fromCrockfordBase32(encoded: string, alphabet?: string | undefined | null, timestampSize?: string | undefined | null): Ksuid
+  /** Create a Ksuid from 20 raw bytes (optional timestampSize). */
+  static fromBytes(bytes: Uint8Array, timestampSize?: string | undefined | null): Ksuid
+  /** Returns the configured encoding ("base62" or "base32"). */
+  enc(): string
+  /** Returns the configured alphabet, if any. */
+  alphabet(): string | null
+  /** Returns the timestampSize ("32bit" or "48bit"). */
+  timestampSize(): string
   /** Returns the base62 string representation (optional custom alphabet). */
   toBase62(alphabet?: string | undefined | null): string
   /** Returns Crockford Base32 string representation (optional custom alphabet). */
   toBase32(alphabet?: string | undefined | null): string
   /** Alias for to_base32. */
   toCrockfordBase32(alphabet?: string | undefined | null): string
-  /** Returns string representation. */
+  /** Returns string representation using configured enc and alphabet. */
   toString(): string
   /** Returns the 20 bytes of the Ksuid. */
   bytes(): Uint8Array
-  /** Returns the 16 bytes of payload. */
+  /** Returns the payload bytes (16 bytes for 32bit, 15 bytes for 48bit). */
   payload(): Uint8Array
   /** Returns the timestamp in seconds since UNIX epoch. */
   timestampSeconds(): number
+  /** Returns the timestamp in milliseconds since UNIX epoch. */
+  timestampMilliseconds(): number
   /** Compare this Ksuid with another Ksuid (-1, 0, 1). */
   compare(other: Ksuid): number
   /** Check if equal to another Ksuid. */
@@ -99,6 +114,14 @@ export declare function encodeCrockfordBase32(n: number, alphabet?: string | und
 
 /** Convenience function to generate a new Ksuid string. */
 export declare function generateKsuid(alphabet?: string | undefined | null): string
+
+export interface KsuidOptions {
+  timestamp?: number
+  payload?: Uint8Array
+  timestampSize?: string
+  enc?: string
+  alphabet?: string
+}
 
 /** Convenience function to parse a string into a Ksuid object. */
 export declare function parseKsuid(encoded: string, alphabet?: string | undefined | null): Ksuid

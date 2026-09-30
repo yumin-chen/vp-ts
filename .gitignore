@@ -1,13 +1,3 @@
-# compiled output files and executables
-build
-out
-dist
-target
-
-# dependencies
-vendor
-node_modules
-
-# log files
-logs
-*.log
+target/
+node_modules/
+*.node

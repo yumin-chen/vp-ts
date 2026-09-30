@@ -716,7 +716,8 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`)
 }
 
-const { crockfordDecode, crockfordEncode, decodeBytesCustom, encodeBytesCustom, ksuidFromBase62, ksuidFromCrockford, ksuidTimestampSeconds, ksuidToBytes, ksuidToCrockford, newKsuid } = nativeBinding
+const { KsuidClient, crockfordDecode, crockfordEncode, decodeBytesCustom, encodeBytesCustom, ksuidFromBase62, ksuidFromCrockford, ksuidTimestampSeconds, ksuidToBytes, ksuidToCrockford, newKsuid } = nativeBinding
+export { KsuidClient }
 export { crockfordDecode }
 export { crockfordEncode }
 export { decodeBytesCustom }

@@ -9,6 +9,17 @@
  */
 export declare const __napiBindingTarget: 'native' | 'wasm32-wasi' | 'wasm32-wasip1'
 
+export declare class KsuidClient {
+  constructor(options?: KsuidOptions | undefined | null)
+  static now(options?: KsuidOptions | undefined | null): KsuidClient
+  static parse(input: string, options?: KsuidOptions | undefined | null): KsuidClient
+  toString(): string
+  toBase62(): string
+  toCrockford(customAlphabet?: string | undefined | null): string
+  bytes(): Uint8Array
+  timestampSeconds(): number
+}
+
 export declare function crockfordDecode(input: string, customAlphabet?: string | undefined | null): number
 
 export declare function crockfordEncode(n: number, customAlphabet?: string | undefined | null): string
@@ -20,6 +31,14 @@ export declare function encodeBytesCustom(bytes: Uint8Array, alphabet: string): 
 export declare function ksuidFromBase62(base62: string): string
 
 export declare function ksuidFromCrockford(crockford: string, customAlphabet?: string | undefined | null): string
+
+export interface KsuidOptions {
+  encoding?: string
+  alphabet?: string
+  bytes?: Uint8Array
+  string?: string
+  timestamp?: number
+}
 
 export declare function ksuidTimestampSeconds(base62: string): number
 

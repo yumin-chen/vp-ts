@@ -3,6 +3,7 @@ const test = require('node:test')
 
 test('ksuid and crockford base32 functions', async () => {
   const {
+    KsuidClient,
     newKsuid,
     ksuidFromBase62,
     ksuidToBytes,
@@ -53,4 +54,21 @@ test('ksuid and crockford base32 functions', async () => {
   const crockfordKsuid = ksuidToCrockford(id, customAlphabet)
   const restoredKsuid = ksuidFromCrockford(crockfordKsuid, customAlphabet)
   assert.equal(restoredKsuid, id)
+
+  // KsuidClient with constructor options & configurable toString()
+  const defaultClient = new KsuidClient()
+  assert.equal(defaultClient.toString().length, 27)
+
+  const crockfordClient = new KsuidClient({
+    encoding: 'crockford',
+    alphabet: customAlphabet,
+  })
+  const crockfordString = crockfordClient.toString()
+  assert.ok(crockfordString.length > 0)
+
+  const parsedClient = KsuidClient.parse(crockfordString, {
+    encoding: 'crockford',
+    alphabet: customAlphabet,
+  })
+  assert.equal(parsedClient.toBase62(), crockfordClient.toBase62())
 })

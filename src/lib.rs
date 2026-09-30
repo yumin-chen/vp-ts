@@ -41,6 +41,127 @@ fn find_digit_index(c: char, alphabet: &[u8], is_standard: bool) -> Result<usize
     .ok_or_else(|| Error::new(Status::InvalidArg, format!("Invalid character in string: {}", c)))
 }
 
+#[napi(object)]
+#[derive(Default)]
+pub struct KsuidOptions {
+  pub encoding: Option<String>, // "base62" or "crockford"
+  pub alphabet: Option<String>,
+  pub bytes: Option<Uint8Array>,
+  pub string: Option<String>,
+  pub timestamp: Option<i64>,
+}
+
+#[napi]
+pub struct KsuidClient {
+  bytes: [u8; 20],
+  encoding: String,
+  custom_alphabet: Option<String>,
+}
+
+#[napi]
+impl KsuidClient {
+  #[napi(constructor)]
+  pub fn new(options: Option<KsuidOptions>) -> Result<Self> {
+    let opts = options.unwrap_or_default();
+    let encoding = opts.encoding.unwrap_or_else(|| "base62".to_string());
+    let custom_alphabet = opts.alphabet;
+
+    let ksuid_bytes = if let Some(b) = opts.bytes {
+      let slice = b.as_ref();
+      if slice.len() != 20 {
+        return Err(Error::new(
+          Status::InvalidArg,
+          format!("Expected 20 bytes for KSUID, got {}", slice.len()),
+        ));
+      }
+      let mut arr = [0u8; 20];
+      arr.copy_from_slice(slice);
+      arr
+    } else if let Some(s) = opts.string {
+      if encoding == "crockford" || encoding == "base32" {
+        let alpha = custom_alphabet
+          .clone()
+          .unwrap_or_else(|| String::from_utf8_lossy(DEFAULT_CROCKFORD_ALPHABET).to_string());
+        let decoded = decode_bytes_custom(s, alpha)?;
+        let slice = decoded.as_ref();
+        if slice.len() != 20 {
+          return Err(Error::new(
+            Status::InvalidArg,
+            format!("Expected 20 bytes for KSUID, got {}", slice.len()),
+          ));
+        }
+        let mut arr = [0u8; 20];
+        arr.copy_from_slice(slice);
+        arr
+      } else {
+        let ksuid = Ksuid::from_base62(&s).map_err(|e| {
+          Error::new(Status::InvalidArg, format!("Invalid Base62 KSUID string: {}", e))
+        })?;
+        *ksuid.bytes()
+      }
+    } else {
+      *Ksuid::new(None, None).bytes()
+    };
+
+    Ok(Self {
+      bytes: ksuid_bytes,
+      encoding,
+      custom_alphabet,
+    })
+  }
+
+  #[napi(factory)]
+  pub fn now(options: Option<KsuidOptions>) -> Result<Self> {
+    Self::new(options)
+  }
+
+  #[napi(factory)]
+  pub fn parse(input: String, options: Option<KsuidOptions>) -> Result<Self> {
+    let mut opts = options.unwrap_or_default();
+    opts.string = Some(input);
+    Self::new(Some(opts))
+  }
+
+  #[napi]
+  pub fn to_string(&self) -> Result<String> {
+    if self.encoding == "crockford" || self.encoding == "base32" {
+      let alpha = self
+        .custom_alphabet
+        .clone()
+        .unwrap_or_else(|| String::from_utf8_lossy(DEFAULT_CROCKFORD_ALPHABET).to_string());
+      encode_bytes_custom(Uint8Array::from(self.bytes.to_vec()), alpha)
+    } else {
+      let ksuid = Ksuid::from_bytes(self.bytes);
+      Ok(ksuid.to_string())
+    }
+  }
+
+  #[napi]
+  pub fn to_base62(&self) -> String {
+    let ksuid = Ksuid::from_bytes(self.bytes);
+    ksuid.to_string()
+  }
+
+  #[napi]
+  pub fn to_crockford(&self, custom_alphabet: Option<String>) -> Result<String> {
+    let alpha = custom_alphabet
+      .or_else(|| self.custom_alphabet.clone())
+      .unwrap_or_else(|| String::from_utf8_lossy(DEFAULT_CROCKFORD_ALPHABET).to_string());
+    encode_bytes_custom(Uint8Array::from(self.bytes.to_vec()), alpha)
+  }
+
+  #[napi]
+  pub fn bytes(&self) -> Uint8Array {
+    Uint8Array::from(self.bytes.to_vec())
+  }
+
+  #[napi]
+  pub fn timestamp_seconds(&self) -> i64 {
+    let ksuid = Ksuid::from_bytes(self.bytes);
+    ksuid.timestamp_seconds()
+  }
+}
+
 #[napi]
 pub fn new_ksuid() -> String {
   Ksuid::new(None, None).to_string()

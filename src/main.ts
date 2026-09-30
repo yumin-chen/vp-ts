@@ -1,5 +1,7 @@
 import console from "node:console";
 import {
+  KsuidClient,
+  type KsuidOptions,
   newKsuid,
   ksuidTimestampSeconds,
   crockfordEncode,
@@ -7,6 +9,8 @@ import {
   ksuidToCrockford,
   ksuidFromCrockford,
 } from "../index.js";
+
+export { KsuidClient, type KsuidOptions };
 
 export const generateKsuid = () => {
   return newKsuid();

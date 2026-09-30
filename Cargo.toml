@@ -1,5 +1,5 @@
 [package]
-name = "my-addon-native"
+name = "ksuid-native"
 version = "0.1.0"
 edition = "2021"
 
@@ -9,6 +9,8 @@ crate-type = ["cdylib"]
 [dependencies]
 napi = "3"
 napi-derive = "3"
+svix-ksuid = { version = ">=0.6", features = ["serde", "jiff02"] }
+jiff = "0.2"
 
 [build-dependencies]
 napi-build = "2"

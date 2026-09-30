@@ -14,5 +14,3 @@ logs
 
 # NAPI generated files
 *.node
-index.js
-index.d.ts

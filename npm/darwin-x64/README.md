@@ -1,3 +1,3 @@
-# `my-addon-darwin-x64`
+# `@lib/ksuid-darwin-x64`
 
-This is the **x86_64-apple-darwin** binary for `my-addon`
+This is the **x86_64-apple-darwin** binary for `@lib/ksuid`

@@ -1,3 +1,3 @@
-# `my-addon-linux-arm64-musl`
+# `@lib/ksuid-linux-arm64-musl`
 
-This is the **aarch64-unknown-linux-musl** binary for `my-addon`
+This is the **aarch64-unknown-linux-musl** binary for `@lib/ksuid`

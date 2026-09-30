@@ -1,12 +1,12 @@
 {
-  "name": "my-addon-android-arm64",
+  "name": "@lib/ksuid-android-arm64",
   "version": "0.1.0",
   "cpu": [
     "arm64"
   ],
-  "main": "my-addon.android-arm64.node",
+  "main": "ksuid.android-arm64.node",
   "files": [
-    "my-addon.android-arm64.node"
+    "ksuid.android-arm64.node"
   ],
   "os": [
     "android"

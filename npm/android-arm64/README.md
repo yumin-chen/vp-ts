@@ -1,3 +1,3 @@
-# `my-addon-android-arm64`
+# `@lib/ksuid-android-arm64`
 
-This is the **aarch64-linux-android** binary for `my-addon`
+This is the **aarch64-linux-android** binary for `@lib/ksuid`

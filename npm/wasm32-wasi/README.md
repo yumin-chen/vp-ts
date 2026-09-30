@@ -1,3 +1,3 @@
-# `my-addon-wasm32-wasi`
+# `@lib/ksuid-wasm32-wasi`
 
-This is the **wasm32-wasip1-threads** binary for `my-addon`
+This is the **wasm32-wasip1-threads** binary for `@lib/ksuid`

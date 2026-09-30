@@ -1,12 +1,12 @@
 {
-  "name": "my-addon-darwin-arm64",
+  "name": "@lib/ksuid-darwin-arm64",
   "version": "0.1.0",
   "cpu": [
     "arm64"
   ],
-  "main": "my-addon.darwin-arm64.node",
+  "main": "ksuid.darwin-arm64.node",
   "files": [
-    "my-addon.darwin-arm64.node"
+    "ksuid.darwin-arm64.node"
   ],
   "os": [
     "darwin"

@@ -1,3 +1,3 @@
-# `my-addon-win32-x64-msvc`
+# `@lib/ksuid-win32-x64-msvc`
 
-This is the **x86_64-pc-windows-msvc** binary for `my-addon`
+This is the **x86_64-pc-windows-msvc** binary for `@lib/ksuid`

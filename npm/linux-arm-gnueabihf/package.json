@@ -1,12 +1,12 @@
 {
-  "name": "my-addon-linux-arm-gnueabihf",
+  "name": "@lib/ksuid-linux-arm-gnueabihf",
   "version": "0.1.0",
   "cpu": [
     "arm"
   ],
-  "main": "my-addon.linux-arm-gnueabihf.node",
+  "main": "ksuid.linux-arm-gnueabihf.node",
   "files": [
-    "my-addon.linux-arm-gnueabihf.node"
+    "ksuid.linux-arm-gnueabihf.node"
   ],
   "os": [
     "linux"

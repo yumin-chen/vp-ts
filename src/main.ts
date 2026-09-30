@@ -1,8 +1,12 @@
 import console from "node:console";
-import { add } from "../index.js";
+import { newKsuid, ksuidTimestampSeconds } from "../index.js";
 
-export const main = () => {
-  return `Hello, world! 2 + 3 = ${add(2, 3)}`;
+export const generateKsuid = () => {
+  return newKsuid();
 };
 
-console.log(main());
+export const getKsuidTime = (id: string) => {
+  return ksuidTimestampSeconds(id);
+};
+
+console.log("Generated KSUID:", generateKsuid());

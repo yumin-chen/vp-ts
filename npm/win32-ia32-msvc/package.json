@@ -1,12 +1,12 @@
 {
-  "name": "my-addon-win32-ia32-msvc",
+  "name": "@lib/ksuid-win32-ia32-msvc",
   "version": "0.1.0",
   "cpu": [
     "ia32"
   ],
-  "main": "my-addon.win32-ia32-msvc.node",
+  "main": "ksuid.win32-ia32-msvc.node",
   "files": [
-    "my-addon.win32-ia32-msvc.node"
+    "ksuid.win32-ia32-msvc.node"
   ],
   "os": [
     "win32"

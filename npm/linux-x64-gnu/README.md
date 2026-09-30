@@ -1,3 +1,3 @@
-# `my-addon-linux-x64-gnu`
+# `@lib/ksuid-linux-x64-gnu`
 
-This is the **x86_64-unknown-linux-gnu** binary for `my-addon`
+This is the **x86_64-unknown-linux-gnu** binary for `@lib/ksuid`

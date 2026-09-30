@@ -1,12 +1,12 @@
 {
-  "name": "my-addon-win32-x64-msvc",
+  "name": "@lib/ksuid-win32-x64-msvc",
   "version": "0.1.0",
   "cpu": [
     "x64"
   ],
-  "main": "my-addon.win32-x64-msvc.node",
+  "main": "ksuid.win32-x64-msvc.node",
   "files": [
-    "my-addon.win32-x64-msvc.node"
+    "ksuid.win32-x64-msvc.node"
   ],
   "os": [
     "win32"

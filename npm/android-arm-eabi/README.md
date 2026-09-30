@@ -1,3 +1,3 @@
-# `my-addon-android-arm-eabi`
+# `@lib/ksuid-android-arm-eabi`
 
-This is the **armv7-linux-androideabi** binary for `my-addon`
+This is the **armv7-linux-androideabi** binary for `@lib/ksuid`

@@ -1,3 +1,3 @@
-# `my-addon-freebsd-x64`
+# `@lib/ksuid-freebsd-x64`
 
-This is the **x86_64-unknown-freebsd** binary for `my-addon`
+This is the **x86_64-unknown-freebsd** binary for `@lib/ksuid`

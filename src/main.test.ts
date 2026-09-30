@@ -1,6 +1,8 @@
 import { expect, test } from "vite-plus/test";
-import { main } from "./main.ts";
+import { generateKsuid, getKsuidTime } from "./main.ts";
 
-test("main returns Hello, world! string with addition result", () => {
-  expect(main()).toBe("Hello, world! 2 + 3 = 5");
+test("generateKsuid returns a 27-character KSUID", () => {
+  const ksuid = generateKsuid();
+  expect(ksuid).toHaveLength(27);
+  expect(getKsuidTime(ksuid)).toBeGreaterThan(1600000000);
 });

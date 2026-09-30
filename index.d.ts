@@ -9,4 +9,68 @@
  */
 export declare const __napiBindingTarget: 'native' | 'wasm32-wasi' | 'wasm32-wasip1'
 
-export declare function add(left: number, right: number): number
+export declare class Ksuid {
+  /** Create a new Ksuid with current timestamp and optional 16-byte payload. */
+  static now(payload?: Uint8Array | undefined | null): Ksuid
+  /** Create a Ksuid with optional timestamp (in seconds since epoch) and optional 16-byte payload. */
+  static new(timestampSeconds?: number | undefined | null, payload?: Uint8Array | undefined | null): Ksuid
+  /** Create a Ksuid from seconds timestamp and optional payload. */
+  static fromSeconds(seconds?: number | undefined | null, payload?: Uint8Array | undefined | null): Ksuid
+  /** Parse a Ksuid from a base62 string. */
+  static fromBase62(base62: string): Ksuid
+  /** Parse a Ksuid from string (implements FromStr). */
+  static fromStr(base62: string): Ksuid
+  /** Create a Ksuid from 20 raw bytes. */
+  static fromBytes(bytes: Uint8Array): Ksuid
+  /** Returns the base62 string representation. */
+  toBase62(): string
+  /** Returns string representation. */
+  toString(): string
+  /** Returns the 20 bytes of the Ksuid. */
+  bytes(): Uint8Array
+  /** Returns the 16 bytes of payload. */
+  payload(): Uint8Array
+  /** Returns the timestamp in seconds since UNIX epoch. */
+  timestampSeconds(): number
+  /** Compare this Ksuid with another Ksuid (-1, 0, 1). */
+  compare(other: Ksuid): number
+  /** Check if equal to another Ksuid. */
+  equals(other: Ksuid): boolean
+}
+export type JsKsuid = Ksuid
+
+export declare class KsuidMs {
+  /** Create a new KsuidMs with current timestamp and optional 15-byte payload. */
+  static now(payload?: Uint8Array | undefined | null): KsuidMs
+  /** Create a KsuidMs with optional timestamp (in milliseconds since epoch) and optional 15-byte payload. */
+  static new(timestampMs?: number | undefined | null, payload?: Uint8Array | undefined | null): KsuidMs
+  /** Create a KsuidMs from milliseconds timestamp and optional payload. */
+  static fromMilliseconds(ms?: number | undefined | null, payload?: Uint8Array | undefined | null): KsuidMs
+  /** Parse a KsuidMs from a base62 string. */
+  static fromBase62(base62: string): KsuidMs
+  /** Parse a KsuidMs from string (implements FromStr). */
+  static fromStr(base62: string): KsuidMs
+  /** Create a KsuidMs from 20 raw bytes. */
+  static fromBytes(bytes: Uint8Array): KsuidMs
+  /** Returns the base62 string representation. */
+  toBase62(): string
+  /** Returns string representation. */
+  toString(): string
+  /** Returns the 20 bytes of the KsuidMs. */
+  bytes(): Uint8Array
+  /** Returns the 15 bytes of payload. */
+  payload(): Uint8Array
+  /** Returns the timestamp in milliseconds since UNIX epoch. */
+  timestampMilliseconds(): number
+  /** Compare this KsuidMs with another KsuidMs (-1, 0, 1). */
+  compare(other: KsuidMs): number
+  /** Check if equal to another KsuidMs. */
+  equals(other: KsuidMs): boolean
+}
+export type JsKsuidMs = KsuidMs
+
+/** Convenience function to generate a new Ksuid string. */
+export declare function generateKsuid(): string
+
+/** Convenience function to parse a base62 Ksuid string into a Ksuid object. */
+export declare function parseKsuid(base62: string): Ksuid

@@ -1,6 +1,73 @@
 import { expect, test } from "vite-plus/test";
+import { Ksuid, KsuidMs, generateKsuid, parseKsuid } from "../index.js";
 import { main } from "./main.ts";
 
-test("main returns Hello, world! string with addition result", () => {
-  expect(main()).toBe("Hello, world! 2 + 3 = 5");
+test("main returns string with Ksuid details", () => {
+  const result = main();
+  expect(result).toContain("Ksuid:");
+  expect(result).toContain("equals: true");
+});
+
+test("Ksuid creation and conversion", () => {
+  const ksuid = Ksuid.now();
+  expect(ksuid.toBase62()).toHaveLength(27);
+  expect(ksuid.toString()).toBe(ksuid.toBase62());
+  expect(ksuid.bytes()).toHaveLength(20);
+  expect(ksuid.payload()).toHaveLength(16);
+  expect(ksuid.timestampSeconds()).toBeGreaterThan(0);
+});
+
+test("Ksuid with explicit timestamp and payload", () => {
+  const payload = new Uint8Array(16);
+  payload.fill(12);
+
+  const timestamp = 1621627443;
+  const ksuid = Ksuid.fromSeconds(timestamp, payload);
+  expect(ksuid.timestampSeconds()).toBe(timestamp);
+  expect(ksuid.payload()).toEqual(payload);
+
+  // Roundtrip base62
+  const base62 = ksuid.toBase62();
+  const parsed = Ksuid.fromBase62(base62);
+  expect(parsed.equals(ksuid)).toBe(true);
+  expect(parsed.timestampSeconds()).toBe(timestamp);
+
+  // Roundtrip bytes
+  const bytes = ksuid.bytes();
+  const fromBytes = Ksuid.fromBytes(bytes);
+  expect(fromBytes.equals(ksuid)).toBe(true);
+});
+
+test("Ksuid comparison and ordering", () => {
+  const ksuid1 = Ksuid.fromSeconds(1555555555, null);
+  const ksuid2 = Ksuid.fromSeconds(1777777777, null);
+
+  expect(ksuid1.compare(ksuid2)).toBeLessThan(0);
+  expect(ksuid2.compare(ksuid1)).toBeGreaterThan(0);
+  expect(ksuid1.compare(ksuid1)).toBe(0);
+  expect(ksuid1.equals(ksuid1)).toBe(true);
+  expect(ksuid1.equals(ksuid2)).toBe(false);
+});
+
+test("KsuidMs creation and conversion", () => {
+  const payload = new Uint8Array(15);
+  payload.fill(7);
+
+  const timestampMs = 1621627443000;
+  const ksuidMs = KsuidMs.fromMilliseconds(timestampMs, payload);
+  expect(ksuidMs.timestampMilliseconds()).toBe(timestampMs);
+  expect(ksuidMs.payload()).toEqual(payload);
+  expect(ksuidMs.bytes()).toHaveLength(20);
+
+  const base62 = ksuidMs.toBase62();
+  const parsed = KsuidMs.fromBase62(base62);
+  expect(parsed.equals(ksuidMs)).toBe(true);
+});
+
+test("Standalone helper functions", () => {
+  const base62 = generateKsuid();
+  expect(base62).toHaveLength(27);
+
+  const parsed = parseKsuid(base62);
+  expect(parsed.toBase62()).toBe(base62);
 });

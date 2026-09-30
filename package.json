@@ -1,5 +1,5 @@
 {
-  "name": "@lib/addon",
+  "name": "@lib/ksuid",
   "version": "0.0.0",
   "types": "index.d.ts",
   "type": "module",
@@ -14,10 +14,11 @@
     "fmt": "vp fmt src/",
     "lint": "vp lint src/",
     "prepublishOnly": "vp run build",
-    "prepare": "vp config"
+    "prepare": "node patch-napi.js && vp config",
+    "postinstall": "node patch-napi.js"
   },
   "napi": {
-    "binaryName": "my-addon",
+    "binaryName": "ksuid",
     "targets": [
       "x86_64-apple-darwin",
       "aarch64-apple-darwin",

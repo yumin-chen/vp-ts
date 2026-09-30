@@ -1,5 +1,15 @@
 import { expect, test } from "vite-plus/test";
-import { Ksuid, KsuidMs, generateKsuid, parseKsuid } from "../index.js";
+import {
+  Ksuid,
+  KsuidMs,
+  generateKsuid,
+  parseKsuid,
+  encodeCrockfordBase32,
+  decodeCrockfordBase32,
+  encodeBase32BytesJs,
+  decodeBase32BytesJs,
+  shuffleAlphabet,
+} from "../index.js";
 import { main } from "./main.ts";
 
 test("main returns string with Ksuid details", () => {
@@ -36,6 +46,48 @@ test("Ksuid with explicit timestamp and payload", () => {
   const bytes = ksuid.bytes();
   const fromBytes = Ksuid.fromBytes(bytes);
   expect(fromBytes.equals(ksuid)).toBe(true);
+});
+
+test("Crockford Base32 encoding and decoding", () => {
+  const ksuid = Ksuid.now();
+  const b32 = ksuid.toBase32();
+  expect(b32).toHaveLength(32);
+
+  const parsed = Ksuid.fromBase32(b32);
+  expect(parsed.equals(ksuid)).toBe(true);
+
+  // Crockford u64
+  expect(encodeCrockfordBase32(0)).toBe("0");
+  expect(encodeCrockfordBase32(5111)).toBe("4ZQ");
+  expect(decodeCrockfordBase32("4ZQ")).toBe(5111);
+  expect(decodeCrockfordBase32("4zq")).toBe(5111);
+
+  // Raw bytes Base32 helper
+  const rawBytes = new Uint8Array([1, 2, 3, 4, 5]);
+  const encBytes = encodeBase32BytesJs(rawBytes);
+  const decBytes = decodeBase32BytesJs(encBytes);
+  expect(decBytes).toEqual(rawBytes);
+});
+
+test("Custom and shuffled alphabet configuration", () => {
+  const defaultBase32 = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+  const shuffledBase32 = shuffleAlphabet(defaultBase32, 12345);
+  expect(shuffledBase32).toHaveLength(32);
+  expect(shuffledBase32).not.toBe(defaultBase32);
+
+  const ksuid = Ksuid.now();
+  const customEncoded = ksuid.toBase32(shuffledBase32);
+  const parsedCustom = Ksuid.fromBase32(customEncoded, shuffledBase32);
+  expect(parsedCustom.equals(ksuid)).toBe(true);
+
+  // Custom Base62 alphabet
+  const defaultBase62 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+  const shuffledBase62 = shuffleAlphabet(defaultBase62, 99);
+  expect(shuffledBase62).toHaveLength(62);
+
+  const b62Custom = ksuid.toBase62(shuffledBase62);
+  const parsedB62 = Ksuid.fromBase62(b62Custom, shuffledBase62);
+  expect(parsedB62.equals(ksuid)).toBe(true);
 });
 
 test("Ksuid comparison and ordering", () => {

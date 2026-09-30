@@ -16,14 +16,22 @@ export declare class Ksuid {
   static new(timestampSeconds?: number | undefined | null, payload?: Uint8Array | undefined | null): Ksuid
   /** Create a Ksuid from seconds timestamp and optional payload. */
   static fromSeconds(seconds?: number | undefined | null, payload?: Uint8Array | undefined | null): Ksuid
-  /** Parse a Ksuid from a base62 string. */
-  static fromBase62(base62: string): Ksuid
+  /** Parse a Ksuid from a base62 string (optional custom alphabet). */
+  static fromBase62(base62: string, alphabet?: string | undefined | null): Ksuid
   /** Parse a Ksuid from string (implements FromStr). */
   static fromStr(base62: string): Ksuid
+  /** Parse a Ksuid from a Crockford Base32 string (optional custom alphabet). */
+  static fromBase32(encoded: string, alphabet?: string | undefined | null): Ksuid
+  /** Alias for from_base32. */
+  static fromCrockfordBase32(encoded: string, alphabet?: string | undefined | null): Ksuid
   /** Create a Ksuid from 20 raw bytes. */
   static fromBytes(bytes: Uint8Array): Ksuid
-  /** Returns the base62 string representation. */
-  toBase62(): string
+  /** Returns the base62 string representation (optional custom alphabet). */
+  toBase62(alphabet?: string | undefined | null): string
+  /** Returns Crockford Base32 string representation (optional custom alphabet). */
+  toBase32(alphabet?: string | undefined | null): string
+  /** Alias for to_base32. */
+  toCrockfordBase32(alphabet?: string | undefined | null): string
   /** Returns string representation. */
   toString(): string
   /** Returns the 20 bytes of the Ksuid. */
@@ -46,14 +54,22 @@ export declare class KsuidMs {
   static new(timestampMs?: number | undefined | null, payload?: Uint8Array | undefined | null): KsuidMs
   /** Create a KsuidMs from milliseconds timestamp and optional payload. */
   static fromMilliseconds(ms?: number | undefined | null, payload?: Uint8Array | undefined | null): KsuidMs
-  /** Parse a KsuidMs from a base62 string. */
-  static fromBase62(base62: string): KsuidMs
+  /** Parse a KsuidMs from a base62 string (optional custom alphabet). */
+  static fromBase62(base62: string, alphabet?: string | undefined | null): KsuidMs
   /** Parse a KsuidMs from string (implements FromStr). */
   static fromStr(base62: string): KsuidMs
+  /** Parse a KsuidMs from a Crockford Base32 string (optional custom alphabet). */
+  static fromBase32(encoded: string, alphabet?: string | undefined | null): KsuidMs
+  /** Alias for from_base32. */
+  static fromCrockfordBase32(encoded: string, alphabet?: string | undefined | null): KsuidMs
   /** Create a KsuidMs from 20 raw bytes. */
   static fromBytes(bytes: Uint8Array): KsuidMs
-  /** Returns the base62 string representation. */
-  toBase62(): string
+  /** Returns the base62 string representation (optional custom alphabet). */
+  toBase62(alphabet?: string | undefined | null): string
+  /** Returns Crockford Base32 string representation (optional custom alphabet). */
+  toBase32(alphabet?: string | undefined | null): string
+  /** Alias for to_base32. */
+  toCrockfordBase32(alphabet?: string | undefined | null): string
   /** Returns string representation. */
   toString(): string
   /** Returns the 20 bytes of the KsuidMs. */
@@ -69,8 +85,23 @@ export declare class KsuidMs {
 }
 export type JsKsuidMs = KsuidMs
 
-/** Convenience function to generate a new Ksuid string. */
-export declare function generateKsuid(): string
+/** Decode a Crockford Base32 string into raw bytes (optional custom alphabet). */
+export declare function decodeBase32BytesJs(encoded: string, alphabet?: string | undefined | null): Uint8Array
 
-/** Convenience function to parse a base62 Ksuid string into a Ksuid object. */
-export declare function parseKsuid(base62: string): Ksuid
+/** Decode a Crockford Base32 string to number. */
+export declare function decodeCrockfordBase32(encoded: string, alphabet?: string | undefined | null): number
+
+/** Encode raw bytes into Crockford Base32 (optional custom alphabet). */
+export declare function encodeBase32BytesJs(bytes: Uint8Array, alphabet?: string | undefined | null): string
+
+/** Encode a u64 number using Crockford Base32. */
+export declare function encodeCrockfordBase32(n: number, alphabet?: string | undefined | null): string
+
+/** Convenience function to generate a new Ksuid string. */
+export declare function generateKsuid(alphabet?: string | undefined | null): string
+
+/** Convenience function to parse a string into a Ksuid object. */
+export declare function parseKsuid(encoded: string, alphabet?: string | undefined | null): Ksuid
+
+/** Shuffles an alphabet string deterministically with a seed. */
+export declare function shuffleAlphabet(alphabet: string, seed?: number | undefined | null): string

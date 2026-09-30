@@ -10,6 +10,7 @@ crate-type = ["cdylib"]
 napi = "3"
 napi-derive = "3"
 svix-ksuid = { version = ">=0.6.0, <1.0.0", features = ["serde", "jiff02"] }
+base-encode = "0.3"
 
 [build-dependencies]
 napi-build = "2"

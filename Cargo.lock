@@ -241,6 +241,7 @@ dependencies = [
 name = "ksuid-native"
 version = "0.1.0"
 dependencies = [
+ "base-encode",
  "napi",
  "napi-build",
  "napi-derive",

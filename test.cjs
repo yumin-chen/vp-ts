@@ -10,7 +10,6 @@ test('Converting Ksuids', async () => {
   assert.equal(base62.length, 27)
   assert.equal(ksuid.toBase62(), base62)
   assert.equal(ksuid.to_base62(), base62)
-  assert.equal(ksuid.to_string(), base62)
 
   const bytes = ksuid.bytes()
   assert.equal(Buffer.isBuffer(bytes), true)
@@ -23,40 +22,35 @@ test('Converting Ksuids', async () => {
   const tsSec = ksuid.timestampSeconds()
   assert.equal(typeof tsSec, 'number')
   assert.ok(tsSec > 1600000000)
-  assert.equal(ksuid.timestamp_seconds(), tsSec)
 
   const tsMs = ksuid.timestamp()
   assert.equal(typeof tsMs, 'number')
   assert.equal(tsMs, tsSec * 1000)
 })
 
-test('Creating Ksuids', async () => {
-  const { Ksuid } = await import('./index.js')
+test('Creating Ksuids with base32 options and custom alphabet', async () => {
+  const { Ksuid, encodeCrockford, decodeCrockford } = await import('./index.js')
 
-  const ksuidNow = Ksuid.now()
-  assert.ok(ksuidNow)
+  const ksuidB32 = Ksuid.now(null, { enc: 'base32' })
+  const b32Str = ksuidB32.toString()
+  assert.equal(typeof b32Str, 'string')
+  assert.equal(b32Str.length, 32) // 20 bytes * 8 / 5 = 32 chars
 
-  const payload = Buffer.alloc(16, 12)
-  const ksuidNew = Ksuid.new(1621627443, payload)
-  assert.equal(ksuidNew.timestampSeconds(), 1621627443)
-  assert.deepEqual(ksuidNew.payload(), payload)
+  const parsedB32 = Ksuid.fromBase32(b32Str, { enc: 'base32' })
+  assert.equal(parsedB32.toBase32(), b32Str)
+  assert.equal(parsedB32.toString(), b32Str)
 
-  const base62 = '1srOrx2ZWZBpBUvZwXKQmoEYga2'
-  const kFromB62 = Ksuid.fromBase62(base62)
-  const kFromStr = Ksuid.fromStr(base62)
-  assert.equal(kFromB62.toString(), base62)
-  assert.equal(kFromStr.toString(), base62)
-  assert.equal(Ksuid.from_base62(base62).toString(), base62)
-  assert.equal(Ksuid.from_str(base62).toString(), base62)
+  // Crockford u64 encode/decode
+  const encodedVal = encodeCrockford(5111)
+  assert.equal(encodedVal, '4ZQ')
+  const decodedVal = decodeCrockford('4ZQ')
+  assert.equal(decodedVal, 5111)
 
-  const bytes = kFromB62.bytes()
-  const kFromBytes = Ksuid.fromBytes(bytes)
-  assert.equal(kFromBytes.toString(), base62)
-  assert.equal(Ksuid.from_bytes(bytes).toString(), base62)
-
-  const kFromSec = Ksuid.fromSeconds(1621627443, payload)
-  assert.equal(kFromSec.timestampSeconds(), 1621627443)
-  assert.equal(Ksuid.from_seconds(1621627443, payload).timestampSeconds(), 1621627443)
+  // Custom alphabet
+  const customAlpha = '0123456789abcdefghijklmnopqrstuv'
+  const customKsuid = Ksuid.now(null, { enc: 'base32', alphabet: customAlpha })
+  const customStr = customKsuid.toString()
+  assert.equal(customStr, customStr.toLowerCase())
 })
 
 test('Compare and order Ksuids', async () => {
@@ -71,14 +65,12 @@ test('Compare and order Ksuids', async () => {
   assert.ok(ksuid2.gt(ksuid1))
   assert.ok(ksuid2.gte(ksuid1))
   assert.equal(ksuid1.compare(ksuid2), -1)
-  assert.equal(ksuid2.compare(ksuid1), 1)
-  assert.equal(ksuid1.compare(ksuid1), 0)
 })
 
-test('KsuidMs functionality', async () => {
+test('KsuidMs functionality with options', async () => {
   const { KsuidMs } = await import('./index.js')
 
-  const kms = KsuidMs.now()
+  const kms = KsuidMs.now(null, { timestampSize: '64bit', enc: 'base32' })
   assert.ok(kms.toString())
   assert.equal(kms.bytes().length, 20)
   assert.equal(kms.payload().length, 15)

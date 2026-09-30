@@ -1,6 +1,6 @@
-import { Ksuid, KsuidMs } from "../index.js";
+import { decodeCrockford, encodeCrockford, Ksuid, KsuidMs, type KsuidOptions } from "../index.js";
 
-export { Ksuid, KsuidMs };
+export { decodeCrockford, encodeCrockford, Ksuid, KsuidMs, type KsuidOptions };
 
 export const main = () => {
   const ksuid = Ksuid.now();

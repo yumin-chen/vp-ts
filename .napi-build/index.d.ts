@@ -12,18 +12,22 @@ export declare const __napiBindingTarget: 'native' | 'wasm32-wasi' | 'wasm32-was
 export declare class Ksuid {
   get PAYLOAD_BYTES(): number
   get BYTES(): number
-  static now(payload?: Uint8Array | undefined | null): Ksuid
-  static new(timestamp?: number | undefined | null, payload?: Uint8Array | undefined | null): Ksuid
-  static fromBase62(base62: string): Ksuid
-  static from_base62(base62: string): Ksuid
-  static fromStr(base62: string): Ksuid
-  static from_str(base62: string): Ksuid
-  static fromBytes(bytes: Uint8Array): Ksuid
-  static from_bytes(bytes: Uint8Array): Ksuid
-  static fromSeconds(seconds?: number | undefined | null, payload?: Uint8Array | undefined | null): Ksuid
-  static from_seconds(seconds?: number | undefined | null, payload?: Uint8Array | undefined | null): Ksuid
+  static now(payload?: Uint8Array | undefined | null, options?: KsuidOptions | undefined | null): Ksuid
+  static new(timestamp?: number | undefined | null, payload?: Uint8Array | undefined | null, options?: KsuidOptions | undefined | null): Ksuid
+  static fromBase62(base62: string, options?: KsuidOptions | undefined | null): Ksuid
+  static from_base62(base62: string, options?: KsuidOptions | undefined | null): Ksuid
+  static fromBase32(base32: string, options?: KsuidOptions | undefined | null): Ksuid
+  static from_base32(base32: string, options?: KsuidOptions | undefined | null): Ksuid
+  static fromStr(s: string, options?: KsuidOptions | undefined | null): Ksuid
+  static from_str(s: string, options?: KsuidOptions | undefined | null): Ksuid
+  static fromBytes(bytes: Uint8Array, options?: KsuidOptions | undefined | null): Ksuid
+  static from_bytes(bytes: Uint8Array, options?: KsuidOptions | undefined | null): Ksuid
+  static fromSeconds(seconds?: number | undefined | null, payload?: Uint8Array | undefined | null, options?: KsuidOptions | undefined | null): Ksuid
+  static from_seconds(seconds?: number | undefined | null, payload?: Uint8Array | undefined | null, options?: KsuidOptions | undefined | null): Ksuid
   toBase62(): string
   to_base62(): string
+  toBase32(): string
+  to_base32(): string
   toString(): string
   to_string(): string
   bytes(): Buffer
@@ -42,20 +46,24 @@ export declare class Ksuid {
 export declare class KsuidMs {
   get PAYLOAD_BYTES(): number
   get BYTES(): number
-  static now(payload?: Uint8Array | undefined | null): KsuidMs
-  static new(timestamp?: number | undefined | null, payload?: Uint8Array | undefined | null): KsuidMs
-  static fromBase62(base62: string): KsuidMs
-  static from_base62(base62: string): KsuidMs
-  static fromStr(base62: string): KsuidMs
-  static from_str(base62: string): KsuidMs
-  static fromBytes(bytes: Uint8Array): KsuidMs
-  static from_bytes(bytes: Uint8Array): KsuidMs
-  static fromMillis(millis?: number | undefined | null, payload?: Uint8Array | undefined | null): KsuidMs
-  static from_millis(millis?: number | undefined | null, payload?: Uint8Array | undefined | null): KsuidMs
-  static fromSeconds(seconds?: number | undefined | null, payload?: Uint8Array | undefined | null): KsuidMs
-  static from_seconds(seconds?: number | undefined | null, payload?: Uint8Array | undefined | null): KsuidMs
+  static now(payload?: Uint8Array | undefined | null, options?: KsuidOptions | undefined | null): KsuidMs
+  static new(timestamp?: number | undefined | null, payload?: Uint8Array | undefined | null, options?: KsuidOptions | undefined | null): KsuidMs
+  static fromBase62(base62: string, options?: KsuidOptions | undefined | null): KsuidMs
+  static from_base62(base62: string, options?: KsuidOptions | undefined | null): KsuidMs
+  static fromBase32(base32: string, options?: KsuidOptions | undefined | null): KsuidMs
+  static from_base32(base32: string, options?: KsuidOptions | undefined | null): KsuidMs
+  static fromStr(s: string, options?: KsuidOptions | undefined | null): KsuidMs
+  static from_str(s: string, options?: KsuidOptions | undefined | null): KsuidMs
+  static fromBytes(bytes: Uint8Array, options?: KsuidOptions | undefined | null): KsuidMs
+  static from_bytes(bytes: Uint8Array, options?: KsuidOptions | undefined | null): KsuidMs
+  static fromMillis(millis?: number | undefined | null, payload?: Uint8Array | undefined | null, options?: KsuidOptions | undefined | null): KsuidMs
+  static from_millis(millis?: number | undefined | null, payload?: Uint8Array | undefined | null, options?: KsuidOptions | undefined | null): KsuidMs
+  static fromSeconds(seconds?: number | undefined | null, payload?: Uint8Array | undefined | null, options?: KsuidOptions | undefined | null): KsuidMs
+  static from_seconds(seconds?: number | undefined | null, payload?: Uint8Array | undefined | null, options?: KsuidOptions | undefined | null): KsuidMs
   toBase62(): string
   to_base62(): string
+  toBase32(): string
+  to_base32(): string
   toString(): string
   to_string(): string
   bytes(): Buffer
@@ -71,4 +79,14 @@ export declare class KsuidMs {
   gte(other: KsuidMs): boolean
   lt(other: KsuidMs): boolean
   lte(other: KsuidMs): boolean
+}
+
+export declare function decodeCrockford(input: string): number
+
+export declare function encodeCrockford(value: number): string
+
+export interface KsuidOptions {
+  enc?: string
+  alphabet?: string
+  timestampSize?: string
 }

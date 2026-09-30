@@ -1,4 +1,6 @@
 import { NapiCli } from "@napi-rs/cli";
+import fs from "node:fs";
+import path from "node:path";
 
 async function run() {
   const args = process.argv.slice(2);
@@ -13,6 +15,7 @@ async function run() {
   const cli = new NapiCli();
   await cli.build({
     platform: true,
+    outputDir: "dist",
     esm: true,
     release: isRelease,
     target,
@@ -20,6 +23,19 @@ async function run() {
     crossCompile,
     useCross,
   });
+
+  const distDir = path.resolve(process.cwd(), "dist");
+  if (fs.existsSync(distDir)) {
+    const distFiles = fs.readdirSync(distDir);
+    for (const file of distFiles) {
+      if (file.endsWith(".js") || file.endsWith(".d.ts") || file.endsWith(".node")) {
+        const srcPath = path.join(distDir, file);
+        const destPath = path.resolve(process.cwd(), file);
+        fs.copyFileSync(srcPath, destPath);
+        console.log(`Copied ${srcPath} -> ${destPath}`);
+      }
+    }
+  }
 }
 
 void run().catch((err) => {

@@ -1,13 +1,15 @@
 {
-  "name": "my-addon",
+  "name": "@lib/module",
   "version": "0.1.0",
   "main": "index.js",
   "types": "index.d.ts",
   "files": [
-    "dist"
+    "index.js",
+    "index.d.ts",
+    "*.node"
   ],
   "exports": {
-    ".": "./dist/main.mjs",
+    ".": "./index.js",
     "./package.json": "./package.json"
   },
   "scripts": {

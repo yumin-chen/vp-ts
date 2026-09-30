@@ -1,53 +1,23 @@
-# Starter Template
+# my-addon
 
-TypeScript starter template.
+A minimal NAPI-RS starter project.
 
 ## Development
-
-- Configure local hooks:
-
-```bash
-npm run prepare
-```
 
 - Install dependencies:
 
 ```bash
-vp install
+npm install
 ```
 
-- Run the unit tests:
-
-```bash
-vp test
-```
-
-- Run the locally:
-
-```bash
-npm run dev
-```
-
-- Build the library:
+- Build the addon:
 
 ```bash
 npm run build
 ```
 
-- Code formatting:
+- Run tests:
 
 ```bash
-npm run fmt
-```
-
-- Linting:
-
-```bash
-npm run lint
-```
-
-- Code check:
-
-```bash
-npm run check
+npm test
 ```

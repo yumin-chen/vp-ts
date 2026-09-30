@@ -1,5 +1,12 @@
 import console from "node:console";
-import { newKsuid, ksuidTimestampSeconds } from "../index.js";
+import {
+  newKsuid,
+  ksuidTimestampSeconds,
+  crockfordEncode,
+  crockfordDecode,
+  ksuidToCrockford,
+  ksuidFromCrockford,
+} from "../index.js";
 
 export const generateKsuid = () => {
   return newKsuid();
@@ -7,6 +14,22 @@ export const generateKsuid = () => {
 
 export const getKsuidTime = (id: string) => {
   return ksuidTimestampSeconds(id);
+};
+
+export const encodeCrockford = (n: number, customAlphabet?: string) => {
+  return crockfordEncode(n, customAlphabet);
+};
+
+export const decodeCrockford = (input: string, customAlphabet?: string) => {
+  return crockfordDecode(input, customAlphabet);
+};
+
+export const convertToCrockford = (id: string, customAlphabet?: string) => {
+  return ksuidToCrockford(id, customAlphabet);
+};
+
+export const convertFromCrockford = (crockford: string, customAlphabet?: string) => {
+  return ksuidFromCrockford(crockford, customAlphabet);
 };
 
 console.log("Generated KSUID:", generateKsuid());

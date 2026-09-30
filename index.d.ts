@@ -9,10 +9,22 @@
  */
 export declare const __napiBindingTarget: 'native' | 'wasm32-wasi' | 'wasm32-wasip1'
 
+export declare function crockfordDecode(input: string, customAlphabet?: string | undefined | null): number
+
+export declare function crockfordEncode(n: number, customAlphabet?: string | undefined | null): string
+
+export declare function decodeBytesCustom(input: string, alphabet: string): Uint8Array
+
+export declare function encodeBytesCustom(bytes: Uint8Array, alphabet: string): string
+
 export declare function ksuidFromBase62(base62: string): string
+
+export declare function ksuidFromCrockford(crockford: string, customAlphabet?: string | undefined | null): string
 
 export declare function ksuidTimestampSeconds(base62: string): number
 
 export declare function ksuidToBytes(base62: string): Uint8Array
+
+export declare function ksuidToCrockford(base62: string, customAlphabet?: string | undefined | null): string
 
 export declare function newKsuid(): string

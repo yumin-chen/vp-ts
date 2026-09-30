@@ -716,9 +716,15 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`)
 }
 
-const { ksuidFromBase62, ksuidTimestampSeconds, ksuidToBytes, newKsuid } = nativeBinding
+const { crockfordDecode, crockfordEncode, decodeBytesCustom, encodeBytesCustom, ksuidFromBase62, ksuidFromCrockford, ksuidTimestampSeconds, ksuidToBytes, ksuidToCrockford, newKsuid } = nativeBinding
+export { crockfordDecode }
+export { crockfordEncode }
+export { decodeBytesCustom }
+export { encodeBytesCustom }
 export { ksuidFromBase62 }
+export { ksuidFromCrockford }
 export { ksuidTimestampSeconds }
 export { ksuidToBytes }
+export { ksuidToCrockford }
 export { newKsuid }
 export const __napiBindingTarget = __napiLoadedBindingTarget

@@ -9,4 +9,70 @@
  */
 export declare const __napiBindingTarget: 'native' | 'wasm32-wasi' | 'wasm32-wasip1'
 
-export declare function add(left: number, right: number): number
+export declare class CrockfordBase32 {
+  /** Create a Crockford Base32 encoder with default or custom 32-character alphabet. */
+  constructor(customAlphabet?: string | undefined | null)
+  static defaultEncoder(): CrockfordBase32
+  static withAlphabet(alphabetStr: string): CrockfordBase32
+  /** Create a new CrockfordBase32 encoder by shuffling the current alphabet with a seed string. */
+  shuffle(seed: string): CrockfordBase32
+  /** Returns the current 32-character alphabet string. */
+  getAlphabet(): string
+  /** Encode a u64 number or a Uint8Array byte buffer into Crockford Base32. */
+  encode(input: number | Uint8Array): string
+  /** Decode a Crockford Base32 string into a Uint8Array buffer. */
+  decode(input: string): Uint8Array
+  /** Decode a Crockford Base32 string into a u64 number. */
+  decodeU64(input: string): number
+}
+
+export declare class Ksuid {
+  /** Create a new Ksuid. */
+  constructor(value?: string | Uint8Array | undefined | null)
+  static now(payload?: Uint8Array | undefined | null): Ksuid
+  static new(timestamp?: number | string | undefined | null, payload?: Uint8Array | undefined | null): Ksuid
+  static fromBase62(base62: string): Ksuid
+  static fromString(s: string): Ksuid
+  static fromBytes(bytes: Uint8Array): Ksuid
+  static fromSeconds(seconds?: number | undefined | null, payload?: Uint8Array | undefined | null): Ksuid
+  static fromCrockfordBase32(s: string, encoder?: CrockfordBase32 | undefined | null): Ksuid
+  toBase62(): string
+  toCrockfordBase32(encoder?: CrockfordBase32 | undefined | null): string
+  /**
+   * Convert Ksuid to string representation.
+   * Accepts optional encoding ("base62", "crockfordBase32", "base32") and optional custom encoder.
+   */
+  toString(encoding?: string | undefined | null, encoder?: CrockfordBase32 | undefined | null): string
+  bytes(): Uint8Array
+  payload(): Uint8Array
+  timestampSeconds(): number
+  timestampIso(): string
+  compare(other: Ksuid): number
+  equals(other: Ksuid): boolean
+}
+
+export declare class KsuidMs {
+  constructor(value?: string | Uint8Array | undefined | null)
+  static now(payload?: Uint8Array | undefined | null): KsuidMs
+  static new(timestamp?: number | string | undefined | null, payload?: Uint8Array | undefined | null): KsuidMs
+  static fromBase62(base62: string): KsuidMs
+  static fromString(s: string): KsuidMs
+  static fromBytes(bytes: Uint8Array): KsuidMs
+  static fromSeconds(seconds?: number | undefined | null, payload?: Uint8Array | undefined | null): KsuidMs
+  static fromMilliseconds(millis?: number | undefined | null, payload?: Uint8Array | undefined | null): KsuidMs
+  static fromCrockfordBase32(s: string, encoder?: CrockfordBase32 | undefined | null): KsuidMs
+  toBase62(): string
+  toCrockfordBase32(encoder?: CrockfordBase32 | undefined | null): string
+  /**
+   * Convert KsuidMs to string representation.
+   * Accepts optional encoding ("base62", "crockfordBase32", "base32") and optional custom encoder.
+   */
+  toString(encoding?: string | undefined | null, encoder?: CrockfordBase32 | undefined | null): string
+  bytes(): Uint8Array
+  payload(): Uint8Array
+  timestampSeconds(): number
+  timestampMilliseconds(): number
+  timestampIso(): string
+  compare(other: KsuidMs): number
+  equals(other: KsuidMs): boolean
+}

@@ -1,4 +1,14 @@
+import fs from "node:fs/promises";
+import path from "node:path";
 import { NapiCli } from "@napi-rs/cli";
+
+const origMkdtemp = fs.mkdtemp;
+fs.mkdtemp = function (prefix, options) {
+  if (typeof prefix === "string" && prefix.startsWith("/.")) {
+    prefix = path.join("/tmp", prefix.slice(1));
+  }
+  return origMkdtemp.call(this, prefix, options);
+};
 
 async function run() {
   const args = process.argv.slice(2);

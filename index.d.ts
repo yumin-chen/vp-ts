@@ -7,6 +7,42 @@
  * flavor napi-rs can build is listed, because `NAPI_RS_NATIVE_LIBRARY_PATH`
  * can point the loader at a WASI artifact this package does not build itself.
  */
-export declare const __napiBindingTarget: 'native' | 'wasm32-wasi' | 'wasm32-wasip1'
+export declare const __napiBindingTarget: "native" | "wasm32-wasi" | "wasm32-wasip1";
 
-export declare function add(left: number, right: number): number
+export declare class Ksuid {
+  constructor(timestampSeconds?: number | undefined | null, payload?: Buffer | undefined | null);
+  static now(): Ksuid;
+  static fromSeconds(
+    timestampSeconds?: number | undefined | null,
+    payload?: Buffer | undefined | null,
+  ): Ksuid;
+  static fromBase62(base62: string): Ksuid;
+  static fromStr(str: string): Ksuid;
+  static fromBytes(bytes: Buffer): Ksuid;
+  toBase62(): string;
+  toString(): string;
+  bytes(): Buffer;
+  payload(): Buffer;
+  timestampSeconds(): number;
+  compare(other: Ksuid): number;
+  equals(other: Ksuid): boolean;
+}
+
+export declare class KsuidMs {
+  constructor(timestampMs?: number | undefined | null, payload?: Buffer | undefined | null);
+  static now(): KsuidMs;
+  static fromMillis(
+    timestampMs?: number | undefined | null,
+    payload?: Buffer | undefined | null,
+  ): KsuidMs;
+  static fromBase62(base62: string): KsuidMs;
+  static fromStr(str: string): KsuidMs;
+  static fromBytes(bytes: Buffer): KsuidMs;
+  toBase62(): string;
+  toString(): string;
+  bytes(): Buffer;
+  payload(): Buffer;
+  timestampMs(): number;
+  compare(other: KsuidMs): number;
+  equals(other: KsuidMs): boolean;
+}

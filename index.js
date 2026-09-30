@@ -716,7 +716,8 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`)
 }
 
-const { Ksuid, KsuidMs } = nativeBinding
+const { CrockfordBase32, Ksuid, KsuidMs } = nativeBinding
+export { CrockfordBase32 }
 export { Ksuid }
 export { KsuidMs }
 export const __napiBindingTarget = __napiLoadedBindingTarget

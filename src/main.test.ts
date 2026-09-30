@@ -1,5 +1,5 @@
 import { expect, test } from "vite-plus/test";
-import { Ksuid, KsuidMs, generateKsuid, generateKsuidMs } from "./main.ts";
+import { CrockfordBase32, Ksuid, KsuidMs, generateKsuid, generateKsuidMs } from "./main.ts";
 
 test("Ksuid - creation and base62 conversion", () => {
   const ksuid = Ksuid.now();
@@ -58,6 +58,47 @@ test("KsuidMs - creation and timestamp", () => {
   const msKsuid = KsuidMs.fromMilliseconds(1_621_627_443_000);
   expect(msKsuid.timestampMilliseconds()).toBe(1_621_627_443_000);
   expect(msKsuid.toBase62().length).toBe(27);
+});
+
+test("CrockfordBase32 - u64 encoding and decoding", () => {
+  const cb32 = CrockfordBase32.defaultEncoder();
+  expect(cb32.encode(0)).toBe("0");
+  expect(cb32.encode(5111)).toBe("4ZQ");
+  expect(cb32.decodeU64("4ZQ")).toBe(5111);
+  expect(cb32.decodeU64("4zq")).toBe(5111);
+});
+
+test("CrockfordBase32 - custom alphabet and shuffling", () => {
+  const defaultAlpha = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+  const cb32Default = CrockfordBase32.defaultEncoder();
+  expect(cb32Default.getAlphabet()).toBe(defaultAlpha);
+
+  const customAlpha = "ZYXWVUTSRQPNMKJHGFEDCBA987654321";
+  const cb32Custom = CrockfordBase32.withAlphabet(customAlpha);
+  expect(cb32Custom.getAlphabet()).toBe(customAlpha);
+
+  const shuffled = cb32Default.shuffle("secret-seed");
+  expect(shuffled.getAlphabet().length).toBe(32);
+  expect(shuffled.getAlphabet()).not.toBe(defaultAlpha);
+
+  const encoded = shuffled.encode(1234567);
+  const decoded = shuffled.decodeU64(encoded);
+  expect(decoded).toBe(1234567);
+});
+
+test("Ksuid - Crockford Base32 encoding & roundtrip", () => {
+  const ksuid = Ksuid.now();
+  const c32Str = ksuid.toCrockfordBase32();
+  expect(c32Str.length).toBe(32);
+
+  const restored = Ksuid.fromCrockfordBase32(c32Str);
+  expect(restored.equals(ksuid)).toBe(true);
+
+  // Custom shuffled Crockford Base32 for Ksuid
+  const encoder = CrockfordBase32.defaultEncoder().shuffle("my-secret");
+  const customC32 = ksuid.toCrockfordBase32(encoder);
+  const restoredCustom = Ksuid.fromCrockfordBase32(customC32, encoder);
+  expect(restoredCustom.equals(ksuid)).toBe(true);
 });
 
 test("Helper generator functions", () => {

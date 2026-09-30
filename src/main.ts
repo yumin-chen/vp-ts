@@ -1,4 +1,6 @@
-import { Ksuid as NativeKsuid, KsuidMs as NativeKsuidMs } from "../index.js";
+import { CrockfordBase32, Ksuid as NativeKsuid, KsuidMs as NativeKsuidMs } from "../index.js";
+
+export { CrockfordBase32 };
 
 export const Ksuid = NativeKsuid as typeof NativeKsuid & {
   PAYLOAD_BYTES: number;

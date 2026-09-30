@@ -7,6 +7,81 @@
  * flavor napi-rs can build is listed, because `NAPI_RS_NATIVE_LIBRARY_PATH`
  * can point the loader at a WASI artifact this package does not build itself.
  */
-export declare const __napiBindingTarget: 'native' | 'wasm32-wasi' | 'wasm32-wasip1'
+export declare const __napiBindingTarget: "native" | "wasm32-wasi" | "wasm32-wasip1";
 
-export declare function add(left: number, right: number): number
+export declare class DieselOrm {
+  constructor(databaseUrl: string);
+  /** Loading all users from database: users::table.load(&mut connection) */
+  loadAllUsers(): Array<JsUser>;
+  /** Inserting data with RETURNING results: insert_into(users).values(&new_users).get_results(...) */
+  insertUsers(newUsers: Array<JsNewUser>): Array<JsUser>;
+  /** Loading all posts for a user: Post::belonging_to(user).load(&mut connection) */
+  loadPostsForUser(userIdParam: number): Array<JsPost>;
+  /** Creating a new post: insert_into(posts).values(...).returning(...).get_result(...) */
+  createPost(post: JsNewPost): JsPost;
+  /** Get single post with .optional() -> Option<Post> */
+  getPost(postId: number): JsPost | null;
+  /** Publish post: update(posts.find(id)).set(published.eq(true)) */
+  publishPost(postId: number): JsPost;
+  /** Show published posts with limit */
+  showPublishedPosts(limitVal?: number | undefined | null): Array<JsPost>;
+  /** Batch update: update(users.filter(name.like(...))).set(banned.eq(true)) */
+  batchBanUsers(pattern: string): number;
+  /** Delete posts matching title pattern: delete(posts.filter(title.like(pattern))).execute(...) */
+  deletePosts(pattern: string): number;
+  /** Insert downloads */
+  insertDownloads(newDownloads: Array<JsNewDownload>): Array<JsDownload>;
+  /** Complex query: downloads.filter(date.gt(...)).filter(version_id.eq_any(...)).order(date).limit(...) */
+  getRecentDownloadsForVersions(
+    versionIds: Array<number>,
+    minDate: string,
+    limitVal?: number | undefined | null,
+  ): Array<JsDownload>;
+  /** Raw SQL execution: sql_query(...) */
+  executeRawSql(sql: string): number;
+}
+
+export interface JsDownload {
+  id: number;
+  versionId: number;
+  downloads: number;
+  counted: number;
+  date: string;
+}
+
+export interface JsNewDownload {
+  versionId: number;
+  downloads: number;
+  counted: number;
+  date: string;
+}
+
+export interface JsNewPost {
+  userId?: number;
+  title: string;
+  body: string;
+  published?: boolean;
+}
+
+export interface JsNewUser {
+  name: string;
+  hairColor?: string;
+  banned?: boolean;
+  organizationId?: number;
+}
+
+export interface JsPost {
+  id: number;
+  userId: number;
+  title: string;
+  body: string;
+  published: boolean;
+}
+
+export interface JsUser {
+  id: number;
+  name: string;
+  hairColor?: string;
+  banned: boolean;
+  organizationId: number;
+}

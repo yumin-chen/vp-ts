@@ -1,18 +1,19 @@
 {
-  "name": "my-addon",
+  "name": "@lib/nanoid",
   "version": "0.1.0",
-  "main": "index.js",
-  "types": "index.d.ts",
+  "main": "dist/main.js",
+  "types": "dist/main.d.ts",
   "files": [
     "dist"
   ],
   "exports": {
-    ".": "./index.js",
+    ".": "./dist/main.js",
+    "./non-secure": "./dist/non-secure.js",
     "./package.json": "./package.json"
   },
   "scripts": {
-    "build": "node build.mjs --platform",
-    "build:release": "node build.mjs --platform --release",
+    "build": "node build.mjs --platform -o dist",
+    "build:release": "node build.mjs --platform --release -o dist",
     "dev": "vp pack --watch",
     "start": "vp run src/main.ts",
     "test": "node --test test.cjs",
@@ -23,7 +24,7 @@
     "prepare": "vp config"
   },
   "napi": {
-    "binaryName": "my-addon",
+    "binaryName": "lib-nanoid",
     "targets": [
       "x86_64-apple-darwin",
       "aarch64-apple-darwin",

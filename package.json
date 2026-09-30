@@ -13,6 +13,7 @@
   "scripts": {
     "build": "napi build --platform",
     "build:release": "napi build --platform --release",
+    "build:cross": "node --experimental-strip-types scripts/build.ts",
     "dev": "vp pack --watch",
     "start": "vp run src/main.ts",
     "test": "node --test test.cjs && vp test",
@@ -42,11 +43,11 @@
     ]
   },
   "devDependencies": {
-    "@emnapi/core": "^1.11.3",
-    "@emnapi/runtime": "^1.11.3",
+    "@emnapi/core": "^2.0.0-alpha.4",
+    "@emnapi/runtime": "^2.0.0-alpha.4",
     "@napi-rs/cli": "^3",
     "@types/node": "^26.6.2",
-    "emnapi": "^1.11.3",
+    "emnapi": "^2.0.0-alpha.4",
     "vite-plus": "^1.0.0-rc.1"
   },
   "peerDependencies": {

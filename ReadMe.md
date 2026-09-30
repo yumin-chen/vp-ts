@@ -1,6 +1,6 @@
-# my-addon
+# @lib/ksuid
 
-A minimal NAPI-RS starter project.
+A NAPI-RS native addon for KSUID wrapping `svix-ksuid`.
 
 ## Development
 

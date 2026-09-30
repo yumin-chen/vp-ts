@@ -1,13 +1,25 @@
 import { NapiCli } from '@napi-rs/cli'
 
+import fs from 'node:fs'
+import path from 'node:path'
+
 export async function build(options = {}) {
   const cli = new NapiCli()
-  return await cli.build({
+  const res = await cli.build({
     platform: true,
     esm: true,
-    outputDir: '.',
+    outputDir: '.napi-build',
     ...options,
   })
+  if (res && res.task) {
+    await res.task
+  }
+  if (fs.existsSync('.napi-build')) {
+    const files = fs.readdirSync('.napi-build')
+    for (const file of files) {
+      fs.copyFileSync(path.join('.napi-build', file), path.join('.', file))
+    }
+  }
 }
 
 // If run directly from CLI

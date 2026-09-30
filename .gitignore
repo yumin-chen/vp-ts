@@ -11,3 +11,8 @@ node_modules
 # log files
 logs
 *.log
+
+# NAPI generated files
+*.node
+index.js
+index.d.ts

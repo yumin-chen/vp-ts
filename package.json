@@ -1,19 +1,12 @@
 {
-  "name": "@lib/module",
-  "version": "0.0.0",
-  "files": [
-    "dist"
-  ],
-  "type": "module",
-  "exports": {
-    ".": "./dist/main.mjs",
-    "./package.json": "./package.json"
-  },
+  "name": "my-addon",
+  "version": "0.1.0",
   "types": "index.d.ts",
+  "type": "module",
   "scripts": {
-    "build": "npm run build:napi && vp pack",
-    "build:napi": "node patch-cli.cjs && napi build --platform --esm",
-    "build:release": "node patch-cli.cjs && napi build --platform --esm --release",
+    "build": "node build.mjs && vp pack",
+    "build:napi": "node build.mjs",
+    "build:release": "node build.mjs --release",
     "dev": "vp pack --watch",
     "start": "vp run src/main.ts",
     "test": "node --test test.cjs && vp test",
@@ -45,7 +38,7 @@
   "devDependencies": {
     "@napi-rs/cli": "^3",
     "@types/node": "^26.6.2",
-    "emnapi": "^1.11.3",
+    "emnapi": "^1.4.0",
     "vite-plus": "1.0.0"
   },
   "peerDependencies": {
@@ -60,5 +53,9 @@
       "version": "11.11.0",
       "onFail": "download"
     }
+  },
+  "exports": {
+    ".": "./dist/main.mjs",
+    "./package.json": "./package.json"
   }
 }

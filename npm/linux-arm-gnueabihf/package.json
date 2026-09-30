@@ -1,6 +1,6 @@
 {
-  "name": "@lib/module-linux-arm-gnueabihf",
-  "version": "0.0.0",
+  "name": "my-addon-linux-arm-gnueabihf",
+  "version": "0.1.0",
   "cpu": [
     "arm"
   ],

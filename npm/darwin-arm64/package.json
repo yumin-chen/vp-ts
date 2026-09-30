@@ -1,6 +1,6 @@
 {
-  "name": "@lib/module-darwin-arm64",
-  "version": "0.0.0",
+  "name": "my-addon-darwin-arm64",
+  "version": "0.1.0",
   "cpu": [
     "arm64"
   ],

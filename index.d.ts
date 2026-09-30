@@ -10,39 +10,65 @@
 export declare const __napiBindingTarget: "native" | "wasm32-wasi" | "wasm32-wasip1";
 
 export declare class Ksuid {
-  constructor(timestampSeconds?: number | undefined | null, payload?: Buffer | undefined | null);
-  static now(): Ksuid;
+  constructor(
+    timestamp?: number | undefined | null,
+    payload?: Buffer | undefined | null,
+    options?: KsuidOptions | undefined | null,
+  );
+  static now(options?: KsuidOptions | undefined | null): Ksuid;
   static fromSeconds(
     timestampSeconds?: number | undefined | null,
     payload?: Buffer | undefined | null,
+    options?: KsuidOptions | undefined | null,
   ): Ksuid;
-  static fromBase62(base62: string): Ksuid;
-  static fromStr(str: string): Ksuid;
-  static fromBytes(bytes: Buffer): Ksuid;
-  toBase62(): string;
+  static fromMillis(
+    timestampMs?: number | undefined | null,
+    payload?: Buffer | undefined | null,
+    options?: KsuidOptions | undefined | null,
+  ): Ksuid;
+  static fromBase62(base62: string, options?: KsuidOptions | undefined | null): Ksuid;
+  static fromBase32(base32: string, options?: KsuidOptions | undefined | null): Ksuid;
+  static fromStr(str: string, options?: KsuidOptions | undefined | null): Ksuid;
+  static fromBytes(bytes: Buffer, options?: KsuidOptions | undefined | null): Ksuid;
   toString(): string;
+  toBase62(): string;
+  toBase32(): string;
   bytes(): Buffer;
   payload(): Buffer;
   timestampSeconds(): number;
+  timestampMs(): number;
   compare(other: Ksuid): number;
   equals(other: Ksuid): boolean;
 }
 
 export declare class KsuidMs {
-  constructor(timestampMs?: number | undefined | null, payload?: Buffer | undefined | null);
-  static now(): KsuidMs;
+  constructor(
+    timestampMs?: number | undefined | null,
+    payload?: Buffer | undefined | null,
+    options?: KsuidOptions | undefined | null,
+  );
+  static now(options?: KsuidOptions | undefined | null): KsuidMs;
   static fromMillis(
     timestampMs?: number | undefined | null,
     payload?: Buffer | undefined | null,
+    options?: KsuidOptions | undefined | null,
   ): KsuidMs;
-  static fromBase62(base62: string): KsuidMs;
-  static fromStr(str: string): KsuidMs;
-  static fromBytes(bytes: Buffer): KsuidMs;
-  toBase62(): string;
+  static fromBase62(base62: string, options?: KsuidOptions | undefined | null): KsuidMs;
+  static fromBase32(base32: string, options?: KsuidOptions | undefined | null): KsuidMs;
+  static fromStr(str: string, options?: KsuidOptions | undefined | null): KsuidMs;
+  static fromBytes(bytes: Buffer, options?: KsuidOptions | undefined | null): KsuidMs;
   toString(): string;
+  toBase62(): string;
+  toBase32(): string;
   bytes(): Buffer;
   payload(): Buffer;
   timestampMs(): number;
   compare(other: KsuidMs): number;
   equals(other: KsuidMs): boolean;
+}
+
+export interface KsuidOptions {
+  enc?: string;
+  alphabet?: string;
+  timestampSize?: string;
 }

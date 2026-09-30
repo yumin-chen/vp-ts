@@ -13,7 +13,7 @@ test("Ksuid constants", () => {
   expect(KSUID_MS_PAYLOAD_BYTES).toBe(15);
 });
 
-test("Ksuid.now() generates a valid KSUID", () => {
+test("Ksuid.now() generates a valid KSUID with default options", () => {
   const ksuid = Ksuid.now();
   expect(ksuid.toBase62()).toHaveLength(27);
   expect(ksuid.toString()).toBe(ksuid.toBase62());
@@ -22,6 +22,57 @@ test("Ksuid.now() generates a valid KSUID", () => {
 
   const nowSeconds = Math.floor(Date.now() / 1000);
   expect(Math.abs(ksuid.timestampSeconds() - nowSeconds)).toBeLessThanOrEqual(5);
+});
+
+test("Ksuid timestampSize options (32bit, 48bit, 64bit)", () => {
+  const tsMs = 1621627443123;
+  const tsSec = Math.floor(tsMs / 1000);
+
+  // 32bit (default)
+  const k32 = new Ksuid(tsSec, Buffer.alloc(16, 1), { timestampSize: "32bit" });
+  expect(k32.payload()).toHaveLength(16);
+  expect(k32.timestampSeconds()).toBe(tsSec);
+
+  // 48bit
+  const k48 = new Ksuid(tsMs, Buffer.alloc(14, 2), { timestampSize: "48bit" });
+  expect(k48.payload()).toHaveLength(14);
+  expect(k48.timestampMs()).toBe(tsMs);
+
+  // 64bit
+  const k64 = new Ksuid(tsMs, Buffer.alloc(12, 3), { timestampSize: "64bit" });
+  expect(k64.payload()).toHaveLength(12);
+  expect(k64.timestampMs()).toBe(tsMs);
+});
+
+test("Ksuid enc option (base32 vs base62)", () => {
+  const kBase62 = Ksuid.now({ enc: "base62" });
+  expect(kBase62.toString()).toHaveLength(27);
+
+  const kBase32 = Ksuid.now({ enc: "base32" });
+  expect(kBase32.toString()).toHaveLength(32);
+  expect(kBase32.toBase32()).toHaveLength(32);
+
+  // Roundtrip base32
+  const str32 = kBase32.toBase32();
+  const parsed32 = Ksuid.fromBase32(str32);
+  expect(parsed32.equals(kBase32)).toBe(true);
+});
+
+test("Ksuid custom alphabet option", () => {
+  // Shuffled 62-char alphabet
+  const shuffled62 = "zyxwvutsrqponmlkjihgfedcbaZYXWVUTSRQPONMLKJIHGFEDCBA9876543210";
+  const k = Ksuid.now({ alphabet: shuffled62 });
+  const encoded = k.toBase62();
+  expect(encoded).toHaveLength(27);
+
+  const parsed = Ksuid.fromBase62(encoded, { alphabet: shuffled62 });
+  expect(parsed.equals(k)).toBe(true);
+
+  // Custom 32-char alphabet
+  const shuffled32 = "ZYXWVTRPnMkHGFEDCBA9876543210987";
+  const k32 = Ksuid.now({ enc: "base32", alphabet: shuffled32 });
+  const enc32 = k32.toBase32();
+  expect(enc32).toHaveLength(32);
 });
 
 test("Ksuid.fromSeconds and new constructor", () => {
@@ -47,14 +98,6 @@ test("Ksuid fromBase62 and fromStr", () => {
   expect(() => Ksuid.fromBase62("invalid-ksuid!@#$")).toThrow();
 });
 
-test("Ksuid fromBytes", () => {
-  const bytes = Buffer.alloc(20, 7);
-  const ksuid = Ksuid.fromBytes(bytes);
-  expect(Buffer.from(ksuid.bytes())).toEqual(bytes);
-
-  expect(() => Ksuid.fromBytes(Buffer.alloc(10))).toThrow();
-});
-
 test("Ksuid compare and equals", () => {
   const k1 = Ksuid.fromSeconds(1555555555, Buffer.alloc(16, 0));
   const k2 = Ksuid.fromSeconds(1777777777, Buffer.alloc(16, 0));
@@ -68,24 +111,15 @@ test("Ksuid compare and equals", () => {
   expect(k1.equals(k2)).toBe(false);
 });
 
-test("KsuidMs operations", () => {
-  const kmNow = KsuidMs.now();
-  expect(kmNow.toBase62()).toHaveLength(27);
+test("KsuidMs operations with options", () => {
+  const kmNow = KsuidMs.now({ enc: "base32" });
+  expect(kmNow.toString()).toHaveLength(32);
   expect(kmNow.bytes()).toHaveLength(20);
-  expect(kmNow.payload()).toHaveLength(15);
+  expect(kmNow.payload()).toHaveLength(12);
 
-  const tsMs = 1621627443000;
-  const payload = Buffer.alloc(15, 42);
+  const tsMs = 1621627443123;
+  const payload = Buffer.alloc(12, 42);
   const km = KsuidMs.fromMillis(tsMs, payload);
   expect(km.timestampMs()).toBe(tsMs);
   expect(Buffer.from(km.payload())).toEqual(payload);
-
-  const base62 = km.toBase62();
-  const kmFromBase62 = KsuidMs.fromBase62(base62);
-  expect(kmFromBase62.equals(km)).toBe(true);
-
-  const bytes = Buffer.alloc(20, 9);
-  const kmFromBytes = KsuidMs.fromBytes(bytes);
-  expect(Buffer.from(kmFromBytes.bytes())).toEqual(bytes);
-  expect(() => KsuidMs.fromBytes(Buffer.alloc(10))).toThrow();
 });

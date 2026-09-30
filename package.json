@@ -1,13 +1,25 @@
 {
-  "name": "my-addon",
+  "name": "@lib/nanoid",
   "version": "0.1.0",
+  "files": [
+    "dist",
+    "build",
+    "index.js",
+    "index.d.ts",
+    "non-secure.js",
+    "non-secure.d.ts"
+  ],
   "main": "index.js",
   "types": "index.d.ts",
-  "files": [
-    "dist"
-  ],
   "exports": {
-    ".": "./index.js",
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    },
+    "./non-secure": {
+      "types": "./non-secure.d.ts",
+      "default": "./non-secure.js"
+    },
     "./package.json": "./package.json"
   },
   "scripts": {
@@ -15,15 +27,26 @@
     "build:release": "node build.mjs --platform --release",
     "dev": "vp pack --watch",
     "start": "vp run src/main.ts",
-    "test": "node --test test.cjs",
+    "test": "node --test test.cjs && vp test",
     "check": "vp check",
     "fmt": "vp fmt",
     "lint": "vp lint",
     "prepublishOnly": "vp run build",
     "prepare": "vp config"
   },
+  "devDependencies": {
+    "@napi-rs/cli": "^3",
+    "@types/node": "^26.6.2",
+    "vite-plus": "^1.0.0-rc.1"
+  },
+  "peerDependencies": {
+    "typescript": "^7.0.2"
+  },
+  "overrides": {
+    "vite": "npm:@voidzero-dev/vite-plus-core@1.0.0-rc.1"
+  },
   "napi": {
-    "binaryName": "my-addon",
+    "binaryName": "nanoid",
     "targets": [
       "x86_64-apple-darwin",
       "aarch64-apple-darwin",
@@ -40,17 +63,6 @@
       "x86_64-unknown-freebsd",
       "wasm32-wasip1-threads"
     ]
-  },
-  "devDependencies": {
-    "@napi-rs/cli": "^3",
-    "@types/node": "^26.6.2",
-    "vite-plus": "^1.0.0-rc.1"
-  },
-  "peerDependencies": {
-    "typescript": "^7.0.2"
-  },
-  "overrides": {
-    "vite": "npm:@voidzero-dev/vite-plus-core@1.0.0-rc.1"
   },
   "devEngines": {
     "packageManager": {

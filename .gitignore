@@ -4,6 +4,11 @@ out
 dist
 target
 
+# NAPI-RS generated files
+*.node
+index.js
+index.d.ts
+
 # dependencies
 vendor
 node_modules

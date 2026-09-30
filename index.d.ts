@@ -7,6 +7,49 @@
  * flavor napi-rs can build is listed, because `NAPI_RS_NATIVE_LIBRARY_PATH`
  * can point the loader at a WASI artifact this package does not build itself.
  */
-export declare const __napiBindingTarget: 'native' | 'wasm32-wasi' | 'wasm32-wasip1'
+export declare const __napiBindingTarget: "native" | "wasm32-wasi" | "wasm32-wasip1";
 
-export declare function add(left: number, right: number): number
+export declare class BoringSshCodec {
+  constructor();
+  encode(data: Buffer): string;
+  decode(str: string): Buffer;
+  hash(algorithm: string | undefined | null, data: Buffer): Buffer;
+  hmac(algorithm: string | undefined | null, key: Buffer, data: Buffer): Buffer;
+  encrypt(cipher: string, key: Buffer, iv: Buffer | undefined | null, data: Buffer): Buffer;
+  decrypt(cipher: string, key: Buffer, iv: Buffer | undefined | null, data: Buffer): Buffer;
+  randomBytes(length: number): Buffer;
+}
+
+export declare function decodeBase64(str: string): Buffer;
+
+export declare function decrypt(
+  cipherName: string,
+  key: Buffer,
+  iv: Buffer | undefined | null,
+  data: Buffer,
+): Buffer;
+
+export declare function digest(algorithm: string, data: Buffer): Buffer;
+
+export declare function encodeBase64(data: Buffer): string;
+
+export declare function encrypt(
+  cipherName: string,
+  key: Buffer,
+  iv: Buffer | undefined | null,
+  data: Buffer,
+): Buffer;
+
+export declare function hmac(algorithm: string, key: Buffer, data: Buffer): Buffer;
+
+export declare function init(): void;
+
+export declare function randomBytes(length: number): Buffer;
+
+export declare function sha1(data: Buffer): Buffer;
+
+export declare function sha256(data: Buffer): Buffer;
+
+export declare function sha512(data: Buffer): Buffer;
+
+export declare function version(): string;

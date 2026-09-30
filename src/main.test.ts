@@ -1,5 +1,5 @@
 import { expect, test } from "vite-plus/test";
-import { Ksuid } from "../index.js";
+import { Ksuid, shuffleAlphabet } from "../index.js";
 
 test("Ksuid now and formatting", () => {
   const ksuid = Ksuid.now();
@@ -24,6 +24,33 @@ test("Ksuid base62 roundtrip", () => {
   const parsed = Ksuid.fromBase62(base62Str);
   expect(parsed.toString()).toBe(base62Str);
   expect(parsed.equals(ksuid)).toBe(true);
+});
+
+test("Ksuid Crockford Base32 standard roundtrip and aliasing", () => {
+  const ksuid = Ksuid.now();
+  const crockfordStr = ksuid.toCrockfordBase32();
+  expect(crockfordStr.length).toBe(32);
+
+  const parsed = Ksuid.fromCrockfordBase32(crockfordStr);
+  expect(parsed.equals(ksuid)).toBe(true);
+
+  // Test Crockford aliasing: 'O'/'o' -> '0', 'I'/'i'/'L'/'l' -> '1'
+  const aliasedStr = crockfordStr.replace(/0/g, "O").replace(/1/g, "I");
+  const parsedAliased = Ksuid.fromCrockfordBase32(aliasedStr);
+  expect(parsedAliased.equals(ksuid)).toBe(true);
+});
+
+test("Ksuid Crockford Base32 custom and shuffled alphabets", () => {
+  const standardAlpha = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+  const shuffledAlpha = shuffleAlphabet(standardAlpha, "my-secret-seed");
+  expect(shuffledAlpha.length).toBe(32);
+
+  const ksuid = Ksuid.now();
+  const customCrockford = ksuid.toCrockfordBase32(shuffledAlpha);
+  expect(customCrockford.length).toBe(32);
+
+  const parsedCustom = Ksuid.fromCrockfordBase32(customCrockford, shuffledAlpha);
+  expect(parsedCustom.equals(ksuid)).toBe(true);
 });
 
 test("Ksuid fromBytes roundtrip", () => {

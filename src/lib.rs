@@ -2,6 +2,182 @@ use napi::bindgen_prelude::*;
 use napi_derive::napi;
 use svix_ksuid::{Ksuid as InnerKsuid, KsuidLike};
 
+const DEFAULT_CROCKFORD_ALPHABET: &[u8; 32] = b"0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+
+fn get_5bit(bytes: &[u8; 20], chunk: usize) -> u8 {
+  let bit_idx = chunk * 5;
+  let byte_idx = bit_idx / 8;
+  let bit_rem = bit_idx % 8;
+
+  let mut val: u32 = (bytes[byte_idx] as u32) << 16;
+  if byte_idx + 1 < 20 {
+    val |= (bytes[byte_idx + 1] as u32) << 8;
+  }
+  if byte_idx + 2 < 20 {
+    val |= bytes[byte_idx + 2] as u32;
+  }
+
+  let shift = 24 - 5 - bit_rem;
+  ((val >> shift) & 0x1f) as u8
+}
+
+fn set_5bit(bytes: &mut [u8; 20], chunk: usize, val5: u8) {
+  let val5 = val5 & 0x1f;
+  let bit_idx = chunk * 5;
+  let byte_idx = bit_idx / 8;
+  let bit_rem = bit_idx % 8;
+
+  let shift = 24 - 5 - bit_rem;
+  let mask32: u32 = !(0x1f_u32 << shift);
+  let val32: u32 = (val5 as u32) << shift;
+
+  let mut cur32: u32 = (bytes[byte_idx] as u32) << 16;
+  if byte_idx + 1 < 20 {
+    cur32 |= (bytes[byte_idx + 1] as u32) << 8;
+  }
+  if byte_idx + 2 < 20 {
+    cur32 |= bytes[byte_idx + 2] as u32;
+  }
+
+  cur32 = (cur32 & mask32) | val32;
+
+  bytes[byte_idx] = (cur32 >> 16) as u8;
+  if byte_idx + 1 < 20 {
+    bytes[byte_idx + 1] = (cur32 >> 8) as u8;
+  }
+  if byte_idx + 2 < 20 {
+    bytes[byte_idx + 2] = cur32 as u8;
+  }
+}
+
+fn encode_crockford(bytes: &[u8; 20], alphabet: Option<&str>) -> Result<String> {
+  let alpha_bytes = match alphabet {
+    Some(a) => {
+      let b = a.as_bytes();
+      if b.len() != 32 {
+        return Err(Error::new(
+          Status::InvalidArg,
+          format!("Crockford Base32 alphabet must be 32 characters, got {}", b.len()),
+        ));
+      }
+      b
+    }
+    None => DEFAULT_CROCKFORD_ALPHABET,
+  };
+
+  let mut out = Vec::with_capacity(32);
+  for i in 0..32 {
+    let five = get_5bit(bytes, i);
+    out.push(alpha_bytes[five as usize]);
+  }
+
+  String::from_utf8(out).map_err(|e| Error::new(Status::GenericFailure, e.to_string()))
+}
+
+fn decode_crockford(input: &str, alphabet: Option<&str>) -> Result<[u8; 20]> {
+  let clean: String = input.chars().filter(|c| *c != '-').collect();
+  if clean.len() != 32 {
+    return Err(Error::new(
+      Status::InvalidArg,
+      format!("Invalid Crockford Base32 string length: expected 32 chars, got {}", clean.len()),
+    ));
+  }
+
+  let custom_alpha = alphabet.map(|a| a.as_bytes());
+  if let Some(a) = custom_alpha {
+    if a.len() != 32 {
+      return Err(Error::new(
+        Status::InvalidArg,
+        format!("Crockford Base32 alphabet must be 32 characters, got {}", a.len()),
+      ));
+    }
+  }
+
+  let mut bytes = [0u8; 20];
+  for (chunk, ch) in clean.chars().enumerate() {
+    let val = match custom_alpha {
+      Some(a) => {
+        let ch_u8 = ch as u8;
+        let mut found = None;
+        for (idx, &b) in a.iter().enumerate() {
+          if b == ch_u8
+            || b.to_ascii_uppercase() == ch_u8.to_ascii_uppercase() {
+            found = Some(idx as u8);
+            break;
+          }
+        }
+        found.ok_or_else(|| {
+          Error::new(
+            Status::InvalidArg,
+            format!("Character '{}' not found in custom alphabet", ch),
+          )
+        })?
+      }
+      None => {
+        let norm = match ch {
+          'O' | 'o' => '0',
+          'I' | 'i' | 'L' | 'l' => '1',
+          c => c.to_ascii_uppercase(),
+        };
+        let norm_u8 = norm as u8;
+        let mut found = None;
+        for (idx, &b) in DEFAULT_CROCKFORD_ALPHABET.iter().enumerate() {
+          if b == norm_u8 {
+            found = Some(idx as u8);
+            break;
+          }
+        }
+        found.ok_or_else(|| {
+          Error::new(
+            Status::InvalidArg,
+            format!("Invalid Crockford Base32 character '{}'", ch),
+          )
+        })?
+      }
+    };
+    set_5bit(&mut bytes, chunk, val);
+  }
+
+  Ok(bytes)
+}
+
+/// Utility function to shuffle an alphabet deterministically with an optional seed (or randomly if no seed is provided).
+#[napi]
+pub fn shuffle_alphabet(alphabet: String, seed: Option<String>) -> Result<String> {
+  let mut chars: Vec<char> = alphabet.chars().collect();
+  let len = chars.len();
+  if len == 0 {
+    return Ok(alphabet);
+  }
+
+  let mut state: u64 = match seed {
+    Some(s) => {
+      let mut h: u64 = 0xcbf29ce484222325;
+      for b in s.bytes() {
+        h ^= b as u64;
+        h = h.wrapping_mul(0x100000001b3);
+      }
+      h
+    }
+    None => std::time::SystemTime::now()
+      .duration_since(std::time::UNIX_EPOCH)
+      .map(|d| d.as_nanos() as u64)
+      .unwrap_or(123456789),
+  };
+
+  let mut next_rnd = || {
+    state = state.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+    state
+  };
+
+  for i in (1..len).rev() {
+    let j = (next_rnd() as usize) % (i + 1);
+    chars.swap(i, j);
+  }
+
+  Ok(chars.into_iter().collect())
+}
+
 #[napi]
 pub struct Ksuid {
   inner: InnerKsuid,
@@ -94,6 +270,14 @@ impl Ksuid {
     Self::new(seconds, payload)
   }
 
+  /// Create a Ksuid from Crockford Base32 encoded string with optional custom alphabet.
+  #[napi(factory)]
+  pub fn from_crockford_base32(str: String, alphabet: Option<String>) -> Result<Self> {
+    let raw_bytes = decode_crockford(&str, alphabet.as_deref())?;
+    let inner = InnerKsuid::from_bytes(raw_bytes);
+    Ok(Ksuid { inner })
+  }
+
   /// Base62 string representation.
   #[napi]
   pub fn to_string(&self) -> String {
@@ -104,6 +288,12 @@ impl Ksuid {
   #[napi]
   pub fn to_base62(&self) -> String {
     self.inner.to_base62()
+  }
+
+  /// Encode Ksuid to Crockford Base32 string with optional custom 32-character alphabet.
+  #[napi]
+  pub fn to_crockford_base32(&self, alphabet: Option<String>) -> Result<String> {
+    encode_crockford(self.inner.bytes(), alphabet.as_deref())
   }
 
   /// 20-byte slice representing the Ksuid.

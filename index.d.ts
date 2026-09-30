@@ -22,10 +22,14 @@ export declare class Ksuid {
   static fromBytes(bytes: Uint8Array): Ksuid
   /** Explicitly create Ksuid from timestamp seconds and optional payload. */
   static fromSeconds(seconds?: number | undefined | null, payload?: Uint8Array | undefined | null): Ksuid
+  /** Create a Ksuid from Crockford Base32 encoded string with optional custom alphabet. */
+  static fromCrockfordBase32(str: string, alphabet?: string | undefined | null): Ksuid
   /** Base62 string representation. */
   toString(): string
   /** Base62 string representation (explicit alias). */
   toBase62(): string
+  /** Encode Ksuid to Crockford Base32 string with optional custom 32-character alphabet. */
+  toCrockfordBase32(alphabet?: string | undefined | null): string
   /** 20-byte slice representing the Ksuid. */
   bytes(): Uint8Array
   /** 16-byte payload portion of the Ksuid. */
@@ -37,3 +41,6 @@ export declare class Ksuid {
   /** Check equality with another Ksuid instance. */
   equals(other: Ksuid): boolean
 }
+
+/** Utility function to shuffle an alphabet deterministically with an optional seed (or randomly if no seed is provided). */
+export declare function shuffleAlphabet(alphabet: string, seed?: string | undefined | null): string

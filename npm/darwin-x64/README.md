@@ -1,3 +1,3 @@
-# `@lib/module-darwin-x64`
+# `my-addon-darwin-x64`
 
-This is the **x86_64-apple-darwin** binary for `@lib/module`
+This is the **x86_64-apple-darwin** binary for `my-addon`

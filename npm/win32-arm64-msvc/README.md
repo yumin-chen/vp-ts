@@ -1,3 +1,3 @@
-# `@lib/module-win32-arm64-msvc`
+# `my-addon-win32-arm64-msvc`
 
-This is the **aarch64-pc-windows-msvc** binary for `@lib/module`
+This is the **aarch64-pc-windows-msvc** binary for `my-addon`

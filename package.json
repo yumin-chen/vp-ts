@@ -1,19 +1,12 @@
 {
-  "name": "@lib/module",
+  "name": "@lib/addon",
   "version": "0.0.0",
-  "files": [
-    "dist"
-  ],
-  "type": "module",
-  "exports": {
-    ".": "./dist/main.mjs",
-    "./package.json": "./package.json"
-  },
   "types": "index.d.ts",
+  "type": "module",
   "scripts": {
-    "build": "npm run build:napi && vp pack",
-    "build:napi": "node patch-cli.cjs && napi build --platform --esm",
-    "build:release": "node patch-cli.cjs && napi build --platform --esm --release",
+    "build": "node build.mjs && vp pack",
+    "build:napi": "node build.mjs",
+    "build:release": "node build.mjs --release",
     "dev": "vp pack --watch",
     "start": "vp run src/main.ts",
     "test": "node --test test.cjs && vp test",
@@ -43,16 +36,18 @@
     ]
   },
   "devDependencies": {
-    "@napi-rs/cli": "^3",
+    "@napi-rs/cli": "^3.10.5",
     "@types/node": "^26.6.2",
-    "emnapi": "^1.11.3",
+    "emnapi": "2.0.0-alpha.5",
     "vite-plus": "1.0.0"
   },
   "peerDependencies": {
     "typescript": "^7.0.2"
   },
   "overrides": {
-    "vite": "npm:@voidzero-dev/vite-plus-core@1.0.0"
+    "vite": "npm:@voidzero-dev/vite-plus-core@1.0.0",
+    "@emnapi/core": "2.0.0-alpha.5",
+    "@emnapi/runtime": "2.0.0-alpha.5"
   },
   "devEngines": {
     "packageManager": {
@@ -60,5 +55,9 @@
       "version": "11.11.0",
       "onFail": "download"
     }
+  },
+  "exports": {
+    ".": "./dist/main.mjs",
+    "./package.json": "./package.json"
   }
 }

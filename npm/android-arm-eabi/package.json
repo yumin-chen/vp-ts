@@ -1,6 +1,6 @@
 {
-  "name": "@lib/module-android-arm-eabi",
-  "version": "0.0.0",
+  "name": "my-addon-android-arm-eabi",
+  "version": "0.1.0",
   "cpu": [
     "arm"
   ],

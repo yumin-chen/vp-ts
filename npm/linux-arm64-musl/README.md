@@ -1,3 +1,3 @@
-# `@lib/module-linux-arm64-musl`
+# `my-addon-linux-arm64-musl`
 
-This is the **aarch64-unknown-linux-musl** binary for `@lib/module`
+This is the **aarch64-unknown-linux-musl** binary for `my-addon`

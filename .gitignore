@@ -2,6 +2,7 @@
 build
 out
 dist
+dist-test
 target
 *.node
 .*.tmp

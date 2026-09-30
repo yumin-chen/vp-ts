@@ -1,3 +1,3 @@
-# `@lib/module-win32-ia32-msvc`
+# `my-addon-win32-ia32-msvc`
 
-This is the **i686-pc-windows-msvc** binary for `@lib/module`
+This is the **i686-pc-windows-msvc** binary for `my-addon`

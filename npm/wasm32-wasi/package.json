@@ -1,6 +1,6 @@
 {
-  "name": "@lib/module-wasm32-wasi",
-  "version": "0.0.0",
+  "name": "my-addon-wasm32-wasi",
+  "version": "0.1.0",
   "main": "my-addon.wasi.cjs",
   "files": [
     "my-addon.wasm32-wasi.wasm",

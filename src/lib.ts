@@ -15,6 +15,9 @@ export const JsBuildTransfer = native.JsBuildTransfer;
 export const JsImageTransfer = native.JsImageTransfer;
 export const JsServerStream = native.JsServerStream;
 
+export const JsComposeHandle = native.JsComposeHandle;
+export const JsComposeSystemHandle = native.JsComposeSystemHandle;
+
 export const Container = native.JsContainer;
 
 export type JsOptions = {

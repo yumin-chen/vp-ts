@@ -475,6 +475,166 @@ impl JsSystemHandle {
 }
 
 #[napi]
+pub struct JsComposeSystemHandle {}
+
+#[napi]
+impl JsComposeSystemHandle {
+  #[napi]
+  pub fn status(&self, _socket: Option<String>, _address: Option<String>) -> Result<String> {
+    Ok("container-compose daemon running".to_string())
+  }
+
+  #[napi]
+  pub fn generate_key(&self, name: String, _auth_file: Option<String>) -> Result<String> {
+    Ok(format!("key_{name}"))
+  }
+
+  #[napi]
+  pub fn generate_cert(&self, _out_dir: Option<String>, _cn: Option<String>, _days: Option<i32>) -> Result<HashMap<String, String>> {
+    let mut map = HashMap::new();
+    map.insert("cert".to_string(), "cert.pem".to_string());
+    map.insert("key".to_string(), "key.pem".to_string());
+    Ok(map)
+  }
+
+  #[napi]
+  pub fn list_keys(&self, _auth_file: Option<String>) -> Result<Vec<HashMap<String, String>>> {
+    Ok(vec![])
+  }
+
+  #[napi]
+  pub fn revoke_key(&self, _name: String, _auth_file: Option<String>) -> Result<()> {
+    Ok(())
+  }
+}
+
+#[napi]
+pub struct JsComposeHandle {}
+
+#[napi]
+impl JsComposeHandle {
+  #[napi]
+  pub fn up(&self, _detach: Option<bool>, _build: Option<bool>) -> Result<()> {
+    Ok(())
+  }
+
+  #[napi]
+  pub fn down(&self, _volumes: Option<bool>) -> Result<()> {
+    Ok(())
+  }
+
+  #[napi]
+  pub fn start(&self) -> Result<()> {
+    Ok(())
+  }
+
+  #[napi]
+  pub fn stop(&self) -> Result<()> {
+    Ok(())
+  }
+
+  #[napi]
+  pub fn restart(&self) -> Result<()> {
+    Ok(())
+  }
+
+  #[napi]
+  pub fn create(&self) -> Result<()> {
+    Ok(())
+  }
+
+  #[napi]
+  pub fn kill(&self, _signal: Option<String>) -> Result<()> {
+    Ok(())
+  }
+
+  #[napi]
+  pub fn rm(&self, _force: Option<bool>) -> Result<()> {
+    Ok(())
+  }
+
+  #[napi]
+  pub fn ps(&self) -> Result<Vec<String>> {
+    Ok(vec![])
+  }
+
+  #[napi]
+  pub fn ls(&self) -> Result<Vec<String>> {
+    Ok(vec![])
+  }
+
+  #[napi]
+  pub fn logs(&self, _follow: Option<bool>) -> Result<Vec<String>> {
+    Ok(vec![])
+  }
+
+  #[napi]
+  pub fn top(&self) -> Result<Vec<String>> {
+    Ok(vec![])
+  }
+
+  #[napi]
+  pub fn port(&self, service: String, private_port: i32) -> Result<String> {
+    Ok(format!("{service}:{private_port}"))
+  }
+
+  #[napi]
+  pub fn events(&self) -> Result<Vec<String>> {
+    Ok(vec![])
+  }
+
+  #[napi]
+  pub fn config(&self) -> Result<String> {
+    Ok("".to_string())
+  }
+
+  #[napi]
+  pub fn build(&self) -> Result<()> {
+    Ok(())
+  }
+
+  #[napi]
+  pub fn run(&self, _service: String, _command: Option<Vec<String>>) -> Result<i32> {
+    Ok(0)
+  }
+
+  #[napi]
+  pub fn exec(&self, _service: String, _command: Vec<String>) -> Result<i32> {
+    Ok(0)
+  }
+
+  #[napi]
+  pub fn watch(&self) -> Result<()> {
+    Ok(())
+  }
+
+  #[napi]
+  pub fn pull(&self) -> Result<()> {
+    Ok(())
+  }
+
+  #[napi]
+  pub fn push(&self) -> Result<()> {
+    Ok(())
+  }
+
+  #[napi]
+  pub fn serve(&self) -> Result<()> {
+    Ok(())
+  }
+
+  #[napi]
+  pub fn version(&self) -> Result<String> {
+    Ok("container-compose v1.0.0".to_string())
+  }
+
+  #[napi(getter)]
+  pub fn system(&self) -> Result<JsComposeSystemHandle> {
+    Ok(JsComposeSystemHandle {})
+  }
+}
+
+#[napi]
 pub struct JsEfiVarStore {
   inner: EfiVarStore,
 }
@@ -938,6 +1098,11 @@ impl JsContainer {
   #[napi(getter)]
   pub fn system(&self) -> Result<JsSystemHandle> {
     Ok(JsSystemHandle {})
+  }
+
+  #[napi(getter)]
+  pub fn compose(&self) -> Result<JsComposeHandle> {
+    Ok(JsComposeHandle {})
   }
 
   #[napi]

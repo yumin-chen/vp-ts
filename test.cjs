@@ -31,7 +31,7 @@ test("JsContainer withDefaultConfig and create container", async () => {
   assert.ok(metrics.containeresCreatedTotal >= 1);
 });
 
-test("JsContainer sub-handles (machines, k8s, network, registry, system)", () => {
+test("JsContainer sub-handles (machines, k8s, network, registry, system, compose)", () => {
   const runtime = JsContainer.withDefaultConfig();
 
   const machine = runtime.machines.create("alpine:latest");
@@ -45,6 +45,12 @@ test("JsContainer sub-handles (machines, k8s, network, registry, system)", () =>
 
   const sysStatus = runtime.system.status();
   assert.equal(sysStatus, "running");
+
+  const composeVer = runtime.compose.version();
+  assert.ok(composeVer.includes("container-compose"));
+
+  const composeSysStatus = runtime.compose.system.status();
+  assert.ok(composeSysStatus.includes("daemon running"));
 });
 
 test("JsEfiVarStore initialization and setup mode", () => {

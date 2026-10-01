@@ -8,6 +8,7 @@ const KSUID_PAYLOAD_BYTES: usize = <RawKsuid as KsuidLike>::PAYLOAD_BYTES;
 const KSUID_MS_PAYLOAD_BYTES: usize = <RawKsuidMs as KsuidLike>::PAYLOAD_BYTES;
 
 const DEFAULT_CROCKFORD_ALPHABET: &[u8; 32] = b"0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+const DEFAULT_BASE36_ALPHABET: &[u8; 36] = b"0123456789abcdefghijklmnopqrstuvwxyz";
 
 fn parse_payload(payload: Option<Uint8Array>, expected_len: usize) -> napi::Result<Option<Vec<u8>>> {
   match payload {
@@ -138,6 +139,40 @@ pub fn decode_base32_bytes(encoded: &str, alphabet: Option<String>) -> napi::Res
   }
 
   Ok(out)
+}
+
+pub fn encode_base36_bytes(bytes: &[u8], alphabet: Option<String>) -> napi::Result<String> {
+  let table = match alphabet {
+    Some(ref s) => {
+      let b = s.as_bytes();
+      if b.len() != 36 {
+        return Err(napi::Error::from_reason("Base36 alphabet must be exactly 36 characters"));
+      }
+      b.to_vec()
+    }
+    None => DEFAULT_BASE36_ALPHABET.to_vec(),
+  };
+
+  base_encode::to_string(bytes, 36, &table)
+    .ok_or_else(|| napi::Error::from_reason("Failed to encode Base36 string"))
+}
+
+pub fn decode_base36_bytes(encoded: &str, alphabet: Option<String>) -> napi::Result<Vec<u8>> {
+  match alphabet {
+    Some(ref s) => {
+      let b = s.as_bytes();
+      if b.len() != 36 {
+        return Err(napi::Error::from_reason("Base36 alphabet must be exactly 36 characters"));
+      }
+      base_encode::from_str(encoded, 36, b)
+        .ok_or_else(|| napi::Error::from_reason("Failed to decode Base36 string"))
+    }
+    None => {
+      let lower = encoded.to_ascii_lowercase();
+      base_encode::from_str(&lower, 36, DEFAULT_BASE36_ALPHABET)
+        .ok_or_else(|| napi::Error::from_reason("Failed to decode Base36 string"))
+    }
+  }
 }
 
 pub fn encode_u64_crockford(mut n: u64, alphabet: Option<String>) -> napi::Result<String> {
@@ -272,7 +307,7 @@ pub struct JsKsuid {
 #[napi]
 impl JsKsuid {
   /// Create a Ksuid using constructor options.
-  /// Options: { timestamp?: number, payload?: Uint8Array, timestampSize?: "32bit" | "48bit" | "64bit", enc?: "base62" | "base32", alphabet?: string }
+  /// Options: { timestamp?: number, payload?: Uint8Array, timestampSize?: "32bit" | "48bit" | "64bit", enc?: "base62" | "base32" | "base36", alphabet?: string }
   #[napi(constructor)]
   pub fn new_constructor(options: Option<KsuidOptions>) -> napi::Result<JsKsuid> {
     let opts = options.unwrap_or(KsuidOptions {
@@ -287,9 +322,9 @@ impl JsKsuid {
     let enc = opts.enc.unwrap_or_else(|| "base62".to_string());
     let alphabet = opts.alphabet;
 
-    if enc != "base62" && enc != "base32" {
+    if enc != "base62" && enc != "base32" && enc != "base36" {
       return Err(napi::Error::from_reason(format!(
-        "Invalid enc: '{}'. Expected 'base62' or 'base32'",
+        "Invalid enc: '{}'. Expected 'base62', 'base32', or 'base36'",
         enc
       )));
     }
@@ -510,6 +545,44 @@ impl JsKsuid {
     Self::from_base32(encoded, alphabet, timestamp_size)
   }
 
+  /// Parse a Ksuid from a Base36 string (optional custom alphabet and timestampSize).
+  #[napi(factory)]
+  pub fn from_base36(
+    encoded: String,
+    alphabet: Option<String>,
+    timestamp_size: Option<String>,
+  ) -> napi::Result<JsKsuid> {
+    let bytes = decode_base36_bytes(&encoded, alphabet.clone())?;
+    if bytes.len() != KSUID_BYTES {
+      return Err(napi::Error::from_reason("Decoded Base36 length mismatch for Ksuid"));
+    }
+    let mut arr = [0u8; KSUID_BYTES];
+    arr.copy_from_slice(&bytes);
+
+    let ts_size = timestamp_size.as_deref().unwrap_or("32bit");
+    match ts_size {
+      "32bit" | "32" => Ok(JsKsuid {
+        inner: KsuidEnum::Sec(RawKsuid::from_bytes(arr)),
+        enc: "base36".to_string(),
+        alphabet,
+      }),
+      "48bit" | "48" => Ok(JsKsuid {
+        inner: KsuidEnum::Ms(RawKsuidMs::from_bytes(arr)),
+        enc: "base36".to_string(),
+        alphabet,
+      }),
+      "64bit" | "64" => Ok(JsKsuid {
+        inner: KsuidEnum::Ms64(RawKsuidMs::from_bytes(arr)),
+        enc: "base36".to_string(),
+        alphabet,
+      }),
+      other => Err(napi::Error::from_reason(format!(
+        "Invalid timestampSize: '{}'. Expected '32bit', '48bit', or '64bit'",
+        other
+      ))),
+    }
+  }
+
   /// Create a Ksuid from 20 raw bytes (optional timestampSize).
   #[napi(factory)]
   pub fn from_bytes(bytes: Uint8Array, timestamp_size: Option<String>) -> napi::Result<JsKsuid> {
@@ -547,7 +620,7 @@ impl JsKsuid {
     }
   }
 
-  /// Returns the configured encoding ("base62" or "base32").
+  /// Returns the configured encoding ("base62", "base32", or "base36").
   #[napi]
   pub fn enc(&self) -> String {
     self.enc.clone()
@@ -613,13 +686,23 @@ impl JsKsuid {
     self.to_base32(alphabet)
   }
 
+  /// Returns Base36 string representation (optional custom alphabet).
+  #[napi]
+  pub fn to_base36(&self, alphabet: Option<String>) -> napi::Result<String> {
+    let alph_to_use = alphabet.or_else(|| self.alphabet.clone());
+    match self.inner {
+      KsuidEnum::Sec(k) => encode_base36_bytes(k.bytes(), alph_to_use),
+      KsuidEnum::Ms(k) | KsuidEnum::Ms64(k) => encode_base36_bytes(k.bytes(), alph_to_use),
+    }
+  }
+
   /// Returns string representation using configured enc and alphabet.
   #[napi]
   pub fn to_string(&self) -> napi::Result<String> {
-    if self.enc == "base32" {
-      self.to_base32(self.alphabet.clone())
-    } else {
-      self.to_base62(self.alphabet.clone())
+    match self.enc.as_str() {
+      "base32" => self.to_base32(self.alphabet.clone()),
+      "base36" => self.to_base36(self.alphabet.clone()),
+      _ => self.to_base62(self.alphabet.clone()),
     }
   }
 
@@ -768,6 +851,20 @@ impl JsKsuidMs {
     Self::from_base32(encoded, alphabet)
   }
 
+  /// Parse a KsuidMs from a Base36 string (optional custom alphabet).
+  #[napi(factory)]
+  pub fn from_base36(encoded: String, alphabet: Option<String>) -> napi::Result<JsKsuidMs> {
+    let bytes = decode_base36_bytes(&encoded, alphabet)?;
+    if bytes.len() != KSUID_BYTES {
+      return Err(napi::Error::from_reason("Decoded Base36 length mismatch for KsuidMs"));
+    }
+    let mut arr = [0u8; KSUID_BYTES];
+    arr.copy_from_slice(&bytes);
+    Ok(JsKsuidMs {
+      inner: RawKsuidMs::from_bytes(arr),
+    })
+  }
+
   /// Create a KsuidMs from 20 raw bytes.
   #[napi(factory)]
   pub fn from_bytes(bytes: Uint8Array) -> napi::Result<JsKsuidMs> {
@@ -810,6 +907,12 @@ impl JsKsuidMs {
   #[napi]
   pub fn to_crockford_base32(&self, alphabet: Option<String>) -> napi::Result<String> {
     self.to_base32(alphabet)
+  }
+
+  /// Returns Base36 string representation (optional custom alphabet).
+  #[napi]
+  pub fn to_base36(&self, alphabet: Option<String>) -> napi::Result<String> {
+    encode_base36_bytes(self.inner.bytes(), alphabet)
   }
 
   /// Returns string representation.
@@ -862,11 +965,13 @@ pub fn generate_ksuid(alphabet: Option<String>) -> napi::Result<String> {
     Some(ref alph) => {
       if alph.as_bytes().len() == 32 {
         encode_base32_bytes(ksuid.bytes(), alphabet)
+      } else if alph.as_bytes().len() == 36 {
+        encode_base36_bytes(ksuid.bytes(), alphabet)
       } else if alph.as_bytes().len() == 62 {
         base_encode::to_string(ksuid.bytes(), 62, alph.as_bytes())
           .ok_or_else(|| napi::Error::from_reason("Failed to encode Base62 string"))
       } else {
-        Err(napi::Error::from_reason("Alphabet must be 32 or 62 characters"))
+        Err(napi::Error::from_reason("Alphabet must be 32, 36, or 62 characters"))
       }
     }
   }
@@ -880,10 +985,12 @@ pub fn parse_ksuid(encoded: String, alphabet: Option<String>) -> napi::Result<Js
     Some(ref alph) => {
       if alph.as_bytes().len() == 32 {
         JsKsuid::from_base32(encoded, alphabet, None)
+      } else if alph.as_bytes().len() == 36 {
+        JsKsuid::from_base36(encoded, alphabet, None)
       } else if alph.as_bytes().len() == 62 {
         JsKsuid::from_base62(encoded, alphabet, None)
       } else {
-        Err(napi::Error::from_reason("Alphabet must be 32 or 62 characters"))
+        Err(napi::Error::from_reason("Alphabet must be 32, 36, or 62 characters"))
       }
     }
   }
@@ -912,6 +1019,19 @@ pub fn encode_base32_bytes_js(bytes: Uint8Array, alphabet: Option<String>) -> na
 #[napi]
 pub fn decode_base32_bytes_js(encoded: String, alphabet: Option<String>) -> napi::Result<Uint8Array> {
   let bytes = decode_base32_bytes(&encoded, alphabet)?;
+  Ok(Uint8Array::new(bytes))
+}
+
+/// Encode raw bytes into Base36 (optional custom alphabet).
+#[napi]
+pub fn encode_base36_bytes_js(bytes: Uint8Array, alphabet: Option<String>) -> napi::Result<String> {
+  encode_base36_bytes(bytes.as_ref(), alphabet)
+}
+
+/// Decode a Base36 string into raw bytes (optional custom alphabet).
+#[napi]
+pub fn decode_base36_bytes_js(encoded: String, alphabet: Option<String>) -> napi::Result<Uint8Array> {
+  let bytes = decode_base36_bytes(&encoded, alphabet)?;
   Ok(Uint8Array::new(bytes))
 }
 

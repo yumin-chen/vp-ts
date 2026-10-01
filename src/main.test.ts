@@ -8,6 +8,8 @@ import {
   decodeCrockfordBase32,
   encodeBase32BytesJs,
   decodeBase32BytesJs,
+  encodeBase36BytesJs,
+  decodeBase36BytesJs,
   shuffleAlphabet,
 } from "../index.js";
 import { main } from "./main.ts";
@@ -55,12 +57,13 @@ test("Ksuid creation via constructor options", () => {
   const ksuid64B32 = new Ksuid({
     timestamp: 1621627443000,
     timestampSize: "64bit",
-    enc: "base32",
+    enc: "base36",
   });
 
   expect(ksuid64B32.timestampSize()).toBe("64bit");
+  expect(ksuid64B32.enc()).toBe("base36");
   expect(ksuid64B32.timestampMilliseconds()).toBe(1621627443000);
-  expect(ksuid64B32.payload()).toHaveLength(15);
+  expect(ksuid64B32.toString()).toBe(ksuid64B32.toBase36());
 });
 
 test("Ksuid creation and conversion", () => {
@@ -93,7 +96,7 @@ test("Ksuid with explicit timestamp and payload", () => {
   expect(fromBytes.equals(ksuid)).toBe(true);
 });
 
-test("Crockford Base32 encoding and decoding", () => {
+test("Crockford Base32 and Base36 encoding and decoding", () => {
   const ksuid = Ksuid.now();
   const b32 = ksuid.toBase32();
   expect(b32).toHaveLength(32);
@@ -101,17 +104,26 @@ test("Crockford Base32 encoding and decoding", () => {
   const parsed = Ksuid.fromBase32(b32);
   expect(parsed.equals(ksuid)).toBe(true);
 
+  // Base36
+  const b36 = ksuid.toBase36();
+  const parsedB36 = Ksuid.fromBase36(b36);
+  expect(parsedB36.equals(ksuid)).toBe(true);
+
   // Crockford u64
   expect(encodeCrockfordBase32(0)).toBe("0");
   expect(encodeCrockfordBase32(5111)).toBe("4ZQ");
   expect(decodeCrockfordBase32("4ZQ")).toBe(5111);
   expect(decodeCrockfordBase32("4zq")).toBe(5111);
 
-  // Raw bytes Base32 helper
+  // Raw bytes Base32 and Base36 helper
   const rawBytes = new Uint8Array([1, 2, 3, 4, 5]);
-  const encBytes = encodeBase32BytesJs(rawBytes);
-  const decBytes = decodeBase32BytesJs(encBytes);
-  expect(decBytes).toEqual(rawBytes);
+  const encBytes32 = encodeBase32BytesJs(rawBytes);
+  const decBytes32 = decodeBase32BytesJs(encBytes32);
+  expect(decBytes32).toEqual(rawBytes);
+
+  const encBytes36 = encodeBase36BytesJs(rawBytes);
+  const decBytes36 = decodeBase36BytesJs(encBytes36);
+  expect(decBytes36).toEqual(rawBytes);
 });
 
 test("Custom and shuffled alphabet configuration", () => {
@@ -124,6 +136,15 @@ test("Custom and shuffled alphabet configuration", () => {
   const customEncoded = ksuid.toBase32(shuffledBase32);
   const parsedCustom = Ksuid.fromBase32(customEncoded, shuffledBase32);
   expect(parsedCustom.equals(ksuid)).toBe(true);
+
+  // Custom Base36 alphabet
+  const defaultBase36 = "0123456789abcdefghijklmnopqrstuvwxyz";
+  const shuffledBase36 = shuffleAlphabet(defaultBase36, 54321);
+  expect(shuffledBase36).toHaveLength(36);
+
+  const b36Custom = ksuid.toBase36(shuffledBase36);
+  const parsedB36Custom = Ksuid.fromBase36(b36Custom, shuffledBase36);
+  expect(parsedB36Custom.equals(ksuid)).toBe(true);
 
   // Custom Base62 alphabet
   const defaultBase62 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";

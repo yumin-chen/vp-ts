@@ -12,7 +12,7 @@ export declare const __napiBindingTarget: 'native' | 'wasm32-wasi' | 'wasm32-was
 export declare class Ksuid {
   /**
    * Create a Ksuid using constructor options.
-   * Options: { timestamp?: number, payload?: Uint8Array, timestampSize?: "32bit" | "48bit" | "64bit", enc?: "base62" | "base32", alphabet?: string }
+   * Options: { timestamp?: number, payload?: Uint8Array, timestampSize?: "32bit" | "48bit" | "64bit", enc?: "base62" | "base32" | "base36", alphabet?: string }
    */
   constructor(options?: KsuidOptions | undefined | null)
   /** Create a new Ksuid with optional options. */
@@ -31,9 +31,11 @@ export declare class Ksuid {
   static fromBase32(encoded: string, alphabet?: string | undefined | null, timestampSize?: string | undefined | null): Ksuid
   /** Alias for from_base32. */
   static fromCrockfordBase32(encoded: string, alphabet?: string | undefined | null, timestampSize?: string | undefined | null): Ksuid
+  /** Parse a Ksuid from a Base36 string (optional custom alphabet and timestampSize). */
+  static fromBase36(encoded: string, alphabet?: string | undefined | null, timestampSize?: string | undefined | null): Ksuid
   /** Create a Ksuid from 20 raw bytes (optional timestampSize). */
   static fromBytes(bytes: Uint8Array, timestampSize?: string | undefined | null): Ksuid
-  /** Returns the configured encoding ("base62" or "base32"). */
+  /** Returns the configured encoding ("base62", "base32", or "base36"). */
   enc(): string
   /** Returns the configured alphabet, if any. */
   alphabet(): string | null
@@ -45,6 +47,8 @@ export declare class Ksuid {
   toBase32(alphabet?: string | undefined | null): string
   /** Alias for to_base32. */
   toCrockfordBase32(alphabet?: string | undefined | null): string
+  /** Returns Base36 string representation (optional custom alphabet). */
+  toBase36(alphabet?: string | undefined | null): string
   /** Returns string representation using configured enc and alphabet. */
   toString(): string
   /** Returns the 20 bytes of the Ksuid. */
@@ -77,6 +81,8 @@ export declare class KsuidMs {
   static fromBase32(encoded: string, alphabet?: string | undefined | null): KsuidMs
   /** Alias for from_base32. */
   static fromCrockfordBase32(encoded: string, alphabet?: string | undefined | null): KsuidMs
+  /** Parse a KsuidMs from a Base36 string (optional custom alphabet). */
+  static fromBase36(encoded: string, alphabet?: string | undefined | null): KsuidMs
   /** Create a KsuidMs from 20 raw bytes. */
   static fromBytes(bytes: Uint8Array): KsuidMs
   /** Returns the base62 string representation (optional custom alphabet). */
@@ -85,6 +91,8 @@ export declare class KsuidMs {
   toBase32(alphabet?: string | undefined | null): string
   /** Alias for to_base32. */
   toCrockfordBase32(alphabet?: string | undefined | null): string
+  /** Returns Base36 string representation (optional custom alphabet). */
+  toBase36(alphabet?: string | undefined | null): string
   /** Returns string representation. */
   toString(): string
   /** Returns the 20 bytes of the KsuidMs. */
@@ -103,11 +111,17 @@ export type JsKsuidMs = KsuidMs
 /** Decode a Crockford Base32 string into raw bytes (optional custom alphabet). */
 export declare function decodeBase32BytesJs(encoded: string, alphabet?: string | undefined | null): Uint8Array
 
+/** Decode a Base36 string into raw bytes (optional custom alphabet). */
+export declare function decodeBase36BytesJs(encoded: string, alphabet?: string | undefined | null): Uint8Array
+
 /** Decode a Crockford Base32 string to number. */
 export declare function decodeCrockfordBase32(encoded: string, alphabet?: string | undefined | null): number
 
 /** Encode raw bytes into Crockford Base32 (optional custom alphabet). */
 export declare function encodeBase32BytesJs(bytes: Uint8Array, alphabet?: string | undefined | null): string
+
+/** Encode raw bytes into Base36 (optional custom alphabet). */
+export declare function encodeBase36BytesJs(bytes: Uint8Array, alphabet?: string | undefined | null): string
 
 /** Encode a u64 number using Crockford Base32. */
 export declare function encodeCrockfordBase32(n: number, alphabet?: string | undefined | null): string

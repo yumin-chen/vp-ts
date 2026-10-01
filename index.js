@@ -716,14 +716,16 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`)
 }
 
-const { Ksuid, JsKsuid, KsuidMs, JsKsuidMs, decodeBase32BytesJs, decodeCrockfordBase32, encodeBase32BytesJs, encodeCrockfordBase32, generateKsuid, parseKsuid, shuffleAlphabet } = nativeBinding
+const { Ksuid, JsKsuid, KsuidMs, JsKsuidMs, decodeBase32BytesJs, decodeBase36BytesJs, decodeCrockfordBase32, encodeBase32BytesJs, encodeBase36BytesJs, encodeCrockfordBase32, generateKsuid, parseKsuid, shuffleAlphabet } = nativeBinding
 export { Ksuid }
 export { JsKsuid }
 export { KsuidMs }
 export { JsKsuidMs }
 export { decodeBase32BytesJs }
+export { decodeBase36BytesJs }
 export { decodeCrockfordBase32 }
 export { encodeBase32BytesJs }
+export { encodeBase36BytesJs }
 export { encodeCrockfordBase32 }
 export { generateKsuid }
 export { parseKsuid }

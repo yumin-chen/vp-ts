@@ -5,8 +5,9 @@ use std::sync::Mutex;
 use svix_ksuid::{Ksuid as InnerKsuid, KsuidLike, KsuidMs as InnerKsuidMs};
 
 const DEFAULT_CROCKFORD_ALPHABET: &[u8; 32] = b"0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+const DEFAULT_BASE36_ALPHABET: &[u8; 36] = b"0123456789abcdefghijklmnopqrstuvwxyz";
 
-static DEFAULT_ENCODING: AtomicU8 = AtomicU8::new(0); // 0 = Base62, 1 = Crockford
+static DEFAULT_ENCODING: AtomicU8 = AtomicU8::new(0); // 0 = Base62, 1 = Crockford, 2 = Base36
 static DEFAULT_ALPHABET: Mutex<Option<String>> = Mutex::new(None);
 
 #[napi(object)]
@@ -23,6 +24,147 @@ pub struct CreateOptions {
   pub timestamp: Option<i64>,
   pub payload: Option<Uint8Array>,
   pub timestamp_precision: Option<String>,
+}
+
+fn convert_base(
+  input: &[u8],
+  in_base: u32,
+  out_base: u32,
+  out_len: usize,
+) -> Result<Vec<u8>> {
+  let mut out = vec![0u8; out_len];
+  let word_len = 1;
+  let word_base = in_base as u64;
+
+  let in_len = input.len();
+  let mut out_used = out_len.saturating_sub(1);
+
+  let mut i = (in_len % word_len) as i32;
+  if i > 0 {
+    i -= word_len as i32;
+  }
+
+  while i < in_len as i32 {
+    let mut carry: u64 = 0;
+    let start = if i < 0 { 0 } else { i as usize };
+    let end = (i + word_len as i32) as usize;
+    for j in start..end {
+      if j < in_len {
+        carry = carry * (in_base as u64) + (input[j] as u64);
+      }
+    }
+
+    for j in (0..out_len).rev() {
+      carry += (out[j] as u64) * word_base;
+      out[j] = (carry % (out_base as u64)) as u8;
+      carry /= out_base as u64;
+
+      if carry == 0 && j <= out_used {
+        out_used = j;
+        break;
+      }
+    }
+
+    if carry != 0 {
+      return Err(Error::new(
+        Status::InvalidArg,
+        "Output length too small for base conversion",
+      ));
+    }
+
+    i += word_len as i32;
+  }
+
+  Ok(out)
+}
+
+fn encode_base36(bytes: &[u8; 20], alphabet: Option<&str>) -> Result<String> {
+  let alpha_bytes = match alphabet {
+    Some(a) => {
+      let b = a.as_bytes();
+      if b.len() != 36 {
+        return Err(Error::new(
+          Status::InvalidArg,
+          format!("Base36 alphabet must be 36 characters, got {}", b.len()),
+        ));
+      }
+      b
+    }
+    None => DEFAULT_BASE36_ALPHABET,
+  };
+
+  // 20 bytes (160 bits) converted to Base36 requires 31 digits
+  let digit_values = convert_base(bytes, 256, 36, 31)?;
+  let mut out = Vec::with_capacity(31);
+  for d in digit_values {
+    out.push(alpha_bytes[d as usize]);
+  }
+
+  String::from_utf8(out).map_err(|e| Error::new(Status::GenericFailure, e.to_string()))
+}
+
+fn decode_base36(input: &str, alphabet: Option<&str>) -> Result<[u8; 20]> {
+  let clean: String = input.chars().filter(|c| *c != '-').collect();
+  if clean.len() != 31 {
+    return Err(Error::new(
+      Status::InvalidArg,
+      format!("Invalid Base36 string length: expected 31 chars, got {}", clean.len()),
+    ));
+  }
+
+  let custom_alpha = alphabet.map(|a| a.as_bytes());
+  if let Some(a) = custom_alpha {
+    if a.len() != 36 {
+      return Err(Error::new(
+        Status::InvalidArg,
+        format!("Base36 alphabet must be 36 characters, got {}", a.len()),
+      ));
+    }
+  }
+
+  let mut digit_values = Vec::with_capacity(31);
+  for ch in clean.chars() {
+    let val = match custom_alpha {
+      Some(a) => {
+        let ch_u8 = ch as u8;
+        let mut found = None;
+        for (idx, &b) in a.iter().enumerate() {
+          if b == ch_u8 || b.to_ascii_lowercase() == ch_u8.to_ascii_lowercase() {
+            found = Some(idx as u8);
+            break;
+          }
+        }
+        found.ok_or_else(|| {
+          Error::new(
+            Status::InvalidArg,
+            format!("Character '{}' not found in custom alphabet", ch),
+          )
+        })?
+      }
+      None => {
+        let ch_u8 = ch.to_ascii_lowercase() as u8;
+        let mut found = None;
+        for (idx, &b) in DEFAULT_BASE36_ALPHABET.iter().enumerate() {
+          if b == ch_u8 {
+            found = Some(idx as u8);
+            break;
+          }
+        }
+        found.ok_or_else(|| {
+          Error::new(
+            Status::InvalidArg,
+            format!("Invalid Base36 character '{}'", ch),
+          )
+        })?
+      }
+    };
+    digit_values.push(val);
+  }
+
+  let bytes_vec = convert_base(&digit_values, 36, 256, 20)?;
+  let mut bytes = [0u8; 20];
+  bytes.copy_from_slice(&bytes_vec);
+  Ok(bytes)
 }
 
 fn get_5bit(bytes: &[u8; 20], chunk: usize) -> u8 {
@@ -206,12 +348,20 @@ pub struct Ksuid {
 
 #[napi]
 impl Ksuid {
-  /// Configure default toString encoding ("crockford" / "base32" or "base62") and optional custom alphabet.
+  /// Configure default toString encoding ("base62", "base32" / "crockford", or "base36") and optional custom alphabet.
   #[napi]
   pub fn set_default_encoding(encoding: String, alphabet: Option<String>) -> Result<()> {
     match encoding.to_lowercase().as_str() {
       "crockford" | "crockford_base32" | "base32" => {
         DEFAULT_ENCODING.store(1, Ordering::SeqCst);
+        let mut guard = DEFAULT_ALPHABET.lock().map_err(|_| {
+          Error::new(Status::GenericFailure, "Failed to lock default alphabet")
+        })?;
+        *guard = alphabet;
+        Ok(())
+      }
+      "base36" => {
+        DEFAULT_ENCODING.store(2, Ordering::SeqCst);
         let mut guard = DEFAULT_ALPHABET.lock().map_err(|_| {
           Error::new(Status::GenericFailure, "Failed to lock default alphabet")
         })?;
@@ -228,18 +378,18 @@ impl Ksuid {
       }
       _ => Err(Error::new(
         Status::InvalidArg,
-        format!("Unsupported encoding: {}. Choose 'crockford', 'base32', or 'base62'.", encoding),
+        format!("Unsupported encoding: {}. Choose 'base62', 'base32', or 'base36'.", encoding),
       )),
     }
   }
 
-  /// Get current default toString encoding ("base62" or "crockford").
+  /// Get current default toString encoding ("base62", "crockford", or "base36").
   #[napi]
   pub fn get_default_encoding() -> String {
-    if DEFAULT_ENCODING.load(Ordering::SeqCst) == 1 {
-      "crockford".to_string()
-    } else {
-      "base62".to_string()
+    match DEFAULT_ENCODING.load(Ordering::SeqCst) {
+      1 => "crockford".to_string(),
+      2 => "base36".to_string(),
+      _ => "base62".to_string(),
     }
   }
 
@@ -330,7 +480,15 @@ impl Ksuid {
     Ok(Ksuid { inner })
   }
 
-  /// String representation with optional encoding string or options object ({ enc: "base32" | "base62", alphabet?: string }).
+  /// Create a Ksuid from Base36 encoded string with optional custom alphabet.
+  #[napi(factory)]
+  pub fn from_base36(str: String, alphabet: Option<String>) -> Result<Self> {
+    let raw_bytes = decode_base36(&str, alphabet.as_deref())?;
+    let inner = InnerKsuid::from_bytes(raw_bytes);
+    Ok(Ksuid { inner })
+  }
+
+  /// String representation with optional encoding string or options object ({ enc: "base32" | "base36" | "base62", alphabet?: string }).
   #[napi]
   pub fn to_string(
     &self,
@@ -360,10 +518,17 @@ impl Ksuid {
         };
         self.to_crockford_base32(alpha)
       }
+      "base36" => {
+        let alpha = match custom_alpha {
+          Some(a) => Some(a),
+          None => DEFAULT_ALPHABET.lock().unwrap().clone(),
+        };
+        self.to_base36(alpha)
+      }
       "base62" => Ok(self.inner.to_string()),
       _ => Err(Error::new(
         Status::InvalidArg,
-        format!("Unsupported encoding: {}. Choose 'crockford', 'base32', or 'base62'.", enc),
+        format!("Unsupported encoding: {}. Choose 'crockford', 'base32', 'base36', or 'base62'.", enc),
       )),
     }
   }
@@ -378,6 +543,12 @@ impl Ksuid {
   #[napi]
   pub fn to_crockford_base32(&self, alphabet: Option<String>) -> Result<String> {
     encode_crockford(self.inner.bytes(), alphabet.as_deref())
+  }
+
+  /// Encode Ksuid to Base36 string with optional custom 36-character alphabet.
+  #[napi]
+  pub fn to_base36(&self, alphabet: Option<String>) -> Result<String> {
+    encode_base36(self.inner.bytes(), alphabet.as_deref())
   }
 
   /// 20-byte slice representing the Ksuid.
@@ -504,6 +675,14 @@ impl KsuidMs {
     Ok(KsuidMs { inner })
   }
 
+  /// Create a KsuidMs from Base36 encoded string with optional custom alphabet.
+  #[napi(factory)]
+  pub fn from_base36(str: String, alphabet: Option<String>) -> Result<Self> {
+    let raw_bytes = decode_base36(&str, alphabet.as_deref())?;
+    let inner = InnerKsuidMs::from_bytes(raw_bytes);
+    Ok(KsuidMs { inner })
+  }
+
   /// Base62 string representation.
   #[napi]
   pub fn to_string(
@@ -534,10 +713,17 @@ impl KsuidMs {
         };
         self.to_crockford_base32(alpha)
       }
+      "base36" => {
+        let alpha = match custom_alpha {
+          Some(a) => Some(a),
+          None => DEFAULT_ALPHABET.lock().unwrap().clone(),
+        };
+        self.to_base36(alpha)
+      }
       "base62" => Ok(self.inner.to_string()),
       _ => Err(Error::new(
         Status::InvalidArg,
-        format!("Unsupported encoding: {}. Choose 'crockford', 'base32', or 'base62'.", enc),
+        format!("Unsupported encoding: {}. Choose 'crockford', 'base32', 'base36', or 'base62'.", enc),
       )),
     }
   }
@@ -552,6 +738,12 @@ impl KsuidMs {
   #[napi]
   pub fn to_crockford_base32(&self, alphabet: Option<String>) -> Result<String> {
     encode_crockford(self.inner.bytes(), alphabet.as_deref())
+  }
+
+  /// Encode KsuidMs to Base36 string with optional custom 36-character alphabet.
+  #[napi]
+  pub fn to_base36(&self, alphabet: Option<String>) -> Result<String> {
+    encode_base36(self.inner.bytes(), alphabet.as_deref())
   }
 
   /// 20-byte slice representing the KsuidMs.

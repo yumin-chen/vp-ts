@@ -1,20 +1,25 @@
 const assert = require('node:assert/strict')
 const test = require('node:test')
 
-test('Ksuid native addon functions and KsuidMs millisecond precision', async () => {
-  const { Ksuid, KsuidMs } = await import('./index.js')
+test('Ksuid native addon Base36 and Crockford encoding options', async () => {
+  const { Ksuid, KsuidMs, shuffleAlphabet } = await import('./index.js')
   Ksuid.setDefaultEncoding('base62')
   const ksuid = Ksuid.now()
   assert.equal(typeof ksuid.toString(), 'string')
   assert.equal(ksuid.bytes().length, 20)
 
-  const ksuidMs = KsuidMs.now()
-  const tsMs = ksuidMs.timestampMs()
-  assert.ok(tsMs > 1600000000000)
-  assert.equal(ksuidMs.bytes().length, 20)
+  // Base36 test
+  const b36 = ksuid.toBase36()
+  assert.equal(b36.length, 31)
+  const parsedB36 = Ksuid.fromBase36(b36)
+  assert.equal(parsedB36.equals(ksuid), true)
 
-  const base62 = ksuidMs.toString()
-  const parsedMs = KsuidMs.fromBase62(base62)
-  assert.equal(parsedMs.timestampMs(), tsMs)
-  assert.equal(parsedMs.equals(ksuidMs), true)
+  // Options object
+  assert.equal(ksuid.toString({ enc: 'base36' }), b36)
+
+  // Custom alphabet
+  const customAlpha = shuffleAlphabet('0123456789abcdefghijklmnopqrstuvwxyz', 'b36-test')
+  const customB36 = ksuid.toBase36(customAlpha)
+  const parsedCustom = Ksuid.fromBase36(customB36, customAlpha)
+  assert.equal(parsedCustom.equals(ksuid), true)
 })

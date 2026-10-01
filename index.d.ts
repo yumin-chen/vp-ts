@@ -10,9 +10,9 @@
 export declare const __napiBindingTarget: 'native' | 'wasm32-wasi' | 'wasm32-wasip1'
 
 export declare class Ksuid {
-  /** Configure default toString encoding ("crockford" / "base32" or "base62") and optional custom alphabet. */
+  /** Configure default toString encoding ("base62", "base32" / "crockford", or "base36") and optional custom alphabet. */
   static setDefaultEncoding(encoding: string, alphabet?: string | undefined | null): void
-  /** Get current default toString encoding ("base62" or "crockford"). */
+  /** Get current default toString encoding ("base62", "crockford", or "base36"). */
   static getDefaultEncoding(): string
   /** Create a new Ksuid with an optional timestamp (in seconds since UNIX epoch) and optional 16-byte payload. */
   constructor(timestamp?: number | undefined | null, payload?: Uint8Array | undefined | null)
@@ -28,12 +28,16 @@ export declare class Ksuid {
   static fromSeconds(seconds?: number | undefined | null, payload?: Uint8Array | undefined | null): Ksuid
   /** Create a Ksuid from Crockford Base32 encoded string with optional custom alphabet. */
   static fromCrockfordBase32(str: string, alphabet?: string | undefined | null): Ksuid
-  /** String representation with optional encoding string or options object ({ enc: "base32" | "base62", alphabet?: string }). */
+  /** Create a Ksuid from Base36 encoded string with optional custom alphabet. */
+  static fromBase36(str: string, alphabet?: string | undefined | null): Ksuid
+  /** String representation with optional encoding string or options object ({ enc: "base32" | "base36" | "base62", alphabet?: string }). */
   toString(options?: string | ToStringOptions | undefined | null, alphabet?: string | undefined | null): string
   /** Base62 string representation (explicit alias). */
   toBase62(): string
   /** Encode Ksuid to Crockford Base32 string with optional custom 32-character alphabet. */
   toCrockfordBase32(alphabet?: string | undefined | null): string
+  /** Encode Ksuid to Base36 string with optional custom 36-character alphabet. */
+  toBase36(alphabet?: string | undefined | null): string
   /** 20-byte slice representing the Ksuid. */
   bytes(): Uint8Array
   /** 16-byte payload portion of the Ksuid. */
@@ -60,12 +64,16 @@ export declare class KsuidMs {
   static fromBytes(bytes: Uint8Array): KsuidMs
   /** Create a KsuidMs from Crockford Base32 encoded string with optional custom alphabet. */
   static fromCrockfordBase32(str: string, alphabet?: string | undefined | null): KsuidMs
+  /** Create a KsuidMs from Base36 encoded string with optional custom alphabet. */
+  static fromBase36(str: string, alphabet?: string | undefined | null): KsuidMs
   /** Base62 string representation. */
   toString(options?: string | ToStringOptions | undefined | null, alphabet?: string | undefined | null): string
   /** Base62 string representation. */
   toBase62(): string
   /** Encode KsuidMs to Crockford Base32 string with optional custom 32-character alphabet. */
   toCrockfordBase32(alphabet?: string | undefined | null): string
+  /** Encode KsuidMs to Base36 string with optional custom 36-character alphabet. */
+  toBase36(alphabet?: string | undefined | null): string
   /** 20-byte slice representing the KsuidMs. */
   bytes(): Uint8Array
   /** 14-byte payload portion of the KsuidMs. */

@@ -22,8 +22,9 @@ npm install @lib/ksuid
   - `KsuidMs`: High-precision KSUID with a 48-bit timestamp (millisecond-level resolution) + 112-bit payload.
 - **Multiple Encodings:**
   - Alphanumeric Base62 (`0ujsswThIGTUYm2K8FjOOfXtY1K`).
+  - Base36 (`0372hg16csmsm50l8dikcvukc`).
   - Crockford Base32 with custom/shuffled alphabets and character normalization (`O`/`I`/`L` aliasing).
-- **Configurable `toString()`:** Options object `{ enc: "base32" | "base62", alphabet?: string }` or global default configuration.
+- **Configurable `toString()`:** Options object `{ enc: "base32" | "base36" | "base62", alphabet?: string }` or global default configuration.
 
 ---
 
@@ -53,6 +54,9 @@ const ksuid = Ksuid.now();
 console.log(ksuid.toString()); // e.g., "1srOrx2ZWZBpBUvZwXKQmoEYga2"
 console.log(ksuid.toBase62()); // "1srOrx2ZWZBpBUvZwXKQmoEYga2"
 
+// Base36 String
+console.log(ksuid.toBase36()); // e.g., "0372ijojuxuhjsfkeryi2mrtm"
+
 // Crockford Base32 String
 console.log(ksuid.toCrockfordBase32()); // e.g., "001E9F1S... (32 chars)"
 
@@ -80,6 +84,9 @@ const customKsuid = Ksuid.fromSeconds(1555555555, payload);
 // From Base62 String
 const parsedBase62 = Ksuid.fromBase62("1srOrx2ZWZBpBUvZwXKQmoEYga2");
 
+// From Base36 String
+const parsedBase36 = Ksuid.fromBase36("0372ijojuxuhjsfkeryi2mrtm");
+
 // From Crockford Base32 String
 const parsedCrockford = Ksuid.fromCrockfordBase32("001E9F1S...");
 
@@ -98,26 +105,26 @@ const ksuidMs = KsuidMs.now();
 console.log(ksuidMs.timestampMs()); // e.g., 1718000000123
 console.log(ksuidMs.toString()); // Base62 string
 
-// Parse KsuidMs from Base62 or Crockford Base32
+// Parse KsuidMs from Base62, Base36, or Crockford Base32
 const parsedMs = KsuidMs.fromBase62(ksuidMs.toString());
 ```
 
 ---
 
-### Crockford Base32 with Custom & Shuffled Alphabets
+### Custom & Shuffled Alphabets
 
 ```ts
-// Shuffle the standard Crockford 32-character alphabet deterministically with a seed
-const standardAlpha = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+// Shuffle an alphabet deterministically with a seed
+const standardAlpha = "0123456789abcdefghijklmnopqrstuvwxyz";
 const shuffledAlpha = shuffleAlphabet(standardAlpha, "my-secret-seed");
 
 const ksuid = Ksuid.now();
 
 // Encode with custom alphabet
-const customCrockfordStr = ksuid.toCrockfordBase32(shuffledAlpha);
+const customBase36Str = ksuid.toBase36(shuffledAlpha);
 
 // Decode with custom alphabet
-const decoded = Ksuid.fromCrockfordBase32(customCrockfordStr, shuffledAlpha);
+const decoded = Ksuid.fromBase36(customBase36Str, shuffledAlpha);
 ```
 
 ---
@@ -128,15 +135,16 @@ const decoded = Ksuid.fromCrockfordBase32(customCrockfordStr, shuffledAlpha);
 const ksuid = Ksuid.now();
 
 // Format via options object
+console.log(ksuid.toString({ enc: "base36" })); // Base36
 console.log(ksuid.toString({ enc: "base32" })); // Crockford Base32
 console.log(ksuid.toString({ enc: "base62" })); // Base62
 
 // Format with custom alphabet in options
-console.log(ksuid.toString({ enc: "base32", alphabet: shuffledAlpha }));
+console.log(ksuid.toString({ enc: "base36", alphabet: shuffledAlpha }));
 
 // Global default configuration for toString()
-Ksuid.setDefaultEncoding("crockford");
-console.log(ksuid.toString()); // Outputs Crockford Base32 by default
+Ksuid.setDefaultEncoding("base36");
+console.log(ksuid.toString()); // Outputs Base36 by default
 
 Ksuid.setDefaultEncoding("base62"); // Reset to Base62
 ```

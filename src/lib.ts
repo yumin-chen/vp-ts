@@ -1,11 +1,4 @@
-import { createRequire } from "node:module";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
-
-const require = createRequire(import.meta.url);
-const __dirname = dirname(fileURLToPath(import.meta.url));
-
-const nativeBinding = require(join(__dirname, "../native/index.js"));
+import * as nativeBinding from "../native/index.js";
 
 export const JsContainer = nativeBinding.JsContainer;
 export const JsContainerHandle = nativeBinding.JsContainerHandle;

@@ -20,10 +20,10 @@ export default defineConfig({
     "*": "vp check --fix",
   },
   fmt: {
-    ignore: ["examples/**"],
+    ignore: ["examples/**", "packages/**"],
   },
   lint: {
-    ignorePatterns: ["examples/**"],
+    ignorePatterns: ["examples/**", "packages/**"],
     jsPlugins: [{ name: "vite-plus", specifier: "vite-plus/oxlint-plugin" }],
     rules: { "vite-plus/prefer-vite-plus-imports": "error" },
     options: { typeAware: true, typeCheck: true },

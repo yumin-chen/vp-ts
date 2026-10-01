@@ -1,7 +1,14 @@
 const assert = require("node:assert/strict");
 const test = require("node:test");
 
-void test("adds two numbers", async () => {
-  const { add } = await import("./index.js");
-  assert.equal(add(2, 3), 5);
+void test("JsContainer works via index.js native binding", async () => {
+  const { JsContainer } = await import("./index.js");
+  const container = JsContainer.withDefaultConfig();
+  assert.ok(container);
+
+  const handle = await container.create({ image: "alpine:latest" }, "cjs-test");
+  assert.ok(handle);
+
+  const execRes = await handle.exec("echo", ["cjs"]);
+  assert.equal(execRes, "Executed: echo cjs");
 });

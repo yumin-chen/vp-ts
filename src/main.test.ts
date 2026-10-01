@@ -54,6 +54,24 @@ test("Ksuid creation via constructor options", () => {
   expect(ksuid48B32.payload()).toHaveLength(15);
   expect(ksuid48B32.toString()).toBe(ksuid48B32.toBase32());
 
+  // Test 48bit timestampSize with enc: "base36"
+  const ksuid48B36 = new Ksuid({
+    timestamp: 1621627443000,
+    timestampSize: "48bit",
+    enc: "base36",
+  });
+
+  expect(ksuid48B36.timestampSize()).toBe("48bit");
+  expect(ksuid48B36.enc()).toBe("base36");
+  expect(ksuid48B36.timestampMilliseconds()).toBe(1621627443000);
+  expect(ksuid48B36.payload()).toHaveLength(15);
+
+  const str48B36 = ksuid48B36.toString();
+  expect(str48B36).toBe(ksuid48B36.toBase36());
+
+  const parsed48B36 = Ksuid.fromBase36(str48B36, undefined, "48bit");
+  expect(parsed48B36.equals(ksuid48B36)).toBe(true);
+
   const ksuid64B32 = new Ksuid({
     timestamp: 1621627443000,
     timestampSize: "64bit",

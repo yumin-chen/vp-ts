@@ -20,6 +20,11 @@ test('creates and converts Ksuid', async () => {
   assert.equal(ksuid.bytes().length, 20)
   assert.equal(ksuid.payload().length, 15)
 
+  const ksuidB36_48 = new Ksuid({ enc: 'base36', timestampSize: '48bit' })
+  assert.equal(ksuidB36_48.enc(), 'base36')
+  assert.equal(ksuidB36_48.timestampSize(), '48bit')
+  assert.equal(typeof ksuidB36_48.toString(), 'string')
+
   const timestamp = 1621627443
   const payload = Buffer.alloc(16, 12)
   const ksuid2 = Ksuid.fromSeconds(timestamp, payload)

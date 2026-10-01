@@ -32,17 +32,91 @@ pub struct JsContainerRestOptions {
 }
 
 #[napi(object)]
-#[derive(Clone, Debug, Default)]
-pub struct JsContainerState {
-  pub status: String,
+#[derive(Clone, Debug)]
+pub struct JsPublishedPort {
+  #[napi(js_name = "guestPort")]
+  pub guest_port: u32,
+  #[napi(js_name = "hostIp")]
+  pub host_ip: String,
+  #[napi(js_name = "hostPort")]
+  pub host_port: u32,
+  pub protocol: String,
+}
+
+#[napi(object)]
+#[derive(Clone, Debug)]
+pub struct JsOutboundNetworkInfo {
+  pub mode: String,
+  #[napi(js_name = "allowNet")]
+  pub allow_net: Vec<String>,
+}
+
+#[napi(object)]
+#[derive(Clone, Debug)]
+pub struct JsInboundNetworkInfo {
+  pub mode: String,
+  #[napi(js_name = "allowNet")]
+  pub allow_net: Vec<String>,
+}
+
+#[napi(object, use_nullable = true)]
+#[derive(Clone, Debug)]
+pub struct JsNetworkInfo {
+  pub outbound: JsOutboundNetworkInfo,
+  pub inbound: JsInboundNetworkInfo,
+  pub mode: String,
+  #[napi(js_name = "allowNet")]
+  pub allow_net: Vec<String>,
+  #[napi(js_name = "publishedPorts")]
+  pub published_ports: Option<Vec<JsPublishedPort>>,
+}
+
+#[napi(string_enum)]
+#[derive(Clone, Debug)]
+pub enum JsHealthState {
+  None,
+  Starting,
+  Healthy,
+  Unhealthy,
+}
+
+#[napi(object)]
+#[derive(Clone, Debug)]
+pub struct JsHealthStatus {
+  pub state: JsHealthState,
+  pub failures: u32,
+  pub last_check: Option<String>,
 }
 
 #[napi(object)]
 #[derive(Clone, Debug, Default)]
+pub struct JsContainerStateInfo {
+  pub status: String,
+  pub running: bool,
+  pub pid: Option<u32>,
+  pub exit_code: Option<i32>,
+}
+
+#[napi(object)]
+#[derive(Clone, Debug)]
 pub struct JsContainerInfo {
   pub id: String,
   pub name: Option<String>,
-  pub state: JsContainerState,
+  pub state: JsContainerStateInfo,
+  pub created_at: String,
+  pub started_at: Option<String>,
+  pub last_activity_at: Option<String>,
+  pub image: String,
+  pub cpus: u32,
+  pub memory_mib: u32,
+  pub network: Either<JsNetworkInfo, Null>,
+  #[napi(js_name = "autoStop")]
+  pub auto_stop: u32,
+  #[napi(js_name = "autoDelete")]
+  pub auto_delete: u32,
+  #[napi(js_name = "autoResume")]
+  pub auto_resume: bool,
+  pub health_status: JsHealthStatus,
 }
 
 #[napi(object)]
@@ -843,8 +917,26 @@ impl JsContainer {
     let info = JsContainerInfo {
       id: container_id.clone(),
       name: name.clone(),
-      state: JsContainerState {
+      state: JsContainerStateInfo {
         status: "running".to_string(),
+        running: true,
+        pid: Some(100),
+        exit_code: None,
+      },
+      created_at: "1970-01-01T00:00:00Z".to_string(),
+      started_at: Some("1970-01-01T00:00:00Z".to_string()),
+      last_activity_at: None,
+      image: "alpine:latest".to_string(),
+      cpus: 1,
+      memory_mib: 512,
+      network: Either::B(Null),
+      auto_stop: 0,
+      auto_delete: 0,
+      auto_resume: false,
+      health_status: JsHealthStatus {
+        state: JsHealthState::None,
+        failures: 0,
+        last_check: None,
       },
     };
     state.containers.insert(container_id.clone(), info.clone());
@@ -858,7 +950,7 @@ impl JsContainer {
   }
 
   #[napi]
-  pub async fn create(&self, _options: JsContainerOptions, name: Option<String>) -> Result<JsContainer> {
+  pub async fn create(&self, options: JsContainerOptions, name: Option<String>) -> Result<JsContainer> {
     let container_id = format!("cnt_{}", name.as_deref().unwrap_or("default"));
     let mut state = self
       .inner
@@ -868,8 +960,26 @@ impl JsContainer {
     let info = JsContainerInfo {
       id: container_id.clone(),
       name: name.clone(),
-      state: JsContainerState {
-        status: "created".to_string(),
+      state: JsContainerStateInfo {
+        status: "configured".to_string(),
+        running: false,
+        pid: None,
+        exit_code: None,
+      },
+      created_at: "1970-01-01T00:00:00Z".to_string(),
+      started_at: None,
+      last_activity_at: None,
+      image: options.image.unwrap_or_else(|| "alpine:latest".to_string()),
+      cpus: options.cpus.unwrap_or(1) as u32,
+      memory_mib: options.memory_mib.unwrap_or(512) as u32,
+      network: Either::B(Null),
+      auto_stop: 0,
+      auto_delete: 0,
+      auto_resume: false,
+      health_status: JsHealthStatus {
+        state: JsHealthState::None,
+        failures: 0,
+        last_check: None,
       },
     };
     state.containers.insert(container_id.clone(), info.clone());
@@ -891,6 +1001,8 @@ impl JsContainer {
         .map_err(|e| Error::from_reason(e.to_string()))?;
       if let Some(info) = state.containers.get_mut(container_id) {
         info.state.status = "running".to_string();
+        info.state.running = true;
+        info.state.pid = Some(101);
       }
     }
     Ok(0)
@@ -905,6 +1017,9 @@ impl JsContainer {
         .map_err(|e| Error::from_reason(e.to_string()))?;
       if let Some(info) = state.containers.get_mut(container_id) {
         info.state.status = "stopped".to_string();
+        info.state.running = false;
+        info.state.pid = None;
+        info.state.exit_code = Some(0);
       }
     }
     Ok(())

@@ -22,10 +22,12 @@ test("JsContainer withDefaultConfig and create container", async () => {
   const info = await container.inspect();
   assert.equal(info.name, "test-box");
   assert.equal(info.state.status, "running");
+  assert.equal(info.state.running, true);
 
   await container.stop();
   const infoStopped = await container.inspect();
   assert.equal(infoStopped.state.status, "stopped");
+  assert.equal(infoStopped.state.running, false);
 
   const metrics = await runtime.metrics();
   assert.ok(metrics.containeresCreatedTotal >= 1);

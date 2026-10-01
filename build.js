@@ -1,4 +1,6 @@
 import { NapiCli } from "@napi-rs/cli";
+import fs from "node:fs";
+import path from "node:path";
 
 async function run() {
   const args = process.argv.slice(2);
@@ -19,7 +21,19 @@ async function run() {
     useNapiCross,
     crossCompile,
     useCross,
+    outputDir: "dist",
   });
+
+  if (fs.existsSync("dist")) {
+    const files = fs.readdirSync("dist");
+    console.log("Dist files:", files);
+    for (const file of files) {
+      if (file.endsWith(".node") || file === "index.js" || file === "index.d.ts") {
+        console.log("Copying", file, "to root");
+        fs.copyFileSync(path.join("dist", file), file);
+      }
+    }
+  }
 }
 
 void run().catch((err) => {

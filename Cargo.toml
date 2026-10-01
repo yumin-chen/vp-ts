@@ -9,6 +9,43 @@ crate-type = ["cdylib"]
 [dependencies]
 napi = "3"
 napi-derive = "3"
+runtime-rs = { git = "https://github.com/kata-containers/kata-containers.git", version = "0.1.0", optional = true }
+virt_container = { git = "https://github.com/kata-containers/kata-containers.git", version = "0.1.0", optional = true }
+event-manager = { version = "0.4.0", optional = true }
+kvm-bindings = { version = "0.14.0", optional = true }
+kvm-ioctls = { version = "0.24.0", optional = true }
+linux-loader = { version = "0.13.0", optional = true }
+seccompiler = { version = "0.5.0", optional = true }
+vfio-bindings = { version = "0.6.2", optional = true }
+vfio-ioctls = { version = "0.6.0", optional = true }
+virtio-bindings = { version = "0.2.0", optional = true }
+virtio-queue = { version = "0.17.0", optional = true }
+vm-fdt = { version = "0.3.0", optional = true }
+vm-memory = { version = "=0.17.1", optional = true }
+vm-superio = { version = "0.8.0", optional = true }
+vmm-sys-util = { version = "0.15.0", optional = true }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[features]
+default = []
+virtcontainers = [
+    "dep:runtime-rs",
+    "dep:virt_container",
+    "dep:event-manager",
+    "dep:kvm-bindings",
+    "dep:kvm-ioctls",
+    "dep:linux-loader",
+    "dep:seccompiler",
+    "dep:vfio-bindings",
+    "dep:vfio-ioctls",
+    "dep:virtio-bindings",
+    "dep:virtio-queue",
+    "dep:vm-fdt",
+    "dep:vm-memory",
+    "dep:vm-superio",
+    "dep:vmm-sys-util",
+]
 
 [build-dependencies]
 napi-build = "2"

@@ -9,4 +9,104 @@
  */
 export declare const __napiBindingTarget: 'native' | 'wasm32-wasi' | 'wasm32-wasip1'
 
+export declare class BuildTransfer {
+  constructor(metadata?: Record<string, string> | undefined | null)
+  get metadata(): Record<string, string>
+  stage(): string | null
+  method(): string | null
+  includePatterns(): Array<string> | null
+  followPaths(): Array<string> | null
+  mode(): string | null
+  size(): number | null
+  offset(): number | null
+  len(): number | null
+}
+
+export declare class ImageTransfer {
+  constructor(metadata?: Record<string, string> | undefined | null)
+  get metadata(): Record<string, string>
+  stage(): string | null
+  method(): string | null
+  refName(): string | null
+  platform(): string | null
+  mode(): string | null
+  size(): number | null
+  len(): number | null
+  offset(): number | null
+}
+
+export declare class JsContainer {
+  constructor(id: string, status?: string | undefined | null)
+  getId(): string
+  getStatus(): string
+  setMetadata(key: string, value: string): void
+  getMetadata(key: string): string | null
+}
+
+export declare class ServerStream {
+  constructor(imageTransfer?: ImageTransfer | undefined | null, buildTransfer?: BuildTransfer | undefined | null, io?: Io | undefined | null)
+  getImageTransfer(): ImageTransfer | null
+  getBuildTransfer(): BuildTransfer | null
+  getIo(): Io | null
+}
+
 export declare function add(left: number, right: number): number
+
+export interface ClientStream {
+  streamId: string
+  metadata: Record<string, string>
+}
+
+export interface ContainerConfig {
+  id: string
+  status: string
+  mounts: Array<MountConfig>
+  terminal: boolean
+}
+
+export interface ContainerStartOptions {
+  attach: boolean
+  interactive: boolean
+  containerId: string
+}
+
+export interface ContainerStartResult {
+  success: boolean
+  exitCode: number
+  containerId: string
+  detached: boolean
+}
+
+export declare function getOrCreateContainer(id: string): JsGetOrCreateResult
+
+export interface InfoRequest {
+  id: string
+  query?: string
+}
+
+export interface InfoResponse {
+  id: string
+  status: string
+  info: Record<string, string>
+}
+
+export interface Io {
+  stdin?: string
+  stdout?: string
+  stderr?: string
+  tty: boolean
+}
+
+export interface JsGetOrCreateResult {
+  containerId: string
+  created: boolean
+  status: string
+}
+
+export interface MountConfig {
+  source: string
+  target: string
+  isVirtiofs: boolean
+}
+
+export declare function startContainer(containerId: string, attach?: boolean | undefined | null, interactive?: boolean | undefined | null, configJson?: string | undefined | null): ContainerStartResult

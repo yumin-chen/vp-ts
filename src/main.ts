@@ -1,7 +1,12 @@
 import console from "node:console";
+import { VirtContainerClient, containerClient } from "./lib.ts";
+
+export * from "./lib.ts";
 
 export const main = () => {
   return "Hello, world!";
 };
 
-console.log(main());
+if (process.env.NODE_ENV !== "test") {
+  console.log(main());
+}

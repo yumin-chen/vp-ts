@@ -1,6 +1,8 @@
 pub mod apple_container;
 pub mod cli;
 
+pub use cli::*;
+
 use napi_derive::napi;
 use std::collections::HashMap;
 

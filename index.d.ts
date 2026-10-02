@@ -186,12 +186,44 @@ export interface ContainerStopOptions {
   time?: number
 }
 
+export declare function createMachineCli(options: MachineCreateOptions): MachineActionResult
+
+export declare function createNetworkCli(options: NetworkCreateOptions): NetworkActionResult
+
+export declare function createVolumeCli(options: VolumeCreateOptions): VolumeActionResult
+
 export declare function getOrCreateContainer(id: string): GetOrCreateResult
 
 export interface GetOrCreateResult {
   containerId: string
   created: boolean
   status: string
+}
+
+export interface ImageActionResult {
+  success: boolean
+  reference: string
+  message: string
+}
+
+export interface ImageListItem {
+  id: string
+  repository: string
+  tag: string
+  size: string
+}
+
+export interface ImageListOptions {
+  format?: string
+  quiet?: boolean
+  verbose?: boolean
+}
+
+export interface ImagePullOptions {
+  reference: string
+  platform?: string
+  arch?: string
+  os?: string
 }
 
 export interface InfoRequest {
@@ -212,7 +244,49 @@ export interface Io {
   tty: boolean
 }
 
+export interface K8SActionResult {
+  success: boolean
+  clusterName: string
+}
+
+export declare function k8SCreateCli(options?: K8SCreateOptions | undefined | null): K8SActionResult
+
+export interface K8SCreateOptions {
+  name?: string
+  nodeImage?: string
+  cpus?: number
+  memory?: string
+}
+
+export declare function k8SDeleteCli(name?: string | undefined | null): boolean
+
 export declare function listContainersCli(options?: ContainerListOptions | undefined | null): Array<ContainerListItem>
+
+export declare function listImagesCli(options?: ImageListOptions | undefined | null): Array<ImageListItem>
+
+export declare function listMachinesCli(): Array<MachineListItem>
+
+export declare function listNetworksCli(): Array<NetworkListItem>
+
+export declare function listVolumesCli(): Array<VolumeListItem>
+
+export interface MachineActionResult {
+  success: boolean
+  name: string
+}
+
+export interface MachineCreateOptions {
+  image: string
+  name?: string
+  cpus?: number
+  memory?: string
+}
+
+export interface MachineListItem {
+  name: string
+  state: string
+  isDefault: boolean
+}
 
 export interface MountConfig {
   source: string
@@ -220,8 +294,53 @@ export interface MountConfig {
   isVirtiofs: boolean
 }
 
+export interface NetworkActionResult {
+  success: boolean
+  name: string
+}
+
+export interface NetworkCreateOptions {
+  name: string
+  internal?: boolean
+  subnet?: string
+}
+
+export interface NetworkListItem {
+  name: string
+  plugin: string
+  internal: boolean
+}
+
+export declare function pullImageCli(options: ImagePullOptions): ImageActionResult
+
 export declare function runContainerCli(options: ContainerRunOptions): ContainerRunResult
 
 export declare function startContainer(containerId: string, attach?: boolean | undefined | null, interactive?: boolean | undefined | null, configJson?: string | undefined | null): ContainerStartResult
 
 export declare function stopContainerCli(options: ContainerStopOptions): Array<string>
+
+export declare function systemStartCli(): boolean
+
+export declare function systemStatusCli(): SystemStatusResult
+
+export interface SystemStatusResult {
+  running: boolean
+  apiVersion: string
+}
+
+export declare function systemStopCli(): boolean
+
+export interface VolumeActionResult {
+  success: boolean
+  name: string
+}
+
+export interface VolumeCreateOptions {
+  name: string
+  size?: string
+}
+
+export interface VolumeListItem {
+  name: string
+  driver: string
+}

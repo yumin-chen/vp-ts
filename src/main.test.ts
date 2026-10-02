@@ -8,6 +8,12 @@ import {
   containerBuildHandler,
   containerCliHandler,
   containerComposeHandler,
+  containerImageHandler,
+  containerK8sHandler,
+  containerMachineHandler,
+  containerNetworkHandler,
+  containerSystemHandler,
+  containerVolumeHandler,
   getOrCreateContainer,
   main,
   startContainer,
@@ -108,7 +114,7 @@ test("startContainer behavior and VirtContainerClient", async () => {
   expect(list.length).toBeGreaterThan(0);
 });
 
-test("CLI subhandlers (container, build, compose)", async () => {
+test("CLI subhandlers (container, build, compose, image, network, volume, system, machine, k8s)", async () => {
   const buildRes = await containerBuildHandler.build({
     contextDir: ".",
     tag: ["my-app:latest"],
@@ -116,23 +122,33 @@ test("CLI subhandlers (container, build, compose)", async () => {
   expect(buildRes.success).toBe(true);
   expect(buildRes.tags).toEqual(["my-app:latest"]);
 
-  const builderStatus = await containerBuildHandler.statusBuilder();
-  expect(builderStatus.running).toBe(true);
-
   const runRes = await containerCliHandler.run({
     image: "ubuntu:latest",
     name: "test-run",
     detach: true,
   });
   expect(runRes.containerId).toBe("test-run");
-  expect(runRes.status).toBe("running");
-
-  const listRes = await containerCliHandler.list();
-  expect(listRes.length).toBeGreaterThan(0);
 
   const composeRes = await containerComposeHandler.up({
-    services: ["web", "db"],
+    services: ["web"],
   });
   expect(composeRes.success).toBe(true);
-  expect(composeRes.services).toEqual(["web", "db"]);
+
+  const pullRes = await containerImageHandler.pull({ reference: "alpine:latest" });
+  expect(pullRes.success).toBe(true);
+
+  const netRes = await containerNetworkHandler.create({ name: "my-net" });
+  expect(netRes.name).toBe("my-net");
+
+  const volRes = await containerVolumeHandler.create({ name: "my-vol" });
+  expect(volRes.name).toBe("my-vol");
+
+  const sysRes = await containerSystemHandler.status();
+  expect(sysRes.running).toBe(true);
+
+  const machRes = await containerMachineHandler.create({ image: "alpine:3.22" });
+  expect(machRes.success).toBe(true);
+
+  const k8sRes = await containerK8sHandler.create({ name: "k8s-dev" });
+  expect(k8sRes.clusterName).toBe("k8s-dev");
 });

@@ -1,7 +1,19 @@
 pub mod build;
 pub mod container;
 pub mod container_compose;
+pub mod image;
+pub mod k8s;
+pub mod machine;
+pub mod network;
+pub mod system;
+pub mod volume;
 
 pub use build::*;
 pub use container::*;
 pub use container_compose::*;
+pub use image::*;
+pub use k8s::*;
+pub use machine::*;
+pub use network::*;
+pub use system::*;
+pub use volume::*;

@@ -152,6 +152,99 @@ export interface ComposeResult {
   message: string;
 }
 
+export interface ImagePullOptions {
+  reference: string;
+  platform?: string;
+  arch?: string;
+  os?: string;
+}
+
+export interface ImageActionResult {
+  success: boolean;
+  reference: string;
+  message: string;
+}
+
+export interface ImageListOptions {
+  format?: string;
+  quiet?: boolean;
+  verbose?: boolean;
+}
+
+export interface ImageListItem {
+  id: string;
+  repository: string;
+  tag: string;
+  size: string;
+}
+
+export interface NetworkCreateOptions {
+  name: string;
+  internal?: boolean;
+  subnet?: string;
+}
+
+export interface NetworkActionResult {
+  success: boolean;
+  name: string;
+}
+
+export interface NetworkListItem {
+  name: string;
+  plugin: string;
+  internal: boolean;
+}
+
+export interface VolumeCreateOptions {
+  name: string;
+  size?: string;
+}
+
+export interface VolumeActionResult {
+  success: boolean;
+  name: string;
+}
+
+export interface VolumeListItem {
+  name: string;
+  driver: string;
+}
+
+export interface SystemStatusResult {
+  running: boolean;
+  apiVersion: string;
+}
+
+export interface MachineCreateOptions {
+  image: string;
+  name?: string;
+  cpus?: number;
+  memory?: string;
+}
+
+export interface MachineActionResult {
+  success: boolean;
+  name: string;
+}
+
+export interface MachineListItem {
+  name: string;
+  state: string;
+  isDefault: boolean;
+}
+
+export interface K8sCreateOptions {
+  name?: string;
+  nodeImage?: string;
+  cpus?: number;
+  memory?: string;
+}
+
+export interface K8sActionResult {
+  success: boolean;
+  clusterName: string;
+}
+
 export const {
   BuildTransfer,
   Container,
@@ -164,11 +257,24 @@ export const {
   builderStop,
   composeDown,
   composeUp,
+  createMachineCli,
+  createNetworkCli,
+  createVolumeCli,
   getOrCreateContainer,
+  k8SCreateCli,
+  k8SDeleteCli,
   listContainersCli,
+  listImagesCli,
+  listMachinesCli,
+  listNetworksCli,
+  listVolumesCli,
+  pullImageCli,
   runContainerCli,
   startContainer,
   stopContainerCli,
+  systemStartCli,
+  systemStatusCli,
+  systemStopCli,
 } = native;
 
 export class VirtContainerClient {
@@ -218,4 +324,10 @@ export const containerClient = new VirtContainerClient();
 
 export * from "./cli/container-build.ts";
 export * from "./cli/container-compose.ts";
+export * from "./cli/container-image.ts";
+export * from "./cli/container-k8s.ts";
+export * from "./cli/container-machine.ts";
+export * from "./cli/container-network.ts";
+export * from "./cli/container-system.ts";
+export * from "./cli/container-volume.ts";
 export * from "./cli/container.ts";

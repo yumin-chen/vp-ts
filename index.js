@@ -716,7 +716,7 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`)
 }
 
-const { BuildTransfer, Container, ImageTransfer, ServerStream, add, buildContainer, builderStart, builderStatus, builderStop, composeDown, composeUp, getOrCreateContainer, listContainersCli, runContainerCli, startContainer, stopContainerCli } = nativeBinding
+const { BuildTransfer, Container, ImageTransfer, ServerStream, add, buildContainer, builderStart, builderStatus, builderStop, composeDown, composeUp, createMachineCli, createNetworkCli, createVolumeCli, getOrCreateContainer, k8SCreateCli, k8SDeleteCli, listContainersCli, listImagesCli, listMachinesCli, listNetworksCli, listVolumesCli, pullImageCli, runContainerCli, startContainer, stopContainerCli, systemStartCli, systemStatusCli, systemStopCli } = nativeBinding
 export { BuildTransfer }
 export { Container }
 export { ImageTransfer }
@@ -728,9 +728,22 @@ export { builderStatus }
 export { builderStop }
 export { composeDown }
 export { composeUp }
+export { createMachineCli }
+export { createNetworkCli }
+export { createVolumeCli }
 export { getOrCreateContainer }
+export { k8SCreateCli }
+export { k8SDeleteCli }
 export { listContainersCli }
+export { listImagesCli }
+export { listMachinesCli }
+export { listNetworksCli }
+export { listVolumesCli }
+export { pullImageCli }
 export { runContainerCli }
 export { startContainer }
 export { stopContainerCli }
+export { systemStartCli }
+export { systemStatusCli }
+export { systemStopCli }
 export const __napiBindingTarget = __napiLoadedBindingTarget

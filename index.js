@@ -716,7 +716,7 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`)
 }
 
-const { BuildTransfer, Container, ImageTransfer, ServerStream, add, buildContainer, builderStart, builderStatus, builderStop, composeDown, composeUp, createMachineCli, createNetworkCli, createVolumeCli, getOrCreateContainer, k8SCreateCli, k8SDeleteCli, listContainersCli, listImagesCli, listMachinesCli, listNetworksCli, listVolumesCli, pullImageCli, runContainerCli, startContainer, stopContainerCli, systemStartCli, systemStatusCli, systemStopCli } = nativeBinding
+const { BuildTransfer, Container, ImageTransfer, ServerStream, add, buildContainer, builderStart, builderStatus, builderStop, composeDown, composeUp, createMachineCli, createNetworkCli, createVolumeCli, getOrCreateContainer, k8sCreateCli, k8sDeleteCli, listContainersCli, listImagesCli, listMachinesCli, listNetworksCli, listVolumesCli, loadContainerSystemConfig, pullImageCli, registryList, registryLogin, registryLogout, runContainerCli, startContainer, stopContainerCli, systemStartCli, systemStatusCli, systemStopCli } = nativeBinding
 export { BuildTransfer }
 export { Container }
 export { ImageTransfer }
@@ -732,14 +732,18 @@ export { createMachineCli }
 export { createNetworkCli }
 export { createVolumeCli }
 export { getOrCreateContainer }
-export { k8SCreateCli }
-export { k8SDeleteCli }
+export { k8sCreateCli }
+export { k8sDeleteCli }
 export { listContainersCli }
 export { listImagesCli }
 export { listMachinesCli }
 export { listNetworksCli }
 export { listVolumesCli }
+export { loadContainerSystemConfig }
 export { pullImageCli }
+export { registryList }
+export { registryLogin }
+export { registryLogout }
 export { runContainerCli }
 export { startContainer }
 export { stopContainerCli }

@@ -1,7 +1,13 @@
 pub mod apple_container;
 pub mod cli;
+pub mod config;
 
+pub use apple_container::*;
 pub use cli::*;
+pub use config::{
+    load_container_system_config, BuildConfig, ContainerSystemConfig, DNSConfig, KernelConfig,
+    NetworkConfig, RegistryConfig, VminitConfig,
+};
 
 use napi_derive::napi;
 use std::collections::HashMap;

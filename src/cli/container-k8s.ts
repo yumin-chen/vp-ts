@@ -3,11 +3,11 @@ import type { K8sActionResult, K8sCreateOptions } from "../lib.ts";
 
 export class ContainerK8sHandler {
   async create(options?: K8sCreateOptions): Promise<K8sActionResult> {
-    return (native as any).k8SCreateCli(options);
+    return native.k8sCreateCli(options);
   }
 
   async delete(name?: string): Promise<boolean> {
-    return (native as any).k8SDeleteCli(name);
+    return native.k8sDeleteCli(name);
   }
 }
 

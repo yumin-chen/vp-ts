@@ -52,6 +52,13 @@ export declare class ServerStream {
 
 export declare function add(left: number, right: number): number
 
+export interface BuildConfig {
+  rosetta: boolean
+  cpus: number
+  memory: string
+  image: string
+}
+
 export declare function buildContainer(options?: BuildOptions | undefined | null): BuildResult
 
 export declare function builderStart(options?: BuilderStartOptions | undefined | null): BuilderStatusResult
@@ -134,6 +141,11 @@ export interface ContainerConfig {
   terminal: boolean
 }
 
+export interface ContainerConfig {
+  cpus: number
+  memory: string
+}
+
 export interface ContainerListItem {
   id: string
   image: string
@@ -186,11 +198,25 @@ export interface ContainerStopOptions {
   time?: number
 }
 
+export interface ContainerSystemConfig {
+  build?: BuildConfig
+  container?: ContainerConfig
+  dns?: DnsConfig
+  kernel?: KernelConfig
+  network?: NetworkConfig
+  registry?: RegistryConfig
+  vminit?: VminitConfig
+}
+
 export declare function createMachineCli(options: MachineCreateOptions): MachineActionResult
 
 export declare function createNetworkCli(options: NetworkCreateOptions): NetworkActionResult
 
 export declare function createVolumeCli(options: VolumeCreateOptions): VolumeActionResult
+
+export interface DnsConfig {
+  domain?: string
+}
 
 export declare function getOrCreateContainer(id: string): GetOrCreateResult
 
@@ -249,7 +275,7 @@ export interface K8SActionResult {
   clusterName: string
 }
 
-export declare function k8SCreateCli(options?: K8SCreateOptions | undefined | null): K8SActionResult
+export declare function k8sCreateCli(options?: K8SCreateOptions | undefined | null): K8SActionResult
 
 export interface K8SCreateOptions {
   name?: string
@@ -258,7 +284,13 @@ export interface K8SCreateOptions {
   memory?: string
 }
 
-export declare function k8SDeleteCli(name?: string | undefined | null): boolean
+export declare function k8sDeleteCli(name?: string | undefined | null): boolean
+
+export interface KernelConfig {
+  binaryPath: string
+  url: string
+  digest: string
+}
 
 export declare function listContainersCli(options?: ContainerListOptions | undefined | null): Array<ContainerListItem>
 
@@ -269,6 +301,8 @@ export declare function listMachinesCli(): Array<MachineListItem>
 export declare function listNetworksCli(): Array<NetworkListItem>
 
 export declare function listVolumesCli(): Array<VolumeListItem>
+
+export declare function loadContainerSystemConfig(configPath?: string | undefined | null): ContainerSystemConfig
 
 export interface MachineActionResult {
   success: boolean
@@ -299,6 +333,11 @@ export interface NetworkActionResult {
   name: string
 }
 
+export interface NetworkConfig {
+  subnet?: string
+  subnetv6?: string
+}
+
 export interface NetworkCreateOptions {
   name: string
   internal?: boolean
@@ -312,6 +351,37 @@ export interface NetworkListItem {
 }
 
 export declare function pullImageCli(options: ImagePullOptions): ImageActionResult
+
+export interface RegistryActionResult {
+  success: boolean
+  server: string
+  message: string
+}
+
+export interface RegistryConfig {
+  domain: string
+}
+
+export declare function registryList(): Array<RegistryListItem>
+
+export interface RegistryListItem {
+  hostname: string
+  username: string
+  modified: string
+  created: string
+}
+
+export declare function registryLogin(options: RegistryLoginOptions): RegistryActionResult
+
+export interface RegistryLoginOptions {
+  server: string
+  username?: string
+  password?: string
+  passwordStdin?: boolean
+  scheme?: string
+}
+
+export declare function registryLogout(server: string): RegistryActionResult
 
 export declare function runContainerCli(options: ContainerRunOptions): ContainerRunResult
 
@@ -329,6 +399,10 @@ export interface SystemStatusResult {
 }
 
 export declare function systemStopCli(): boolean
+
+export interface VminitConfig {
+  image: string
+}
 
 export interface VolumeActionResult {
   success: boolean

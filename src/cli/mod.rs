@@ -1,6 +1,7 @@
 pub mod build;
 pub mod container;
 pub mod container_compose;
+pub mod container_registry;
 pub mod image;
 pub mod k8s;
 pub mod machine;
@@ -11,6 +12,7 @@ pub mod volume;
 pub use build::*;
 pub use container::*;
 pub use container_compose::*;
+pub use container_registry::*;
 pub use image::*;
 pub use k8s::*;
 pub use machine::*;

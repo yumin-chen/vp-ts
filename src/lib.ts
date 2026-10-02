@@ -245,6 +245,37 @@ export interface K8sActionResult {
   clusterName: string;
 }
 
+export interface RegistryLoginOptions {
+  server: string;
+  username?: string;
+  password?: string;
+  passwordStdin?: boolean;
+  scheme?: string;
+}
+
+export interface RegistryActionResult {
+  success: boolean;
+  server: string;
+  message: string;
+}
+
+export interface RegistryListItem {
+  hostname: string;
+  username: string;
+  modified: string;
+  created: string;
+}
+
+export interface ContainerSystemConfig {
+  build?: { rosetta: boolean; cpus: number; memory: string; image: string };
+  container?: { cpus: number; memory: string };
+  dns?: { domain?: string };
+  kernel?: { binaryPath: string; url: string; digest: string };
+  network?: { subnet?: string; subnetv6?: string };
+  registry?: { domain: string };
+  vminit?: { image: string };
+}
+
 export const {
   BuildTransfer,
   Container,
@@ -261,14 +292,18 @@ export const {
   createNetworkCli,
   createVolumeCli,
   getOrCreateContainer,
-  k8SCreateCli,
-  k8SDeleteCli,
+  k8sCreateCli,
+  k8sDeleteCli,
   listContainersCli,
   listImagesCli,
   listMachinesCli,
   listNetworksCli,
   listVolumesCli,
+  loadContainerSystemConfig,
   pullImageCli,
+  registryList,
+  registryLogin,
+  registryLogout,
   runContainerCli,
   startContainer,
   stopContainerCli,
@@ -328,6 +363,7 @@ export * from "./cli/container-image.ts";
 export * from "./cli/container-k8s.ts";
 export * from "./cli/container-machine.ts";
 export * from "./cli/container-network.ts";
+export * from "./cli/container-registry.ts";
 export * from "./cli/container-system.ts";
 export * from "./cli/container-volume.ts";
 export * from "./cli/container.ts";

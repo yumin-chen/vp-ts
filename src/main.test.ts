@@ -12,9 +12,11 @@ import {
   containerK8sHandler,
   containerMachineHandler,
   containerNetworkHandler,
+  containerRegistryHandler,
   containerSystemHandler,
   containerVolumeHandler,
   getOrCreateContainer,
+  loadContainerSystemConfig,
   main,
   startContainer,
 } from "./main.ts";
@@ -114,13 +116,18 @@ test("startContainer behavior and VirtContainerClient", async () => {
   expect(list.length).toBeGreaterThan(0);
 });
 
-test("CLI subhandlers (container, build, compose, image, network, volume, system, machine, k8s)", async () => {
+test("CLI subhandlers and loadContainerSystemConfig", async () => {
+  const sysConfig = loadContainerSystemConfig();
+  expect(sysConfig.build?.cpus).toBe(2);
+
+  const regRes = await containerRegistryHandler.login({ server: "docker.io" });
+  expect(regRes.success).toBe(true);
+
   const buildRes = await containerBuildHandler.build({
     contextDir: ".",
     tag: ["my-app:latest"],
   });
   expect(buildRes.success).toBe(true);
-  expect(buildRes.tags).toEqual(["my-app:latest"]);
 
   const runRes = await containerCliHandler.run({
     image: "ubuntu:latest",

@@ -9,4 +9,412 @@
  */
 export declare const __napiBindingTarget: 'native' | 'wasm32-wasi' | 'wasm32-wasip1'
 
+export declare class BuildTransfer {
+  constructor(metadata?: Record<string, string> | undefined | null)
+  get metadata(): Record<string, string>
+  stage(): string | null
+  method(): string | null
+  includePatterns(): Array<string> | null
+  followPaths(): Array<string> | null
+  mode(): string | null
+  size(): number | null
+  offset(): number | null
+  len(): number | null
+}
+
+export declare class Container {
+  constructor(id: string, status?: string | undefined | null)
+  getId(): string
+  getStatus(): string
+  setMetadata(key: string, value: string): void
+  getMetadata(key: string): string | null
+}
+
+export declare class ImageTransfer {
+  constructor(metadata?: Record<string, string> | undefined | null)
+  get metadata(): Record<string, string>
+  stage(): string | null
+  method(): string | null
+  refName(): string | null
+  platform(): string | null
+  mode(): string | null
+  size(): number | null
+  len(): number | null
+  offset(): number | null
+}
+
+export declare class ServerStream {
+  constructor(imageTransfer?: ImageTransfer | undefined | null, buildTransfer?: BuildTransfer | undefined | null, io?: Io | undefined | null)
+  getImageTransfer(): ImageTransfer | null
+  getBuildTransfer(): BuildTransfer | null
+  getIo(): Io | null
+}
+
 export declare function add(left: number, right: number): number
+
+export interface BuildConfig {
+  rosetta: boolean
+  cpus: number
+  memory: string
+  image: string
+}
+
+export declare function buildContainer(options?: BuildOptions | undefined | null): BuildResult
+
+export declare function builderStart(options?: BuilderStartOptions | undefined | null): BuilderStatusResult
+
+export interface BuilderStartOptions {
+  cpus?: number
+  memory?: string
+  ssh?: boolean
+  dnsNameservers?: Array<string>
+}
+
+export declare function builderStatus(): BuilderStatusResult
+
+export interface BuilderStatusResult {
+  running: boolean
+  containerId: string
+  cpus: number
+  memory: string
+}
+
+export declare function builderStop(): boolean
+
+export interface BuildOptions {
+  contextDir?: string
+  file?: string
+  tag?: Array<string>
+  buildArg?: Array<string>
+  target?: string
+  cpus?: number
+  memory?: string
+  noCache?: boolean
+  output?: Array<string>
+  platform?: Array<string>
+  progress?: string
+  quiet?: boolean
+  secret?: Array<string>
+  ssh?: string
+  pull?: boolean
+}
+
+export interface BuildResult {
+  success: boolean
+  imageId: string
+  tags: Array<string>
+  message: string
+}
+
+export interface ClientStream {
+  streamId: string
+  metadata: Record<string, string>
+}
+
+export declare function composeDown(options?: ComposeDownOptions | undefined | null): ComposeResult
+
+export interface ComposeDownOptions {
+  file?: string
+  volumes?: boolean
+  rmi?: string
+}
+
+export interface ComposeResult {
+  success: boolean
+  services: Array<string>
+  message: string
+}
+
+export declare function composeUp(options?: ComposeUpOptions | undefined | null): ComposeResult
+
+export interface ComposeUpOptions {
+  file?: string
+  detach?: boolean
+  build?: boolean
+  services?: Array<string>
+}
+
+export interface ContainerConfig {
+  id: string
+  status: string
+  mounts: Array<MountConfig>
+  terminal: boolean
+}
+
+export interface ContainerConfig {
+  cpus: number
+  memory: string
+}
+
+export interface ContainerListItem {
+  id: string
+  image: string
+  status: string
+  name: string
+}
+
+export interface ContainerListOptions {
+  all?: boolean
+  format?: string
+  quiet?: boolean
+}
+
+export interface ContainerRunOptions {
+  image: string
+  name?: string
+  detach?: boolean
+  interactive?: boolean
+  tty?: boolean
+  env?: Array<string>
+  cpus?: number
+  memory?: string
+  mounts?: Array<string>
+  ports?: Array<string>
+  command?: Array<string>
+}
+
+export interface ContainerRunResult {
+  containerId: string
+  status: string
+}
+
+export interface ContainerStartOptions {
+  attach: boolean
+  interactive: boolean
+  containerId: string
+}
+
+export interface ContainerStartResult {
+  success: boolean
+  exitCode: number
+  containerId: string
+  detached: boolean
+}
+
+export interface ContainerStopOptions {
+  containerIds: Array<string>
+  all?: boolean
+  signal?: string
+  time?: number
+}
+
+export interface ContainerSystemConfig {
+  build?: BuildConfig
+  container?: ContainerConfig
+  dns?: DnsConfig
+  kernel?: KernelConfig
+  network?: NetworkConfig
+  registry?: RegistryConfig
+  vminit?: VminitConfig
+}
+
+export declare function createMachineCli(options: MachineCreateOptions): MachineActionResult
+
+export declare function createNetworkCli(options: NetworkCreateOptions): NetworkActionResult
+
+export declare function createVolumeCli(options: VolumeCreateOptions): VolumeActionResult
+
+export interface DnsConfig {
+  domain?: string
+}
+
+export declare function getOrCreateContainer(id: string): GetOrCreateResult
+
+export interface GetOrCreateResult {
+  containerId: string
+  created: boolean
+  status: string
+}
+
+export interface ImageActionResult {
+  success: boolean
+  reference: string
+  message: string
+}
+
+export interface ImageListItem {
+  id: string
+  repository: string
+  tag: string
+  size: string
+}
+
+export interface ImageListOptions {
+  format?: string
+  quiet?: boolean
+  verbose?: boolean
+}
+
+export interface ImagePullOptions {
+  reference: string
+  platform?: string
+  arch?: string
+  os?: string
+}
+
+export interface InfoRequest {
+  id: string
+  query?: string
+}
+
+export interface InfoResponse {
+  id: string
+  status: string
+  info: Record<string, string>
+}
+
+export interface Io {
+  stdin?: string
+  stdout?: string
+  stderr?: string
+  tty: boolean
+}
+
+export interface K8SActionResult {
+  success: boolean
+  clusterName: string
+}
+
+export declare function k8sCreateCli(options?: K8SCreateOptions | undefined | null): K8SActionResult
+
+export interface K8SCreateOptions {
+  name?: string
+  nodeImage?: string
+  cpus?: number
+  memory?: string
+}
+
+export declare function k8sDeleteCli(name?: string | undefined | null): boolean
+
+export interface KernelConfig {
+  binaryPath: string
+  url: string
+  digest: string
+}
+
+export declare function listContainersCli(options?: ContainerListOptions | undefined | null): Array<ContainerListItem>
+
+export declare function listImagesCli(options?: ImageListOptions | undefined | null): Array<ImageListItem>
+
+export declare function listMachinesCli(): Array<MachineListItem>
+
+export declare function listNetworksCli(): Array<NetworkListItem>
+
+export declare function listVolumesCli(): Array<VolumeListItem>
+
+export declare function loadContainerSystemConfig(configPath?: string | undefined | null): ContainerSystemConfig
+
+export interface MachineActionResult {
+  success: boolean
+  name: string
+}
+
+export interface MachineCreateOptions {
+  image: string
+  name?: string
+  cpus?: number
+  memory?: string
+}
+
+export interface MachineListItem {
+  name: string
+  state: string
+  isDefault: boolean
+}
+
+export interface MountConfig {
+  source: string
+  target: string
+  isVirtiofs: boolean
+}
+
+export interface NetworkActionResult {
+  success: boolean
+  name: string
+}
+
+export interface NetworkConfig {
+  subnet?: string
+  subnetv6?: string
+}
+
+export interface NetworkCreateOptions {
+  name: string
+  internal?: boolean
+  subnet?: string
+}
+
+export interface NetworkListItem {
+  name: string
+  plugin: string
+  internal: boolean
+}
+
+export declare function pullImageCli(options: ImagePullOptions): ImageActionResult
+
+export interface RegistryActionResult {
+  success: boolean
+  server: string
+  message: string
+}
+
+export interface RegistryConfig {
+  domain: string
+}
+
+export declare function registryList(): Array<RegistryListItem>
+
+export interface RegistryListItem {
+  hostname: string
+  username: string
+  modified: string
+  created: string
+}
+
+export declare function registryLogin(options: RegistryLoginOptions): RegistryActionResult
+
+export interface RegistryLoginOptions {
+  server: string
+  username?: string
+  password?: string
+  passwordStdin?: boolean
+  scheme?: string
+}
+
+export declare function registryLogout(server: string): RegistryActionResult
+
+export declare function runContainerCli(options: ContainerRunOptions): ContainerRunResult
+
+export declare function startContainer(containerId: string, attach?: boolean | undefined | null, interactive?: boolean | undefined | null, configJson?: string | undefined | null): ContainerStartResult
+
+export declare function stopContainerCli(options: ContainerStopOptions): Array<string>
+
+export declare function systemStartCli(): boolean
+
+export declare function systemStatusCli(): SystemStatusResult
+
+export interface SystemStatusResult {
+  running: boolean
+  apiVersion: string
+}
+
+export declare function systemStopCli(): boolean
+
+export interface VminitConfig {
+  image: string
+}
+
+export interface VolumeActionResult {
+  success: boolean
+  name: string
+}
+
+export interface VolumeCreateOptions {
+  name: string
+  size?: string
+}
+
+export interface VolumeListItem {
+  name: string
+  driver: string
+}

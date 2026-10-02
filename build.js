@@ -1,4 +1,6 @@
 import { NapiCli } from "@napi-rs/cli";
+import fs from "node:fs";
+import path from "node:path";
 
 async function run() {
   const args = process.argv.slice(2);
@@ -10,6 +12,12 @@ async function run() {
   const targetIdx = args.findIndex((a) => a === "--target" || a === "-t");
   const target = targetIdx !== -1 && args[targetIdx + 1] ? args[targetIdx + 1] : undefined;
 
+  // Touch src/lib.rs to ensure napi-rs regenerates index.js and index.d.ts
+  if (fs.existsSync("src/lib.rs")) {
+    const now = new Date();
+    fs.utimesSync("src/lib.rs", now, now);
+  }
+
   const cli = new NapiCli();
   await cli.build({
     platform: true,
@@ -19,7 +27,17 @@ async function run() {
     useNapiCross,
     crossCompile,
     useCross,
+    outputDir: "dist",
   });
+
+  if (fs.existsSync("dist")) {
+    const files = fs.readdirSync("dist");
+    for (const file of files) {
+      if (file.endsWith(".node") || file === "index.js" || file === "index.d.ts") {
+        fs.copyFileSync(path.join("dist", file), file);
+      }
+    }
+  }
 }
 
 void run().catch((err) => {

@@ -10,6 +10,18 @@ export const VolumeHandle = native.VolumeHandle;
 export const ContainerCompose = native.ContainerCompose;
 export const ContainerBuild = native.ContainerBuild;
 
-export const main = () => {
-  return "Container initialized";
-};
+export type {
+  Options,
+  ContainerOptions,
+  ContainerRestOptions,
+  ContainerInfo,
+  RuntimeMetrics,
+  ComposeStatusOptions,
+  GenerateKeyOptions,
+  GenerateCertOptions,
+  ListKeysOptions,
+  RevokeKeyOptions,
+  BuildOptions,
+  BuilderStartOptions,
+  BuilderStatus,
+} from "../index.d.ts";

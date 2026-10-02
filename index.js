@@ -100,5 +100,6 @@ export const {
   VolumeHandle,
   ContainerCompose,
   ContainerBuild,
+  ContainerRegistry,
 } = nativeBinding;
 export const __napiBindingTarget = __napiLoadedBindingTarget;

@@ -49,6 +49,13 @@ export class ContainerBuild {
   builderDelete(): boolean;
 }
 
+export class ContainerRegistry {
+  constructor();
+  login(options: RegistryLoginOptions): boolean;
+  logout(options: RegistryLogoutOptions): boolean;
+  list(options?: RegistryListOptions): Array<RegistryResource>;
+}
+
 export interface Options {
   homeDir?: string;
 }
@@ -128,4 +135,25 @@ export interface BuilderStatus {
   running: boolean;
   cpus: number;
   memory: string;
+}
+
+export interface RegistryLoginOptions {
+  server: string;
+  username?: string;
+  passwordStdin?: boolean;
+  scheme?: string;
+}
+
+export interface RegistryLogoutOptions {
+  registry: string;
+}
+
+export interface RegistryListOptions {
+  format?: string;
+  quiet?: boolean;
+}
+
+export interface RegistryResource {
+  hostname: string;
+  username: string;
 }

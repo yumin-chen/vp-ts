@@ -22,6 +22,14 @@ export declare class BuildTransfer {
   len(): number | null
 }
 
+export declare class Container {
+  constructor(id: string, status?: string | undefined | null)
+  getId(): string
+  getStatus(): string
+  setMetadata(key: string, value: string): void
+  getMetadata(key: string): string | null
+}
+
 export declare class ImageTransfer {
   constructor(metadata?: Record<string, string> | undefined | null)
   get metadata(): Record<string, string>
@@ -35,14 +43,6 @@ export declare class ImageTransfer {
   offset(): number | null
 }
 
-export declare class JsContainer {
-  constructor(id: string, status?: string | undefined | null)
-  getId(): string
-  getStatus(): string
-  setMetadata(key: string, value: string): void
-  getMetadata(key: string): string | null
-}
-
 export declare class ServerStream {
   constructor(imageTransfer?: ImageTransfer | undefined | null, buildTransfer?: BuildTransfer | undefined | null, io?: Io | undefined | null)
   getImageTransfer(): ImageTransfer | null
@@ -52,9 +52,79 @@ export declare class ServerStream {
 
 export declare function add(left: number, right: number): number
 
+export declare function buildContainer(options?: BuildOptions | undefined | null): BuildResult
+
+export declare function builderStart(options?: BuilderStartOptions | undefined | null): BuilderStatusResult
+
+export interface BuilderStartOptions {
+  cpus?: number
+  memory?: string
+  ssh?: boolean
+  dnsNameservers?: Array<string>
+}
+
+export declare function builderStatus(): BuilderStatusResult
+
+export interface BuilderStatusResult {
+  running: boolean
+  containerId: string
+  cpus: number
+  memory: string
+}
+
+export declare function builderStop(): boolean
+
+export interface BuildOptions {
+  contextDir?: string
+  file?: string
+  tag?: Array<string>
+  buildArg?: Array<string>
+  target?: string
+  cpus?: number
+  memory?: string
+  noCache?: boolean
+  output?: Array<string>
+  platform?: Array<string>
+  progress?: string
+  quiet?: boolean
+  secret?: Array<string>
+  ssh?: string
+  pull?: boolean
+}
+
+export interface BuildResult {
+  success: boolean
+  imageId: string
+  tags: Array<string>
+  message: string
+}
+
 export interface ClientStream {
   streamId: string
   metadata: Record<string, string>
+}
+
+export declare function composeDown(options?: ComposeDownOptions | undefined | null): ComposeResult
+
+export interface ComposeDownOptions {
+  file?: string
+  volumes?: boolean
+  rmi?: string
+}
+
+export interface ComposeResult {
+  success: boolean
+  services: Array<string>
+  message: string
+}
+
+export declare function composeUp(options?: ComposeUpOptions | undefined | null): ComposeResult
+
+export interface ComposeUpOptions {
+  file?: string
+  detach?: boolean
+  build?: boolean
+  services?: Array<string>
 }
 
 export interface ContainerConfig {
@@ -62,6 +132,38 @@ export interface ContainerConfig {
   status: string
   mounts: Array<MountConfig>
   terminal: boolean
+}
+
+export interface ContainerListItem {
+  id: string
+  image: string
+  status: string
+  name: string
+}
+
+export interface ContainerListOptions {
+  all?: boolean
+  format?: string
+  quiet?: boolean
+}
+
+export interface ContainerRunOptions {
+  image: string
+  name?: string
+  detach?: boolean
+  interactive?: boolean
+  tty?: boolean
+  env?: Array<string>
+  cpus?: number
+  memory?: string
+  mounts?: Array<string>
+  ports?: Array<string>
+  command?: Array<string>
+}
+
+export interface ContainerRunResult {
+  containerId: string
+  status: string
 }
 
 export interface ContainerStartOptions {
@@ -77,7 +179,20 @@ export interface ContainerStartResult {
   detached: boolean
 }
 
-export declare function getOrCreateContainer(id: string): JsGetOrCreateResult
+export interface ContainerStopOptions {
+  containerIds: Array<string>
+  all?: boolean
+  signal?: string
+  time?: number
+}
+
+export declare function getOrCreateContainer(id: string): GetOrCreateResult
+
+export interface GetOrCreateResult {
+  containerId: string
+  created: boolean
+  status: string
+}
 
 export interface InfoRequest {
   id: string
@@ -97,11 +212,7 @@ export interface Io {
   tty: boolean
 }
 
-export interface JsGetOrCreateResult {
-  containerId: string
-  created: boolean
-  status: string
-}
+export declare function listContainersCli(options?: ContainerListOptions | undefined | null): Array<ContainerListItem>
 
 export interface MountConfig {
   source: string
@@ -109,4 +220,8 @@ export interface MountConfig {
   isVirtiofs: boolean
 }
 
+export declare function runContainerCli(options: ContainerRunOptions): ContainerRunResult
+
 export declare function startContainer(containerId: string, attach?: boolean | undefined | null, interactive?: boolean | undefined | null, configJson?: string | undefined | null): ContainerStartResult
+
+export declare function stopContainerCli(options: ContainerStopOptions): Array<string>

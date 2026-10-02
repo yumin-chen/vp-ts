@@ -716,12 +716,21 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`)
 }
 
-const { BuildTransfer, ImageTransfer, JsContainer, ServerStream, add, getOrCreateContainer, startContainer } = nativeBinding
+const { BuildTransfer, Container, ImageTransfer, ServerStream, add, buildContainer, builderStart, builderStatus, builderStop, composeDown, composeUp, getOrCreateContainer, listContainersCli, runContainerCli, startContainer, stopContainerCli } = nativeBinding
 export { BuildTransfer }
+export { Container }
 export { ImageTransfer }
-export { JsContainer }
 export { ServerStream }
 export { add }
+export { buildContainer }
+export { builderStart }
+export { builderStatus }
+export { builderStop }
+export { composeDown }
+export { composeUp }
 export { getOrCreateContainer }
+export { listContainersCli }
+export { runContainerCli }
 export { startContainer }
+export { stopContainerCli }
 export const __napiBindingTarget = __napiLoadedBindingTarget

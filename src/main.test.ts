@@ -1,11 +1,13 @@
 import { expect, test } from "vite-plus/test";
 import {
   BuildTransfer,
+  Container,
   ImageTransfer,
-  JsContainer,
   ServerStream,
   VirtContainerClient,
-  containerClient,
+  containerBuildHandler,
+  containerCliHandler,
+  containerComposeHandler,
   getOrCreateContainer,
   main,
   startContainer,
@@ -77,8 +79,8 @@ test("ServerStream wraps transfers correctly", () => {
   });
 });
 
-test("JsContainer and getOrCreateContainer API", () => {
-  const c = new JsContainer("test-container", "stopped");
+test("Container (refactored without Js prefix) and getOrCreateContainer API", () => {
+  const c = new Container("test-container", "stopped");
   expect(c.getId()).toBe("test-container");
   expect(c.getStatus()).toBe("stopped");
 
@@ -104,4 +106,33 @@ test("startContainer behavior and VirtContainerClient", async () => {
 
   const list = await client.list();
   expect(list.length).toBeGreaterThan(0);
+});
+
+test("CLI subhandlers (container, build, compose)", async () => {
+  const buildRes = await containerBuildHandler.build({
+    contextDir: ".",
+    tag: ["my-app:latest"],
+  });
+  expect(buildRes.success).toBe(true);
+  expect(buildRes.tags).toEqual(["my-app:latest"]);
+
+  const builderStatus = await containerBuildHandler.statusBuilder();
+  expect(builderStatus.running).toBe(true);
+
+  const runRes = await containerCliHandler.run({
+    image: "ubuntu:latest",
+    name: "test-run",
+    detach: true,
+  });
+  expect(runRes.containerId).toBe("test-run");
+  expect(runRes.status).toBe("running");
+
+  const listRes = await containerCliHandler.list();
+  expect(listRes.length).toBeGreaterThan(0);
+
+  const composeRes = await containerComposeHandler.up({
+    services: ["web", "db"],
+  });
+  expect(composeRes.success).toBe(true);
+  expect(composeRes.services).toEqual(["web", "db"]);
 });

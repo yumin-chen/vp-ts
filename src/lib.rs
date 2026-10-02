@@ -1,4 +1,5 @@
 pub mod apple_container;
+pub mod cli;
 
 use napi_derive::napi;
 use std::collections::HashMap;
@@ -10,21 +11,21 @@ pub fn add(left: i32, right: i32) -> i32 {
 
 #[napi(object)]
 #[derive(Debug, Clone)]
-pub struct JsGetOrCreateResult {
+pub struct GetOrCreateResult {
     pub container_id: String,
     pub created: bool,
     pub status: String,
 }
 
 #[napi]
-pub struct JsContainer {
+pub struct Container {
     id: String,
     status: String,
     metadata: HashMap<String, String>,
 }
 
 #[napi]
-impl JsContainer {
+impl Container {
     #[napi(constructor)]
     pub fn new(id: String, status: Option<String>) -> Self {
         Self {
@@ -56,8 +57,8 @@ impl JsContainer {
 }
 
 #[napi]
-pub fn get_or_create_container(id: String) -> JsGetOrCreateResult {
-    JsGetOrCreateResult {
+pub fn get_or_create_container(id: String) -> GetOrCreateResult {
+    GetOrCreateResult {
         container_id: id,
         created: true,
         status: "created".to_string(),

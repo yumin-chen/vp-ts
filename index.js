@@ -94,10 +94,11 @@ if (!nativeBinding) {
 }
 
 export const {
-  JsContainer,
-  JsGetOrCreateResult,
-  JsImageHandle,
-  JsVolumeHandle,
-  JsContainerCompose,
+  Container,
+  GetOrCreateResult,
+  ImageHandle,
+  VolumeHandle,
+  ContainerCompose,
+  ContainerBuild,
 } = nativeBinding;
 export const __napiBindingTarget = __napiLoadedBindingTarget;

@@ -2,7 +2,7 @@ use napi_derive::napi;
 
 #[napi(object)]
 #[derive(Default, Clone)]
-pub struct JsComposeStatusOptions {
+pub struct ComposeStatusOptions {
     pub socket: Option<String>,
     pub address: Option<String>,
     pub cacert: Option<String>,
@@ -10,14 +10,14 @@ pub struct JsComposeStatusOptions {
 
 #[napi(object)]
 #[derive(Default, Clone)]
-pub struct JsGenerateKeyOptions {
+pub struct GenerateKeyOptions {
     pub name: Option<String>,
     pub auth_file: Option<String>,
 }
 
 #[napi(object)]
 #[derive(Default, Clone)]
-pub struct JsGenerateCertOptions {
+pub struct GenerateCertOptions {
     pub out_dir: Option<String>,
     pub cn: Option<String>,
     pub days: Option<i32>,
@@ -28,50 +28,50 @@ pub struct JsGenerateCertOptions {
 
 #[napi(object)]
 #[derive(Default, Clone)]
-pub struct JsListKeysOptions {
+pub struct ListKeysOptions {
     pub auth_file: Option<String>,
 }
 
 #[napi(object)]
 #[derive(Default, Clone)]
-pub struct JsRevokeKeyOptions {
+pub struct RevokeKeyOptions {
     pub name: String,
     pub auth_file: Option<String>,
 }
 
 #[napi]
-pub struct JsContainerCompose {}
+pub struct ContainerCompose {}
 
 #[napi]
-impl JsContainerCompose {
+impl ContainerCompose {
     #[napi(constructor)]
     pub fn new() -> Self {
         Self {}
     }
 
     #[napi]
-    pub fn status(&self, _options: Option<JsComposeStatusOptions>) -> bool {
+    pub fn status(&self, _options: Option<ComposeStatusOptions>) -> bool {
         true
     }
 
     #[napi]
-    pub fn generate_key(&self, options: Option<JsGenerateKeyOptions>) -> String {
+    pub fn generate_key(&self, options: Option<GenerateKeyOptions>) -> String {
         let name = options.and_then(|o| o.name).unwrap_or_else(|| "default".to_string());
         format!("key-{}", name)
     }
 
     #[napi]
-    pub fn generate_cert(&self, _options: Option<JsGenerateCertOptions>) -> bool {
+    pub fn generate_cert(&self, _options: Option<GenerateCertOptions>) -> bool {
         true
     }
 
     #[napi]
-    pub fn list_keys(&self, _options: Option<JsListKeysOptions>) -> Vec<String> {
+    pub fn list_keys(&self, _options: Option<ListKeysOptions>) -> Vec<String> {
         vec![]
     }
 
     #[napi]
-    pub fn revoke_key(&self, options: JsRevokeKeyOptions) -> bool {
+    pub fn revoke_key(&self, options: RevokeKeyOptions) -> bool {
         !options.name.is_empty()
     }
 }

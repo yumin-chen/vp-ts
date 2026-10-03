@@ -1,14 +1,57 @@
-# Starter Template
+# @lib/git2
 
-TypeScript starter template.
+Node.js native bindings for `git2` (0.21.0) built with NAPI-RS and Vite Plus (`vp`).
 
-## Development
+## Overview
 
-- Configure local hooks:
+`@lib/git2` provides fast, type-safe Node.js bindings to the `git2` Rust library (libgit2).
+
+## Installation
 
 ```bash
-npm run prepare
+npm install @lib/git2
 ```
+
+## Usage
+
+### NAPI Bindings
+
+```typescript
+import { Repository, Signature } from "@lib/git2";
+
+// Initialize or open a repository
+const repo = Repository.init("./my-repo");
+console.log("Is bare:", repo.isBare());
+console.log("Path:", repo.path());
+
+// Access objects and references
+const head = repo.head();
+console.log("HEAD name:", head.name());
+
+// Signatures
+const sig = new Signature("User Name", "user@example.com");
+console.log("Author:", sig.name(), sig.email());
+```
+
+### CLI Subcommands
+
+```typescript
+import { cliInit, cliClone, cliStatus, cliMain } from "@lib/git2";
+
+// CLI init
+cliInit("./new-repo", false);
+
+// CLI clone
+cliClone("https://github.com/example/repo.git", "./cloned-repo");
+
+// CLI status
+const status = cliStatus("./new-repo");
+
+// CLI main handler
+cliMain(["status", "./new-repo"]);
+```
+
+## Development
 
 - Install dependencies:
 
@@ -16,38 +59,21 @@ npm run prepare
 vp install
 ```
 
-- Run the unit tests:
-
-```bash
-vp test
-```
-
-- Run the locally:
-
-```bash
-npm run dev
-```
-
-- Build the library:
+- Build native bindings and TypeScript declarations:
 
 ```bash
 npm run build
 ```
 
-- Code formatting:
+- Run tests:
+
+```bash
+npm test
+```
+
+- Code formatting & linting:
 
 ```bash
 npm run fmt
-```
-
-- Linting:
-
-```bash
 npm run lint
-```
-
-- Code check:
-
-```bash
-npm run check
 ```

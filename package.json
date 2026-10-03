@@ -15,6 +15,7 @@
   "scripts": {
     "build": "node build.js && vp pack",
     "build:napi": "node build.js",
+    "build:all": "node build.js --all",
     "build:release": "node build.js --release",
     "dev": "vp pack --watch",
     "start": "vp run src/main.ts",

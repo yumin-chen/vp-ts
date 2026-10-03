@@ -27,7 +27,6 @@ try {
 console.log("\n🧪 Step 3: Running Unit Tests...");
 try {
   execSync("npm test", { stdio: "inherit" });
-  execSync("vp test", { stdio: "inherit" });
   console.log("✅ Unit tests passed.");
 } catch (err) {
   const msg = err instanceof Error ? err.message : String(err);

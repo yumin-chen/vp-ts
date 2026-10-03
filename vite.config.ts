@@ -44,7 +44,7 @@ export default defineConfig({
       },
     },
     test: {
-      command: "node --test test.cjs",
+      command: "vp test",
     },
     ci: {
       command: "node scripts/ci.mjs",

@@ -1,11 +1,11 @@
 {
   "name": "my-addon",
   "version": "0.1.0",
-  "main": "index.js",
-  "types": "index.d.ts",
   "files": [
     "dist"
   ],
+  "main": "index.js",
+  "types": "index.d.ts",
   "exports": {
     ".": "./index.js",
     "./package.json": "./package.json"
@@ -19,8 +19,26 @@
     "check": "vp check",
     "fmt": "vp fmt",
     "lint": "vp lint",
+    "ci:check": "tsx src/ci.ts check",
+    "ci:build": "tsx src/ci.ts build",
+    "ci:test": "tsx src/ci.ts test",
+    "test:prepublish": "tsx src/ci.ts prepublish",
+    "ci:publish": "tsx src/ci.ts publish",
+    "ci": "tsx src/ci.ts",
     "prepublishOnly": "vp run build",
     "prepare": "vp config"
+  },
+  "devDependencies": {
+    "@napi-rs/cli": "^3",
+    "@types/node": "^26.6.2",
+    "tsx": "^4.19.2",
+    "vite-plus": "^1.0.0-rc.1"
+  },
+  "peerDependencies": {
+    "typescript": "^7.0.2"
+  },
+  "overrides": {
+    "vite": "npm:@voidzero-dev/vite-plus-core@1.0.0-rc.1"
   },
   "napi": {
     "binaryName": "my-addon",
@@ -40,17 +58,6 @@
       "x86_64-unknown-freebsd",
       "wasm32-wasip1-threads"
     ]
-  },
-  "devDependencies": {
-    "@napi-rs/cli": "^3",
-    "@types/node": "^26.6.2",
-    "vite-plus": "^1.0.0-rc.1"
-  },
-  "peerDependencies": {
-    "typescript": "^7.0.2"
-  },
-  "overrides": {
-    "vite": "npm:@voidzero-dev/vite-plus-core@1.0.0-rc.1"
   },
   "devEngines": {
     "packageManager": {

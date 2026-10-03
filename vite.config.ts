@@ -47,10 +47,7 @@ export default defineConfig({
       command: "node --test test.cjs",
     },
     ci: {
-      command: "node scripts/run-ci.mjs",
-    },
-    "ci-yaml": {
-      command: "node scripts/run-yaml-ci.mjs",
+      command: "node scripts/ci.mjs",
     },
     "publish-dry-run": {
       command: "node scripts/publish-dry-run.mjs",

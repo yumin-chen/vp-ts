@@ -38,11 +38,14 @@ impl Hasher {
   }
 
   #[napi]
-  pub fn update(&mut self, data: Buffer) -> Result<()> {
+  pub fn update(&mut self, data: Either<String, Buffer>) -> Result<&Self> {
     match &mut self.context {
       Some(ctx) => {
-        ctx.update(data.as_ref());
-        Ok(())
+        match data {
+          Either::A(s) => ctx.update(s.as_bytes()),
+          Either::B(b) => ctx.update(b.as_ref()),
+        }
+        Ok(self)
       }
       None => Err(Error::new(
         Status::GenericFailure,
@@ -115,7 +118,7 @@ pub fn create_hash(algorithm: String) -> Result<Hasher> {
 }
 
 #[napi]
-pub fn hash(algorithm: String, data: Buffer, encoding: Option<String>) -> Result<Either<String, Buffer>> {
+pub fn hash(algorithm: String, data: Either<String, Buffer>, encoding: Option<String>) -> Result<Either<String, Buffer>> {
   let mut hasher = Hasher::new(algorithm)?;
   hasher.update(data)?;
   hasher.digest(encoding)

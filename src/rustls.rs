@@ -15,6 +15,10 @@ pub fn _get_boring_provider() -> Arc<CryptoProvider> {
   Arc::new(boring_rustls_provider::provider())
 }
 
+pub fn _get_mbedtls_provider_supported() -> bool {
+  true
+}
+
 #[napi]
 pub fn get_default_provider_name() -> String {
   "ring".to_string()

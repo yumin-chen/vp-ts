@@ -11,7 +11,7 @@ pub struct Hmac {
 #[napi]
 impl Hmac {
   #[napi(constructor)]
-  pub fn new(algorithm: String, key: Buffer) -> Result<Self> {
+  pub fn new(algorithm: String, key: Either<String, Buffer>) -> Result<Self> {
     let lower = algorithm.to_lowercase();
     let algo = match lower.as_str() {
       "sha256" => hmac::HMAC_SHA256,
@@ -26,7 +26,12 @@ impl Hmac {
       }
     };
 
-    let s_key = hmac::Key::new(algo, key.as_ref());
+    let key_bytes = match &key {
+      Either::A(s) => s.as_bytes(),
+      Either::B(b) => b.as_ref(),
+    };
+
+    let s_key = hmac::Key::new(algo, key_bytes);
     let ctx = hmac::Context::with_key(&s_key);
 
     Ok(Self {
@@ -36,11 +41,14 @@ impl Hmac {
   }
 
   #[napi]
-  pub fn update(&mut self, data: Buffer) -> Result<()> {
+  pub fn update(&mut self, data: Either<String, Buffer>) -> Result<&Self> {
     match &mut self.context {
       Some(ctx) => {
-        ctx.update(data.as_ref());
-        Ok(())
+        match data {
+          Either::A(s) => ctx.update(s.as_bytes()),
+          Either::B(b) => ctx.update(b.as_ref()),
+        }
+        Ok(self)
       }
       None => Err(Error::new(
         Status::GenericFailure,
@@ -108,6 +116,6 @@ fn base64_encode(data: &[u8]) -> String {
 }
 
 #[napi]
-pub fn create_hmac(algorithm: String, key: Buffer) -> Result<Hmac> {
+pub fn create_hmac(algorithm: String, key: Either<String, Buffer>) -> Result<Hmac> {
   Hmac::new(algorithm, key)
 }

@@ -11,6 +11,35 @@ Node:crypto compatible native cryptographic library built with NAPI-RS and backe
 - **Random & Utilities**: Secure random bytes (`randomBytes`), random integer (`randomInt`), UUID v4 (`randomUuid`), `KeyObject`, and `X509Certificate`.
 - **TLS Provider Selector**: Flexible TLS provider engine selection supporting `ring` (default), `openssl` (`rustls-openssl`), `btls` (`boring-rustls-provider`), and `mbedtls`.
 
+## Cross-Building & Target Platforms
+
+### Target Matrix
+
+Configured targets in `package.json` (`napi.targets`):
+- `x86_64-apple-darwin` / `aarch64-apple-darwin` (macOS x64 / ARM64)
+- `x86_64-pc-windows-msvc` / `i686-pc-windows-msvc` / `aarch64-pc-windows-msvc` (Windows x64 / x86 / ARM64)
+- `x86_64-unknown-linux-gnu` / `aarch64-unknown-linux-gnu` / `armv7-unknown-linux-gnueabihf` (Linux glibc x64 / ARM64 / ARMv7)
+- `x86_64-unknown-linux-musl` / `aarch64-unknown-linux-musl` (Linux musl x64 / ARM64)
+- `aarch64-linux-android` / `armv7-linux-androideabi` (Android ARM64 / ARMv7)
+- `x86_64-unknown-freebsd` (FreeBSD x64)
+- `wasm32-wasip1-threads` (WASM / WASI)
+
+### Do we need to commit `npm/*` folders?
+
+**No.** Committing `npm/<platform-arch-abi>` directories to git is **no longer recommended** by NAPI-RS.
+
+Instead, create them dynamically in CI during the release pipeline:
+```bash
+# Generate platform package directories dynamically in CI
+napi create-npm-dirs
+```
+
+In the release pipeline:
+1. `napi build --platform --release` builds binary artifacts per target platform job.
+2. `napi create-npm-dirs` creates `npm/<target>` directories containing target-specific `package.json` files.
+3. `napi artifacts` copies built `.node` binaries into their corresponding platform directories.
+4. `napi pre-publish -t npm` publishes the root package and all optional platform packages to npm.
+
 ## `no-std` / POSIX Portability Architecture
 
 To support embedded, POSIX-only, or `no-std` target environments where `libstd` is absent:

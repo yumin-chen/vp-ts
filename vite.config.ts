@@ -6,9 +6,7 @@ export default defineConfig({
     format: "esm",
     outDir: "dist",
     exports: true,
-    dts: {
-      generator: "tsgo",
-    },
+    dts: false,
     deps: {
       resolveDepSubpath: true,
     },

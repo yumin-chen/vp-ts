@@ -16,6 +16,7 @@ pub enum TlsProvider {
 #[napi]
 pub struct TLS {
   provider_type: TlsProvider,
+  fallback_used: bool,
 }
 
 #[napi]
@@ -35,7 +36,10 @@ impl TLS {
       }
     };
 
-    Ok(Self { provider_type })
+    Ok(Self {
+      provider_type,
+      fallback_used: false,
+    })
   }
 
   #[napi]
@@ -63,15 +67,34 @@ impl TLS {
     true
   }
 
-  /// Installs or verifies the selected provider as the default rustls CryptoProvider
   #[napi]
-  pub fn install_as_default(&self) -> Result<bool> {
-    let provider: CryptoProvider = match self.provider_type {
-      TlsProvider::Ring => rustls::crypto::ring::default_provider(),
-      TlsProvider::OpenSSL => rustls_openssl::default_provider(),
-      TlsProvider::BoringSSL => boring_rustls_provider::provider(),
-      TlsProvider::MbedTLS => rustls_mbedtls_provider::mbedtls_crypto_provider(),
+  pub fn fallback_used(&self) -> bool {
+    self.fallback_used
+  }
+
+  /// Installs or verifies the selected provider as the default rustls CryptoProvider,
+  /// falling back safely to ring if the selected optional provider fails.
+  #[napi]
+  pub fn install_as_default(&mut self) -> Result<bool> {
+    let provider_res: std::result::Result<CryptoProvider, ()> = std::panic::catch_unwind(|| {
+      match self.provider_type {
+        TlsProvider::Ring => rustls::crypto::ring::default_provider(),
+        TlsProvider::OpenSSL => rustls_openssl::default_provider(),
+        TlsProvider::BoringSSL => boring_rustls_provider::provider(),
+        TlsProvider::MbedTLS => rustls_mbedtls_provider::mbedtls_crypto_provider(),
+      }
+    })
+    .map_err(|_| ());
+
+    let (provider, is_fallback) = match provider_res {
+      Ok(p) => (p, false),
+      Err(_) => {
+        // Fallback to ring default provider
+        (rustls::crypto::ring::default_provider(), true)
+      }
     };
+
+    self.fallback_used = is_fallback;
 
     match provider.install_default() {
       Ok(()) => Ok(true),

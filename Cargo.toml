@@ -1,5 +1,5 @@
 [package]
-name = "crypto-native"
+name = "lib_crypto_native"
 version = "0.1.0"
 edition = "2024"
 

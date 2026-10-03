@@ -1,14 +1,29 @@
 [package]
-name = "my-addon-native"
+name = "object-store-native"
 version = "0.1.0"
 edition = "2024"
 
 [lib]
 crate-type = ["cdylib"]
 
+[features]
+default = ["fs", "tokio"]
+fs = ["object_store/fs"]
+tokio = ["object_store/tokio"]
+aws = ["object_store/aws"]
+azure = ["object_store/azure"]
+gcp = ["object_store/gcp"]
+http = ["object_store/http"]
+
 [dependencies]
-napi = "3"
+bytes = "1"
+chrono = "0.4"
+futures = "0.3"
+napi = { version = "3", features = ["async", "tokio_rt"] }
 napi-derive = "3"
+object_store = { version = "0.14.2", default-features = false }
+tokio = { version = "1", features = ["full"] }
+url = "2"
 
 [build-dependencies]
 napi-build = "2"

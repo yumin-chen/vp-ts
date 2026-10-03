@@ -1,5 +1,5 @@
 [package]
-name = "my-addon-native"
+name = "crypto-native"
 version = "0.1.0"
 edition = "2021"
 
@@ -9,6 +9,11 @@ crate-type = ["cdylib"]
 [dependencies]
 napi = "3"
 napi-derive = "3"
+ring = "0.17"
+rustls = { version = "0.23", features = ["ring"] }
+rustls-openssl = "0.4"
+boring-rustls-provider = "5.0"
+rustls-mbedcrypto-provider = "0.1"
 
 [build-dependencies]
 napi-build = "2"

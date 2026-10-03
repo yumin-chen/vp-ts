@@ -19,7 +19,7 @@ fn get_hash_algorithm(algo: &str) -> napi::Result<&'static Algorithm> {
   }
 }
 
-#[napi]
+#[napi(js_name = "Hash")]
 pub struct Hash {
   ctx: Option<Context>,
 }
@@ -33,7 +33,7 @@ impl Hash {
     Ok(Hash { ctx: Some(ctx) })
   }
 
-  #[napi]
+  #[napi(ts_args_type = "data: string | Buffer, encoding?: string")]
   pub fn update(&mut self, data: Either<String, Buffer>, encoding: Option<String>) -> napi::Result<()> {
     if let Some(ctx) = &mut self.ctx {
       let bytes = decode_input(&data, encoding.as_deref());
@@ -44,7 +44,7 @@ impl Hash {
     }
   }
 
-  #[napi]
+  #[napi(ts_return_type = "string | Buffer")]
   pub fn digest(&mut self, encoding: Option<String>) -> napi::Result<Either<String, Buffer>> {
     if let Some(ctx) = self.ctx.take() {
       let digest = ctx.finish();
@@ -60,7 +60,10 @@ pub fn create_hash(algorithm: String) -> napi::Result<Hash> {
   Hash::new(algorithm)
 }
 
-#[napi]
+#[napi(
+  ts_args_type = "algorithm: string, data: string | Buffer, outputEncoding?: string",
+  ts_return_type = "string | Buffer"
+)]
 pub fn hash(
   algorithm: String,
   data: Either<String, Buffer>,
@@ -121,7 +124,7 @@ pub fn random_uuid() -> napi::Result<String> {
   ))
 }
 
-#[napi]
+#[napi(ts_args_type = "a: Buffer, b: Buffer")]
 pub fn timing_safe_equal(a: Buffer, b: Buffer) -> napi::Result<bool> {
   if a.len() != b.len() {
     return Err(napi::Error::from_reason("Input buffers must have the same length"));
@@ -180,7 +183,9 @@ impl KeyType for OkmAlgo {
   }
 }
 
-#[napi]
+#[napi(
+  ts_args_type = "digest: string, ikm: string | Buffer, salt: string | Buffer, info: string | Buffer, keylen: number"
+)]
 pub fn hkdf_sync(
   digest: String,
   ikm: Either<String, Buffer>,

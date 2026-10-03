@@ -11,13 +11,13 @@ export declare const __napiBindingTarget: "native" | "wasm32-wasi" | "wasm32-was
 
 export declare class Hash {
   constructor(algorithm: string);
-  update(data: string | Buffer, encoding?: string | undefined | null): void;
+  update(data: string | Buffer, encoding?: string): void;
   digest(encoding?: string | undefined | null): string | Buffer;
 }
 
 export declare class Hmac {
   constructor(algorithm: string, key: string | Buffer);
-  update(data: string | Buffer, encoding?: string | undefined | null): void;
+  update(data: string | Buffer, encoding?: string): void;
   digest(encoding?: string | undefined | null): string | Buffer;
 }
 
@@ -29,6 +29,7 @@ export declare class PBKDF2 {
 export declare class TLS {
   constructor(provider?: string | undefined | null);
   get providerName(): string;
+  get isFallback(): boolean;
   getProviderName(): string;
   static getAvailableProviders(): Array<string>;
   getCipherSuites(): Array<string>;
@@ -50,7 +51,7 @@ export declare function getMacs(): Array<string>;
 export declare function hash(
   algorithm: string,
   data: string | Buffer,
-  outputEncoding?: string | undefined | null,
+  outputEncoding?: string,
 ): string | Buffer;
 
 export declare function hkdfSync(

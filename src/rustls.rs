@@ -2,20 +2,29 @@ use std::sync::Arc;
 use napi_derive::napi;
 use rustls::crypto::CryptoProvider;
 
-fn fetch_provider(name: &str) -> napi::Result<(String, Arc<CryptoProvider>)> {
+fn fetch_provider(name: &str) -> (String, Arc<CryptoProvider>, bool) {
   let normalized = name.to_lowercase();
   match normalized.as_str() {
-    "ring" => Ok(("ring".to_string(), Arc::new(rustls::crypto::ring::default_provider()))),
     "openssl" => {
       let prov = rustls_openssl::custom_provider(
         rustls_openssl::ALL_CIPHER_SUITES.to_vec(),
         vec![rustls::crypto::ring::kx_group::SECP256R1],
       );
-      Ok(("openssl".to_string(), Arc::new(prov)))
+      ("openssl".to_string(), Arc::new(prov), false)
     }
-    "btls" | "boringssl" => Ok(("btls".to_string(), Arc::new(boring_rustls_provider::provider()))),
-    "mbedtls" => Ok(("mbedtls".to_string(), Arc::new(rustls_mbedcrypto_provider::mbedtls_crypto_provider()))),
-    _ => Err(napi::Error::from_reason(format!("Unknown TLS provider: {}", name))),
+    "btls" | "boringssl" => {
+      let prov = boring_rustls_provider::provider();
+      ("btls".to_string(), Arc::new(prov), false)
+    }
+    "mbedtls" => {
+      let prov = rustls_mbedcrypto_provider::mbedtls_crypto_provider();
+      ("mbedtls".to_string(), Arc::new(prov), false)
+    }
+    _ => {
+      // Primary default: ring
+      let prov = rustls::crypto::ring::default_provider();
+      ("ring".to_string(), Arc::new(prov), normalized != "ring")
+    }
   }
 }
 
@@ -23,23 +32,30 @@ fn fetch_provider(name: &str) -> napi::Result<(String, Arc<CryptoProvider>)> {
 pub struct TLS {
   provider_name: String,
   provider: Arc<CryptoProvider>,
+  fallback_used: bool,
 }
 
 #[napi]
 impl TLS {
   #[napi(constructor)]
-  pub fn new(provider: Option<String>) -> napi::Result<Self> {
+  pub fn new(provider: Option<String>) -> Self {
     let pname = provider.unwrap_or_else(|| "ring".to_string());
-    let (name, prov) = fetch_provider(&pname)?;
-    Ok(TLS {
+    let (name, prov, fallback) = fetch_provider(&pname);
+    TLS {
       provider_name: name,
       provider: prov,
-    })
+      fallback_used: fallback,
+    }
   }
 
   #[napi(getter)]
   pub fn provider_name(&self) -> String {
     self.provider_name.clone()
+  }
+
+  #[napi(getter)]
+  pub fn is_fallback(&self) -> bool {
+    self.fallback_used
   }
 
   #[napi]

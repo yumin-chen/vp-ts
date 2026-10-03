@@ -5,6 +5,7 @@ test("TLS default instance uses ring", () => {
   const tls = new TLS();
   expect(tls.providerName).toBe("ring");
   expect(tls.getProviderName()).toBe("ring");
+  expect(tls.isFallback).toBe(false);
 });
 
 test("TLS supports openssl provider", () => {
@@ -33,6 +34,8 @@ test("TLS.getAvailableProviders returns all supported providers", () => {
   expect(providers).toContain("mbedtls");
 });
 
-test("TLS throws on unknown provider", () => {
-  expect(() => new TLS("nonexistent")).toThrow();
+test("TLS falls back to ring on unknown provider", () => {
+  const tls = new TLS("nonexistent");
+  expect(tls.getProviderName()).toBe("ring");
+  expect(tls.isFallback).toBe(true);
 });

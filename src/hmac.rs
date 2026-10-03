@@ -106,14 +106,14 @@ pub fn encode_output(bytes: &[u8], encoding: Option<&str>) -> Either<String, Buf
   }
 }
 
-#[napi]
+#[napi(js_name = "Hmac")]
 pub struct Hmac {
   ctx: Option<Context>,
 }
 
 #[napi]
 impl Hmac {
-  #[napi(constructor)]
+  #[napi(constructor, ts_args_type = "algorithm: string, key: string | Buffer")]
   pub fn new(algorithm: String, key: Either<String, Buffer>) -> napi::Result<Self> {
     let algo = get_hmac_algorithm(&algorithm)?;
     let key_bytes = decode_input(&key, None);
@@ -122,7 +122,7 @@ impl Hmac {
     Ok(Hmac { ctx: Some(ctx) })
   }
 
-  #[napi]
+  #[napi(ts_args_type = "data: string | Buffer, encoding?: string")]
   pub fn update(&mut self, data: Either<String, Buffer>, encoding: Option<String>) -> napi::Result<()> {
     if let Some(ctx) = &mut self.ctx {
       let bytes = decode_input(&data, encoding.as_deref());
@@ -133,7 +133,7 @@ impl Hmac {
     }
   }
 
-  #[napi]
+  #[napi(ts_return_type = "string | Buffer")]
   pub fn digest(&mut self, encoding: Option<String>) -> napi::Result<Either<String, Buffer>> {
     if let Some(ctx) = self.ctx.take() {
       let tag = ctx.sign();
@@ -144,7 +144,7 @@ impl Hmac {
   }
 }
 
-#[napi]
+#[napi(ts_args_type = "algorithm: string, key: string | Buffer")]
 pub fn create_hmac(algorithm: String, key: Either<String, Buffer>) -> napi::Result<Hmac> {
   Hmac::new(algorithm, key)
 }

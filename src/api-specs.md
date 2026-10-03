@@ -1,16 +1,23 @@
 # Node:Crypto API Specifications & Compatibility Status
 
-This document tabulates the standard `node:crypto` APIs alongside the implementation details and compatibility status of `@lib/crypto` (built using NAPI-RS and Rust cryptographic crates).
+This document tabulates the standard `node:crypto` APIs alongside the implementation details and compatibility status of `@lib/crypto` (built using NAPI-RS and Rust crate `lib_crypto_native`).
 
-## Core Architecture & Providers
+## Package & Cargo Naming Convention
+
+- **npm package name**: `@lib/crypto`
+- **Cargo crate name**: `lib_crypto_native` (following the `[scope]_` prefix rule for `@lib/` scope)
+
+## Core Architecture & NAPI Annotations
 
 - **HMAC & PBKDF2**: Backed by `ring` (`ring::hmac` and `ring::pbkdf2`).
 - **Hashing & HKDF**: Backed by `ring::digest`, `ring::hkdf`, and `ring::rand`.
 - **TLS**: Implemented via NAPI-RS exposing `TLS` class with support for selectable providers:
-  - Default: `ring` (`rustls::crypto::ring::default_provider`)
+  - Primary Default: `ring` (`rustls::crypto::ring::default_provider`)
   - OpenSSL: `openssl` (`rustls-openssl`)
   - BoringSSL: `btls` / `boringssl` (`boring-rustls-provider`)
   - MbedTLS: `mbedtls` (`rustls-mbedcrypto-provider`)
+  - Fallback Mechanism: If an unknown/unsupported provider is passed to `new TLS(...)`, it cleanly falls back to `ring` with `isFallback === true`.
+- **Type Declarations**: All TypeScript declarations in `index.d.ts` are auto-generated directly from Rust `#[napi]` attributes (`#[napi(ts_args_type = "...")]`, `#[napi(ts_return_type = "...")]`, `#[napi(js_name = "...")]`) without manual `.d.ts` edits.
 
 ---
 
@@ -23,7 +30,7 @@ This document tabulates the standard `node:crypto` APIs alongside the implementa
 | `crypto.createMac(algorithm, key[, options])`                   | OpenSSL MAC provider factory                     | `getMacs()` lists supported MACs        | **Partial**          | `createHmac` supported for HMAC; MAC options interface documented for future expansion. |
 | `crypto.pbkdf2Sync(password, salt, iterations, keylen, digest)` | Synchronous PBKDF2 key derivation                | `pbkdf2Sync(...)`                       | **Implemented**      | Uses `ring::pbkdf2`. Supports SHA-1, SHA-256, SHA-384, SHA-512.                         |
 | `crypto.pbkdf2(...)` / `PBKDF2`                                 | Async/Class PBKDF2                               | `PBKDF2` class with `deriveSync`        | **Implemented**      | Native binding with `PBKDF2` class wrapper.                                             |
-| `TLS`                                                           | Class for multi-provider TLS                     | `TLS` class                             | **Implemented**      | Multi-backend support (`ring`, `openssl`, `btls`, `mbedtls`).                           |
+| `TLS`                                                           | Class for multi-provider TLS                     | `TLS` class                             | **Implemented**      | Multi-backend support (`ring` default, `openssl`, `btls`, `mbedtls`).                   |
 | `crypto.createHash(algorithm)`                                  | Factory function returning `Hash` instance       | `createHash(algorithm)`                 | **Implemented**      | Uses `ring::digest`. Supports SHA-1, SHA-256, SHA-384, SHA-512, SHA-512/256.            |
 | `crypto.Hash`                                                   | Class with `update(data)` and `digest(encoding)` | `Hash` class                            | **Implemented**      | Supports string / buffer inputs and hex / base64 / utf8 / buffer encodings.             |
 | `crypto.hash(algorithm, data[, options])`                       | One-shot hashing utility                         | `hash(algorithm, data, outputEncoding)` | **Implemented**      | Fast one-shot hashing function.                                                         |
@@ -84,6 +91,7 @@ This document tabulates the standard `node:crypto` APIs alongside the implementa
   - `getAvailableProviders(): Array<string>` (returns `["ring", "openssl", "btls", "mbedtls"]`)
   - `getCipherSuites(): Array<string>`
   - `isCipherSupported(cipher: string): boolean`
+  - `isFallback`: boolean getter indicating if fallback to primary `ring` provider occurred.
 
 ### Crypto Hasher & Utilities (`src/crypto_hasher.rs`)
 

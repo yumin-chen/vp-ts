@@ -17,7 +17,9 @@ fn get_pbkdf2_algorithm(digest: &str) -> napi::Result<Algorithm> {
   }
 }
 
-#[napi]
+#[napi(
+  ts_args_type = "password: string | Buffer, salt: string | Buffer, iterations: number, keylen: number, digest: string"
+)]
 pub fn pbkdf2_sync(
   password: Either<String, Buffer>,
   salt: Either<String, Buffer>,
@@ -51,7 +53,7 @@ impl PBKDF2 {
     PBKDF2 { digest, iterations }
   }
 
-  #[napi]
+  #[napi(ts_args_type = "password: string | Buffer, salt: string | Buffer, keylen: number")]
   pub fn derive_sync(
     &self,
     password: Either<String, Buffer>,

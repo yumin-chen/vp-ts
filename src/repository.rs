@@ -847,27 +847,27 @@ impl Repository {
 
     #[napi]
     pub fn checkout(&self, _target: String) -> napi::Result<()> {
-        Ok(())
+        Err(Error::from_reason("Unimplemented checkout in gix binding"))
     }
 
     #[napi]
     pub fn reset(&self, _target: String) -> napi::Result<()> {
-        Ok(())
+        Err(Error::from_reason("Unimplemented reset in gix binding"))
     }
 
     #[napi]
     pub fn fetch(&self, _remote: String) -> napi::Result<()> {
-        Ok(())
+        Err(Error::from_reason("Unimplemented fetch in gix binding"))
     }
 
     #[napi]
     pub fn push(&self, _remote: String, _refspec: String) -> napi::Result<()> {
-        Ok(())
+        Err(Error::from_reason("Unimplemented push in gix binding"))
     }
 
     #[napi]
     pub fn pull(&self, _remote: String, _branch: String) -> napi::Result<()> {
-        Ok(())
+        Err(Error::from_reason("Unimplemented pull in gix binding"))
     }
 
     #[napi]

@@ -1,14 +1,27 @@
-# Starter Template
+# @lib/git2
 
-TypeScript starter template.
+Node.js NAPI bindings for Git operations, backed by `gix` (gitoxide) in Rust with `git2` API compatibility.
+
+## Usage
+
+```javascript
+const { Repository, Signature, Reference } = require("@lib/git2");
+
+// Initialize or open a repository
+const repo = Repository.init("/path/to/repo");
+console.log("Is bare:", repo.isBare());
+console.log("Is empty:", repo.isEmpty());
+
+// Signatures
+const sig = Signature.now("User Name", "user@example.com");
+
+// Working with References
+if (Reference.isValidName("refs/heads/main")) {
+  console.log("Valid reference name");
+}
+```
 
 ## Development
-
-- Configure local hooks:
-
-```bash
-npm run prepare
-```
 
 - Install dependencies:
 
@@ -16,38 +29,20 @@ npm run prepare
 vp install
 ```
 
-- Run the unit tests:
+- Run unit tests:
 
 ```bash
-vp test
+npm test
 ```
 
-- Run the locally:
+- Build release binary:
 
 ```bash
-npm run dev
-```
-
-- Build the library:
-
-```bash
-npm run build
+npm run build:release
 ```
 
 - Code formatting:
 
 ```bash
 npm run fmt
-```
-
-- Linting:
-
-```bash
-npm run lint
-```
-
-- Code check:
-
-```bash
-npm run check
 ```

@@ -410,7 +410,9 @@ impl Index {
 
     #[napi]
     pub fn write_tree(&self) -> napi::Result<String> {
-        Ok("0000000000000000000000000000000000000000".to_string())
+        Err(Error::from_reason(
+            "Unimplemented write_tree in gix binding",
+        ))
     }
 }
 

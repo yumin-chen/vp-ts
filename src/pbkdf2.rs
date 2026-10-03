@@ -59,7 +59,10 @@ impl Task for Pbkdf2Task {
   }
 }
 
-#[napi]
+#[napi(
+  ts_args_type = "password: string | Uint8Array, salt: string | Uint8Array, iterations: number, keylen: number, digest: string",
+  ts_return_type = "Buffer"
+)]
 pub fn pbkdf2_sync(
   password: Either<String, &[u8]>,
   salt: Either<String, &[u8]>,
@@ -83,7 +86,10 @@ pub fn pbkdf2_sync(
   Ok(out.into())
 }
 
-#[napi]
+#[napi(
+  ts_args_type = "password: string | Uint8Array, salt: string | Uint8Array, iterations: number, keylen: number, digest: string, abortSignal?: AbortSignal | null",
+  ts_return_type = "Promise<Buffer>"
+)]
 pub fn pbkdf2(
   password: Either<String, &[u8]>,
   salt: Either<String, &[u8]>,

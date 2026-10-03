@@ -47,7 +47,7 @@ pub struct Hash {
 
 #[napi]
 impl Hash {
-  #[napi(constructor)]
+  #[napi(constructor, ts_args_type = "algorithm: string")]
   pub fn new(algorithm: String) -> Result<Self> {
     let algo = get_hash_algorithm(&algorithm)?;
     let context = digest::Context::new(algo);
@@ -56,7 +56,10 @@ impl Hash {
     })
   }
 
-  #[napi]
+  #[napi(
+    ts_args_type = "data: string | Uint8Array, encoding?: string | null",
+    ts_return_type = "this"
+  )]
   pub fn update(
     &mut self,
     data: Either<String, &[u8]>,
@@ -81,7 +84,10 @@ impl Hash {
     Ok(self)
   }
 
-  #[napi]
+  #[napi(
+    ts_args_type = "encoding?: string | null",
+    ts_return_type = "string | Buffer"
+  )]
   pub fn digest(&mut self, encoding: Option<String>) -> Result<Either<String, Buffer>> {
     let ctx = self.context.take().ok_or_else(|| {
       Error::new(
@@ -129,12 +135,15 @@ impl Hash {
   }
 }
 
-#[napi]
+#[napi(ts_args_type = "algorithm: string", ts_return_type = "Hash")]
 pub fn create_hash(algorithm: String) -> Result<Hash> {
   Hash::new(algorithm)
 }
 
-#[napi]
+#[napi(
+  ts_args_type = "algorithm: string, data: string | Uint8Array, outputEncoding?: string | null",
+  ts_return_type = "string | Buffer"
+)]
 pub fn hash(
   algorithm: String,
   data: Either<String, &[u8]>,
@@ -145,7 +154,7 @@ pub fn hash(
   hasher.digest(output_encoding)
 }
 
-#[napi]
+#[napi(ts_return_type = "Array<string>")]
 pub fn get_hashes() -> Vec<String> {
   vec![
     "sha1".to_string(),

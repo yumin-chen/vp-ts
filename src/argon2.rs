@@ -71,13 +71,19 @@ impl Version {
 #[napi(object, object_to_js = false)]
 #[derive(Default)]
 pub struct Options {
+  #[napi(ts_type = "number")]
   pub memory_cost: Option<u32>,
+  #[napi(ts_type = "number")]
   pub time_cost: Option<u32>,
+  #[napi(ts_type = "number")]
   pub output_len: Option<u32>,
+  #[napi(ts_type = "number")]
   pub parallelism: Option<u32>,
   pub algorithm: Option<Algorithm>,
   pub version: Option<Version>,
+  #[napi(ts_type = "Uint8Array")]
   pub secret: Option<Uint8Array>,
+  #[napi(ts_type = "Uint8Array")]
   pub salt: Option<Uint8Array>,
 }
 
@@ -240,7 +246,11 @@ impl Task for HashTask {
   }
 }
 
-#[napi(js_name = "argon2Hash")]
+#[napi(
+  js_name = "argon2Hash",
+  ts_args_type = "password: string | Uint8Array, options?: Options | null, abortSignal?: AbortSignal | null",
+  ts_return_type = "Promise<string>"
+)]
 pub fn argon2_hash(
   password: Either<String, &[u8]>,
   options: Option<Options>,
@@ -255,7 +265,11 @@ pub fn argon2_hash(
   )
 }
 
-#[napi(js_name = "argon2HashSync")]
+#[napi(
+  js_name = "argon2HashSync",
+  ts_args_type = "password: string | Uint8Array, options?: Options | null",
+  ts_return_type = "string"
+)]
 pub fn argon2_hash_sync(
   env: Env,
   password: Either<String, &[u8]>,
@@ -296,7 +310,11 @@ impl Task for RawHashTask {
   }
 }
 
-#[napi(js_name = "argon2HashRaw")]
+#[napi(
+  js_name = "argon2HashRaw",
+  ts_args_type = "password: string | Uint8Array, options?: Options | null, abortSignal?: AbortSignal | null",
+  ts_return_type = "Promise<Buffer>"
+)]
 pub fn argon2_hash_raw(
   password: Either<String, &[u8]>,
   options: Option<Options>,
@@ -311,7 +329,11 @@ pub fn argon2_hash_raw(
   )
 }
 
-#[napi(js_name = "argon2HashRawSync")]
+#[napi(
+  js_name = "argon2HashRawSync",
+  ts_args_type = "password: string | Uint8Array, options?: Options | null",
+  ts_return_type = "Buffer"
+)]
 pub fn argon2_hash_raw_sync(
   env: Env,
   password: Either<String, &[u8]>,
@@ -357,7 +379,11 @@ impl Task for VerifyTask {
   }
 }
 
-#[napi(js_name = "argon2Verify")]
+#[napi(
+  js_name = "argon2Verify",
+  ts_args_type = "hashed: string | Uint8Array, password: string | Uint8Array, options?: Options | null, abortSignal?: AbortSignal | null",
+  ts_return_type = "Promise<boolean>"
+)]
 pub fn argon2_verify(
   hashed: Either<String, &[u8]>,
   password: Either<String, &[u8]>,
@@ -374,7 +400,11 @@ pub fn argon2_verify(
   ))
 }
 
-#[napi(js_name = "argon2VerifySync")]
+#[napi(
+  js_name = "argon2VerifySync",
+  ts_args_type = "hashed: string | Uint8Array, password: string | Uint8Array, options?: Options | null",
+  ts_return_type = "boolean"
+)]
 pub fn argon2_verify_sync(
   env: Env,
   hashed: Either<String, &[u8]>,
@@ -390,7 +420,11 @@ pub fn argon2_verify_sync(
   verify_task.resolve(env, output)
 }
 
-#[napi(js_name = "argon2ParseOptions")]
+#[napi(
+  js_name = "argon2ParseOptions",
+  ts_args_type = "hashed: string | Uint8Array",
+  ts_return_type = "ParsedHashOptions"
+)]
 pub fn argon2_parse_options(hashed: Either<String, &[u8]>) -> Result<ParsedHashOptions> {
   let encoded = utf8_input(hashed)?;
   let decoded = argon2_rust::decode_phc(&encoded).map_err(map_error)?;

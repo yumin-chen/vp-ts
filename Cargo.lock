@@ -601,6 +601,24 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "830d08ce1d1d941e6b30645f1a0eb5643013d835ce3779a5fc208261dbe10f55"
 
 [[package]]
+name = "lib_crypto_native"
+version = "0.1.0"
+dependencies = [
+ "argon2-rust",
+ "boring-rustls-provider",
+ "napi",
+ "napi-build",
+ "napi-derive",
+ "openssl",
+ "rand",
+ "ring",
+ "rustls",
+ "rustls-mbedcrypto-provider",
+ "rustls-openssl",
+ "simdutf8",
+]
+
+[[package]]
 name = "libc"
 version = "0.2.189"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -696,24 +714,6 @@ name = "minimal-lexical"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "68354c5c6bd36d73ff3feceb05efa59b6acb7626617f4962be322a825e61f79a"
-
-[[package]]
-name = "my-addon-native"
-version = "0.1.0"
-dependencies = [
- "argon2-rust",
- "boring-rustls-provider",
- "napi",
- "napi-build",
- "napi-derive",
- "openssl",
- "rand",
- "ring",
- "rustls",
- "rustls-mbedcrypto-provider",
- "rustls-openssl",
- "simdutf8",
-]
 
 [[package]]
 name = "napi"

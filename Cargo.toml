@@ -7,8 +7,13 @@ edition = "2024"
 crate-type = ["cdylib"]
 
 [dependencies]
+boring-rustls-provider = "5.0.1"
 napi = "3"
 napi-derive = "3"
+ring = "0.17.14"
+rustls = { version = "0.23.45", features = ["ring"] }
+rustls-mbedtls-provider-utils = "0.2.1"
+rustls-openssl = "0.4.2"
 
 [build-dependencies]
 napi-build = "2"

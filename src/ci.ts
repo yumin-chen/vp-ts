@@ -10,10 +10,15 @@ interface CIStep {
 }
 
 const steps: CIStep[] = [
-  { name: "Code Format & Lint Check", command: "npx vp check" },
-  { name: "Native Host Build", command: "node build.mjs" },
-  { name: "Unit & Integration Tests", command: "npx vp test && node --test test.cjs" },
-  { name: "Local Matrix Cross-Build (Dry Run)", command: "node build.mjs --use-cross --dry-run" },
+  { name: "Pre-Commit: Code Format & Lint Check", command: "npx vp check" },
+  { name: "Post-Commit: Native Host Build", command: "node build.mjs" },
+  { name: "Post-Commit: Unit & Integration Tests", command: "npx vp test && node --test test.cjs" },
+  { name: "Post-Commit: Prepublish Package Packing", command: "npx vp pack" },
+  {
+    name: "Local Matrix Cross-Build Pipeline (Dry Run)",
+    command: "node build.mjs --use-cross --dry-run",
+  },
+  { name: "Local Package Publish (Dry Run)", command: "npm publish --dry-run" },
 ];
 
 async function runCI(): Promise<void> {

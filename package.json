@@ -16,12 +16,14 @@
     "build": "node build.mjs && vp pack",
     "build:napi": "node build.mjs",
     "build:release": "node build.mjs --release",
-    "ci": "vp run ci:check && vp run ci:build && vp run ci:test && vp run ci:cross-build --dry-run",
+    "ci": "vp run ci:check && vp run ci:build && vp run ci:test && vp run ci:prepublish",
     "ci:local": "vp run ci",
     "ci:check": "vp check",
     "ci:test": "vp test && node --test test.cjs",
     "ci:build": "node build.mjs",
     "ci:cross-build": "node build.mjs --use-cross",
+    "ci:prepublish": "vp pack",
+    "ci:publish": "node build.mjs --use-cross && vp pack && npm publish --dry-run",
     "ci:ts": "node src/ci.ts",
     "dev": "vp pack --watch",
     "start": "vp run src/main.ts",
@@ -30,6 +32,7 @@
     "fmt": "vp fmt",
     "lint": "vp lint",
     "precommit": "vp run ci:check",
+    "postcommit": "vp run ci:build && vp run ci:test && vp run ci:prepublish",
     "prepublishOnly": "vp run build",
     "prepare": "vp config"
   },
@@ -40,7 +43,6 @@
     "@types/node": "^26.6.2",
     "@voidzero-dev/vite-task-client": "^0.2.0",
     "emnapi": "^1.11.3",
-    "js-yaml": "^4.1.0",
     "vite-plus": "^1.0.0-rc.1"
   },
   "peerDependencies": {

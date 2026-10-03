@@ -7,7 +7,7 @@ export default defineConfig({
     outDir: "dist",
     exports: true,
     dts: {
-      generator: "tsgo",
+      generator: "oxc",
     },
     deps: {
       resolveDepSubpath: true,

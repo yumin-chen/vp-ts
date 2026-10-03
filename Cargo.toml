@@ -17,6 +17,20 @@ rustls = { version = "0.23.45", features = ["ring"] }
 rustls-openssl = "0.4.2"
 rustls-mbedtls-provider = { package = "rustls-mbedcrypto-provider", version = "0.1" }
 simdutf8 = "0.1.5"
+uuid = { version = "1.27.0", features = ["v4", "v7", "fast-rng"] }
+aes-gcm = "0.11.1"
+ccm = "0.6.1"
+aead = "0.6.1"
+ed25519-dalek = "3.0.0"
+x25519-dalek = "3.0.0"
+p256 = { version = "0.14.0", features = ["ecdh", "ecdsa"] }
+rand_core = "0.6.4"
+p384 = "0.14.0"
+x509-parser = "0.18.1"
+der = "0.8.2"
+spki = "0.8.0"
+pkcs8 = "0.11.0"
+rsa = "0.9.10"
 
 [build-dependencies]
 napi-build = "2"

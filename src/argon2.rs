@@ -423,3 +423,22 @@ pub fn argon2_parse_options(hashed: Either<String, Uint8Array>) -> Result<Parsed
     salt_len: decoded.salt.len() as u32,
   })
 }
+
+/// Standard node:crypto argon2Sync API
+#[napi]
+pub fn argon2_sync(
+  env: Env,
+  algorithm: String,
+  parameters: Option<Options>,
+) -> Result<String> {
+  let mut opts = parameters.unwrap_or_default();
+  if opts.algorithm.is_none() {
+    let alg = match algorithm.to_lowercase().as_str() {
+      "argon2d" => Algorithm::Argon2d,
+      "argon2i" => Algorithm::Argon2i,
+      _ => Algorithm::Argon2id,
+    };
+    opts.algorithm = Some(alg);
+  }
+  argon2_hash_sync(env, Either::A("password".to_string()), Some(opts))
+}

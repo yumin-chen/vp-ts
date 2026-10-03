@@ -35,13 +35,19 @@ pub fn random_int(min: i64, max: i64) -> Result<i64> {
     return Err(Error::new(Status::InvalidArg, "Min must be less than max"));
   }
   let range = (max - min) as u64;
+  let max_valid = u64::MAX - (u64::MAX % range);
   let rng = ring::rand::SystemRandom::new();
   let mut bytes = [0u8; 8];
-  rng
-    .fill(&mut bytes)
-    .map_err(|_| Error::new(Status::GenericFailure, "Random generation failed"))?;
-  let val = u64::from_le_bytes(bytes);
-  Ok(min + (val % range) as i64)
+
+  loop {
+    rng
+      .fill(&mut bytes)
+      .map_err(|_| Error::new(Status::GenericFailure, "Random generation failed"))?;
+    let val = u64::from_le_bytes(bytes);
+    if val < max_valid {
+      return Ok(min + (val % range) as i64);
+    }
+  }
 }
 
 #[napi]

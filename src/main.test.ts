@@ -1,6 +1,6 @@
 import { expect, test } from "vite-plus/test";
 import { main } from "./main.ts";
 
-test("main returns Hello, world!", () => {
-  expect(main()).toBe("Hello, world!");
+test("main returns @lib/crypto module", () => {
+  expect(main()).toBe("@lib/crypto module");
 });

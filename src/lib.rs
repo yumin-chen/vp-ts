@@ -1,6 +1,11 @@
-use napi_derive::napi;
+#[path = "crypto_hasher.rs"]
+pub(crate) mod crypto_hasher;
 
-#[napi]
-pub fn add(left: i32, right: i32) -> i32 {
-  left + right
-}
+#[path = "hmac.rs"]
+pub(crate) mod hmac;
+
+#[path = "pbkdf2.rs"]
+pub(crate) mod pbkdf2;
+
+#[path = "rustls.rs"]
+pub(crate) mod rustls;

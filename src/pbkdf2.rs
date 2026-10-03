@@ -1,0 +1,63 @@
+use std::num::NonZeroU32;
+use napi::bindgen_prelude::*;
+use napi_derive::napi;
+use ring::pbkdf2::{
+  derive, Algorithm, PBKDF2_HMAC_SHA1, PBKDF2_HMAC_SHA256, PBKDF2_HMAC_SHA384, PBKDF2_HMAC_SHA512,
+};
+
+use crate::hmac::decode_input;
+
+fn get_pbkdf2_algorithm(digest: &str) -> napi::Result<Algorithm> {
+  match digest.to_lowercase().replace("-", "").as_str() {
+    "sha1" => Ok(PBKDF2_HMAC_SHA1),
+    "sha256" => Ok(PBKDF2_HMAC_SHA256),
+    "sha384" => Ok(PBKDF2_HMAC_SHA384),
+    "sha512" => Ok(PBKDF2_HMAC_SHA512),
+    _ => Err(napi::Error::from_reason(format!("Unsupported PBKDF2 digest algorithm: {}", digest))),
+  }
+}
+
+#[napi]
+pub fn pbkdf2_sync(
+  password: Either<String, Buffer>,
+  salt: Either<String, Buffer>,
+  iterations: u32,
+  keylen: u32,
+  digest: String,
+) -> napi::Result<Buffer> {
+  let algo = get_pbkdf2_algorithm(&digest)?;
+  let iter = NonZeroU32::new(iterations)
+    .ok_or_else(|| napi::Error::from_reason("Iterations must be greater than 0"))?;
+
+  let pass_bytes = decode_input(&password, None);
+  let salt_bytes = decode_input(&salt, None);
+
+  let mut out = vec![0u8; keylen as usize];
+  derive(algo, iter, &salt_bytes, &pass_bytes, &mut out);
+
+  Ok(Buffer::from(out))
+}
+
+#[napi(js_name = "PBKDF2")]
+pub struct PBKDF2 {
+  digest: String,
+  iterations: u32,
+}
+
+#[napi]
+impl PBKDF2 {
+  #[napi(constructor)]
+  pub fn new(digest: String, iterations: u32) -> Self {
+    PBKDF2 { digest, iterations }
+  }
+
+  #[napi]
+  pub fn derive_sync(
+    &self,
+    password: Either<String, Buffer>,
+    salt: Either<String, Buffer>,
+    keylen: u32,
+  ) -> napi::Result<Buffer> {
+    pbkdf2_sync(password, salt, self.iterations, keylen, self.digest.clone())
+  }
+}

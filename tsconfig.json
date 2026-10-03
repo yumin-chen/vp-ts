@@ -38,5 +38,7 @@
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
     "noPropertyAccessFromIndexSignature": true
-  }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["target", "node_modules", "dist"]
 }

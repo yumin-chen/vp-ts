@@ -11,9 +11,9 @@ interface CIStep {
 
 const steps: CIStep[] = [
   { name: "Code Format & Lint Check", command: "npx vp check" },
-  { name: "Native Host Build", command: "node build.js" },
+  { name: "Native Host Build", command: "node build.mjs" },
   { name: "Unit & Integration Tests", command: "npx vp test && node --test test.cjs" },
-  { name: "Local Matrix Cross-Build (Dry Run)", command: "node build.js --use-cross --dry-run" },
+  { name: "Local Matrix Cross-Build (Dry Run)", command: "node build.mjs --use-cross --dry-run" },
 ];
 
 async function runCI(): Promise<void> {

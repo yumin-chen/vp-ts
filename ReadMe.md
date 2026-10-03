@@ -70,16 +70,16 @@ npm run ci:ts
 
 ### Native Cross-Building
 
-Cross-compilation is configured directly in `build.js` and reads targets dynamically from `package.json` (`napi.targets`). It uses `cargo-zigbuild`, `cargo-xwin`, and `napi-cross` flags natively without requiring Docker containers or Linux microVMs:
+Cross-compilation is configured directly in `build.mjs` and reads targets dynamically from `package.json` (`napi.targets`). It uses `cargo-zigbuild`, `cargo-xwin`, and `napi-cross` flags natively without requiring Docker containers or Linux microVMs:
 
 ```bash
 # Dry run cross-building all targets declared in package.json
-node build.js --use-cross --dry-run
+node build.mjs --use-cross --dry-run
 # or
 npm run ci:cross-build -- --dry-run
 
 # Build a specific target
-node build.js --target x86_64-unknown-linux-gnu
+node build.mjs --target x86_64-unknown-linux-gnu
 ```
 
 ### Pre-Commit Trigger

@@ -44,8 +44,8 @@ fn to_vec(value: Either<String, Uint8Array>) -> Vec<u8> {
 
 #[napi]
 pub fn pbkdf2_sync(
-  password: Either<String, Uint8Array>,
-  salt: Either<String, Uint8Array>,
+  #[napi(ts_arg_type = "string | Uint8Array")] password: Either<String, Uint8Array>,
+  #[napi(ts_arg_type = "string | Uint8Array")] salt: Either<String, Uint8Array>,
   iterations: u32,
   keylen: u32,
   digest: String,
@@ -84,10 +84,10 @@ impl Task for Pbkdf2Task {
   }
 }
 
-#[napi]
+#[napi(ts_return_type = "Promise<Buffer>")]
 pub fn pbkdf2(
-  password: Either<String, Uint8Array>,
-  salt: Either<String, Uint8Array>,
+  #[napi(ts_arg_type = "string | Uint8Array")] password: Either<String, Uint8Array>,
+  #[napi(ts_arg_type = "string | Uint8Array")] salt: Either<String, Uint8Array>,
   iterations: u32,
   keylen: u32,
   digest: String,

@@ -12,7 +12,10 @@ pub struct Hmac {
 #[napi]
 impl Hmac {
   #[napi(constructor)]
-  pub fn new(algorithm: String, key: Either<String, Uint8Array>) -> Result<Self> {
+  pub fn new(
+    algorithm: String,
+    #[napi(ts_arg_type = "string | Uint8Array")] key: Either<String, Uint8Array>,
+  ) -> Result<Self> {
     let key_bytes = match &key {
       Either::A(s) => s.as_bytes(),
       Either::B(b) => b.as_ref(),
@@ -40,7 +43,10 @@ impl Hmac {
   }
 
   #[napi]
-  pub fn update(&mut self, data: Either<String, Uint8Array>) -> Result<()> {
+  pub fn update(
+    &mut self,
+    #[napi(ts_arg_type = "string | Uint8Array")] data: Either<String, Uint8Array>,
+  ) -> Result<()> {
     let ctx = self
       .ctx
       .as_mut()
@@ -52,7 +58,7 @@ impl Hmac {
     Ok(())
   }
 
-  #[napi]
+  #[napi(ts_return_type = "Buffer | string")]
   pub fn digest(&mut self, encoding: Option<String>) -> Result<Either<Buffer, String>> {
     let ctx = self
       .ctx
@@ -79,6 +85,9 @@ impl Hmac {
 }
 
 #[napi]
-pub fn create_hmac(algorithm: String, key: Either<String, Uint8Array>) -> Result<Hmac> {
+pub fn create_hmac(
+  algorithm: String,
+  #[napi(ts_arg_type = "string | Uint8Array")] key: Either<String, Uint8Array>,
+) -> Result<Hmac> {
   Hmac::new(algorithm, key)
 }

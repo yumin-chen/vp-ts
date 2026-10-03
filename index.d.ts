@@ -25,6 +25,8 @@ export declare class TLS {
   constructor(provider?: TlsProvider | undefined | null)
   getProviderName(): string
   isSupported(): boolean
+  /** Returns the active provider name, falling back to "ring" if the requested provider is unavailable. */
+  getEffectiveProviderName(): string
 }
 export type Tls = TLS
 

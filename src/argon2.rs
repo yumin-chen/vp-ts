@@ -238,9 +238,9 @@ impl Task for HashTask {
   }
 }
 
-#[napi]
+#[napi(ts_return_type = "Promise<string>")]
 pub fn argon2_hash(
-  password: Either<String, &[u8]>,
+  #[napi(ts_arg_type = "string | Uint8Array")] password: Either<String, &[u8]>,
   options: Option<Options>,
   abort_signal: Option<AbortSignal>,
 ) -> AsyncTask<HashTask> {
@@ -256,7 +256,7 @@ pub fn argon2_hash(
 #[napi]
 pub fn argon2_hash_sync(
   env: Env,
-  password: Either<String, &[u8]>,
+  #[napi(ts_arg_type = "string | Uint8Array")] password: Either<String, &[u8]>,
   options: Option<Options>,
 ) -> Result<String> {
   let mut hash_task = HashTask {
@@ -294,9 +294,9 @@ impl Task for RawHashTask {
   }
 }
 
-#[napi]
+#[napi(ts_return_type = "Promise<Buffer>")]
 pub fn argon2_hash_raw(
-  password: Either<String, &[u8]>,
+  #[napi(ts_arg_type = "string | Uint8Array")] password: Either<String, &[u8]>,
   options: Option<Options>,
   abort_signal: Option<AbortSignal>,
 ) -> AsyncTask<RawHashTask> {
@@ -312,7 +312,7 @@ pub fn argon2_hash_raw(
 #[napi]
 pub fn argon2_hash_raw_sync(
   env: Env,
-  password: Either<String, &[u8]>,
+  #[napi(ts_arg_type = "string | Uint8Array")] password: Either<String, &[u8]>,
   options: Option<Options>,
 ) -> Result<Buffer> {
   let mut hash_task = RawHashTask {
@@ -355,10 +355,10 @@ impl Task for VerifyTask {
   }
 }
 
-#[napi]
+#[napi(ts_return_type = "Promise<boolean>")]
 pub fn argon2_verify(
-  hashed: Either<String, &[u8]>,
-  password: Either<String, &[u8]>,
+  #[napi(ts_arg_type = "string | Uint8Array")] hashed: Either<String, &[u8]>,
+  #[napi(ts_arg_type = "string | Uint8Array")] password: Either<String, &[u8]>,
   options: Option<Options>,
   abort_signal: Option<AbortSignal>,
 ) -> Result<AsyncTask<VerifyTask>> {
@@ -375,8 +375,8 @@ pub fn argon2_verify(
 #[napi]
 pub fn argon2_verify_sync(
   env: Env,
-  hashed: Either<String, &[u8]>,
-  password: Either<String, &[u8]>,
+  #[napi(ts_arg_type = "string | Uint8Array")] hashed: Either<String, &[u8]>,
+  #[napi(ts_arg_type = "string | Uint8Array")] password: Either<String, &[u8]>,
   options: Option<Options>,
 ) -> Result<bool> {
   let mut verify_task = VerifyTask {
@@ -389,7 +389,9 @@ pub fn argon2_verify_sync(
 }
 
 #[napi]
-pub fn argon2_parse_options(hashed: Either<String, &[u8]>) -> Result<ParsedHashOptions> {
+pub fn argon2_parse_options(
+  #[napi(ts_arg_type = "string | Uint8Array")] hashed: Either<String, &[u8]>,
+) -> Result<ParsedHashOptions> {
   let encoded = utf8_input(hashed)?;
   let decoded = argon2_rust::decode_phc(&encoded).map_err(map_error)?;
   Ok(ParsedHashOptions {

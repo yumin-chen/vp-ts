@@ -36,7 +36,10 @@ impl Hash {
   }
 
   #[napi]
-  pub fn update(&mut self, data: Either<String, Uint8Array>) -> Result<()> {
+  pub fn update(
+    &mut self,
+    #[napi(ts_arg_type = "string | Uint8Array")] data: Either<String, Uint8Array>,
+  ) -> Result<()> {
     let ctx = self
       .ctx
       .as_mut()
@@ -48,7 +51,7 @@ impl Hash {
     Ok(())
   }
 
-  #[napi]
+  #[napi(ts_return_type = "Buffer | string")]
   pub fn digest(&mut self, encoding: Option<String>) -> Result<Either<Buffer, String>> {
     let ctx = self
       .ctx
@@ -79,10 +82,10 @@ pub fn create_hash(algorithm: String) -> Result<Hash> {
   Hash::new(algorithm)
 }
 
-#[napi]
+#[napi(ts_return_type = "Buffer | string")]
 pub fn hash(
   algorithm: String,
-  data: Either<String, Uint8Array>,
+  #[napi(ts_arg_type = "string | Uint8Array")] data: Either<String, Uint8Array>,
   encoding: Option<String>,
 ) -> Result<Either<Buffer, String>> {
   let mut hasher = Hash::new(algorithm)?;

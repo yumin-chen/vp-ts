@@ -1,6 +1,8 @@
-import { expect, test } from "vite-plus/test";
-import { main } from "./main.ts";
+import { describe, expect, it } from "vite-plus/test";
+import { getHashes } from "../index.js";
 
-test("main returns Hello, world!", () => {
-  expect(main()).toBe("Hello, world!");
+describe("main", () => {
+  it("should return hashes", () => {
+    expect(getHashes()).toContain("sha256");
+  });
 });

@@ -1,0 +1,107 @@
+name: Local CI Job Pipeline
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+env:
+  DEBUG: "napi:*"
+  MACOSX_DEPLOYMENT_TARGET: "10.13"
+
+jobs:
+  setup:
+    steps:
+      - uses: voidzero-dev/setup-vp@v1
+        with:
+          node-version: "22"
+          cache: true
+      - run: vp check
+      - run: vp test
+
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - target: x86_64-apple-darwin
+            flags: "-x"
+          - target: aarch64-apple-darwin
+            flags: "-x"
+          - target: x86_64-pc-windows-msvc
+            flags: "-x"
+          - target: i686-pc-windows-msvc
+            flags: "-x"
+          - target: aarch64-pc-windows-msvc
+            flags: "-x"
+          - target: x86_64-unknown-linux-gnu
+            flags: "--use-napi-cross"
+          - target: aarch64-unknown-linux-gnu
+            flags: "--use-napi-cross"
+          - target: x86_64-unknown-linux-musl
+            flags: "-x"
+          - target: aarch64-unknown-linux-musl
+            flags: "-x"
+          - target: armv7-unknown-linux-gnueabihf
+            flags: "--use-napi-cross"
+          - target: powerpc64le-unknown-linux-gnu
+            flags: "--use-napi-cross"
+          - target: s390x-unknown-linux-gnu
+            flags: "--use-napi-cross"
+    steps:
+      - uses: actions/checkout@v7
+      - name: Cache cargo registry
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.cargo
+            .xwin
+            ~/.napi-rs
+            ./target
+          key: ${{ matrix.settings.target }}-cargo-cache
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: ${{ matrix.settings.target }}
+      - run: node build.mjs --target ${{ matrix.settings.target }} ${{ matrix.settings.flags }}
+      - uses: actions/upload-artifact@v7
+        with:
+          name: bindings-${{ matrix.settings.target }}
+          path: "*.node"
+
+  test-host:
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - target: x86_64-apple-darwin
+            host: macos-latest
+            architecture: x64
+          - target: aarch64-apple-darwin
+            host: macos-latest
+            architecture: arm64
+          - target: x86_64-pc-windows-msvc
+            host: windows-latest
+            architecture: x64
+          - target: aarch64-pc-windows-msvc
+            host: windows-11-arm
+            architecture: arm64
+          - target: i686-pc-windows-msvc
+            host: windows-latest
+            architecture: x64
+    steps:
+      - name: Download bindings
+        uses: actions/download-artifact@v8
+        with:
+          name: bindings-${{ matrix.settings.target }}
+          path: ./
+      - name: Run host tests
+        run: npm test
+
+  publish-dry-run:
+    steps:
+      - name: Create npm dirs
+        run: npx napi create-npm-dirs || true
+      - name: Verify package
+        run: vp check

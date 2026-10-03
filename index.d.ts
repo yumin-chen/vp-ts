@@ -9,4 +9,91 @@
  */
 export declare const __napiBindingTarget: 'native' | 'wasm32-wasi' | 'wasm32-wasip1'
 
-export declare function add(left: number, right: number): number
+export declare class Hash {
+  constructor(algorithm: string)
+  update(data: string | Uint8Array): void
+  digest(encoding?: string | undefined | null): Buffer | string
+}
+
+export declare class Hmac {
+  constructor(algorithm: string, key: string | Uint8Array)
+  update(data: string | Uint8Array): void
+  digest(encoding?: string | undefined | null): Buffer | string
+}
+
+export declare class TLS {
+  constructor(provider?: TlsProvider | undefined | null)
+  getProviderName(): string
+  isSupported(): boolean
+}
+export type Tls = TLS
+
+export declare const enum Algorithm {
+  /** Optimizes against GPU cracking attacks but vulnerable to side-channels. */
+  Argon2d = 0,
+  /** Optimized to resist side-channel attacks. */
+  Argon2i = 1,
+  /** Default value, hybrid that mixes Argon2i and Argon2d passes. */
+  Argon2id = 2,
+}
+
+export declare function argon2Hash(password: string | Uint8Array, options?: Options | undefined | null, abortSignal?: AbortSignal | undefined | null): Promise<string>
+
+export declare function argon2HashRaw(password: string | Uint8Array, options?: Options | undefined | null, abortSignal?: AbortSignal | undefined | null): Promise<Buffer>
+
+export declare function argon2HashRawSync(password: string | Uint8Array, options?: Options | undefined | null): Buffer
+
+export declare function argon2HashSync(password: string | Uint8Array, options?: Options | undefined | null): string
+
+export declare function argon2ParseOptions(hashed: string | Uint8Array): ParsedHashOptions
+
+export declare function argon2Verify(hashed: string | Uint8Array, password: string | Uint8Array, options?: Options | undefined | null, abortSignal?: AbortSignal | undefined | null): Promise<boolean>
+
+export declare function argon2VerifySync(hashed: string | Uint8Array, password: string | Uint8Array, options?: Options | undefined | null): boolean
+
+export declare function createHash(algorithm: string): Hash
+
+export declare function createHmac(algorithm: string, key: string | Uint8Array): Hmac
+
+export declare function getHashes(): Array<string>
+
+export declare function hash(algorithm: string, data: string | Uint8Array, encoding?: string | undefined | null): Buffer | string
+
+export interface Options {
+  memoryCost?: number
+  timeCost?: number
+  outputLen?: number
+  parallelism?: number
+  algorithm?: Algorithm
+  version?: Version
+  secret?: Uint8Array
+  salt?: Uint8Array
+}
+
+export interface ParsedHashOptions {
+  algorithm: Algorithm
+  version: Version
+  memoryCost: number
+  timeCost: number
+  parallelism: number
+  outputLen: number
+  saltLen: number
+}
+
+export declare function pbkdf2(password: string | Uint8Array, salt: string | Uint8Array, iterations: number, keylen: number, digest: string): Promise<Buffer>
+
+export declare function pbkdf2Sync(password: string | Uint8Array, salt: string | Uint8Array, iterations: number, keylen: number, digest: string): Buffer
+
+export declare const enum TlsProvider {
+  Ring = 0,
+  Openssl = 1,
+  Btls = 2,
+  Mbedtls = 3,
+}
+
+export declare const enum Version {
+  /** Version 16 (0x10 in hex) */
+  V0x10 = 0,
+  /** Default value, Version 19 (0x13 in hex) */
+  V0x13 = 1,
+}

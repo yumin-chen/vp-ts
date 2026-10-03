@@ -1,6 +1,6 @@
 # Starter Template
 
-TypeScript starter template.
+TypeScript starter template with local CI runner and Vite+ task caching.
 
 ## Development
 
@@ -16,22 +16,28 @@ npm run prepare
 vp install
 ```
 
-- Run the unit tests:
+- Run unit tests:
 
 ```bash
 vp test
 ```
 
-- Run the locally:
+- Run locally:
 
 ```bash
 npm run dev
 ```
 
-- Build the library:
+- Build library:
 
 ```bash
 npm run build
+```
+
+- Cross-build all targets defined in `package.json`:
+
+```bash
+node build.mjs --target-all
 ```
 
 - Code formatting:
@@ -51,3 +57,13 @@ npm run lint
 ```bash
 npm run check
 ```
+
+## Local CI Pipeline
+
+Run local CI jobs offline without relying on cloud services:
+
+```bash
+npm run ci
+```
+
+For detailed documentation on local CI architecture, cross-build options, and task caching, see [LOCAL_CI_GUIDE.md](./LOCAL_CI_GUIDE.md).

@@ -13,11 +13,11 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-    "build": "vp run scripts/build.ts --platform",
-    "build:release": "vp run scripts/build.ts --platform --release",
+    "build": "node build.mjs --platform",
+    "build:release": "node build.mjs --platform --release",
     "dev": "vp pack --watch",
     "start": "vp run src/main.ts",
-    "test": "node --test test.cjs src/core/*.test.ts",
+    "test": "node --test src/**/*.test.ts",
     "check": "vp check",
     "fmt": "vp fmt",
     "lint": "vp lint",

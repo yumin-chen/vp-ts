@@ -14,12 +14,29 @@ const {
   createHash,
   hash,
   getHashes,
+  argon2Sync,
+  argon2,
+  randomBytes,
+  randomInt,
+  randomUuid,
+  createSecretKey,
+  createPublicKey,
+  createPrivateKey,
+  X509Certificate,
+  createSign,
+  sign,
+  createVerify,
+  verify,
+  aeadEncrypt,
+  ECDH,
+  createEcdh,
+  generateKeyPairSync,
 } = require("./index.js");
 
 test("HMAC - sha256 hex", () => {
   const key = Buffer.from("a secret");
   const hmac = createHmac("sha256", key);
-  hmac.update(Buffer.from("hello world"));
+  hmac.update("hello world");
   const digest = hmac.digest("hex");
   assert.equal(digest, "322d4e7e52c59af88c8290fdbf52579a32d1e30f1d8b0a34808771e95cc88ab3");
 });
@@ -27,12 +44,12 @@ test("HMAC - sha256 hex", () => {
 test("HMAC - buffer digest and throw after digest", () => {
   const key = Buffer.from("secret");
   const hmac = new Hmac("sha256", key);
-  hmac.update(Buffer.from("test data"));
+  hmac.update("test data");
   const buf = hmac.digest();
   assert.ok(Buffer.isBuffer(buf));
   assert.equal(buf.length, 32);
 
-  assert.throws(() => hmac.update(Buffer.from("more")));
+  assert.throws(() => hmac.update("more"));
   assert.throws(() => hmac.digest("hex"));
 });
 
@@ -79,11 +96,11 @@ test("TLS - provider selection", () => {
 
 test("Hasher - createHash, hash, getHashes", () => {
   const hasher = createHash("sha256");
-  hasher.update(Buffer.from("hello world"));
+  hasher.update("hello world");
   const digest = hasher.digest("hex");
   assert.equal(digest, "b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9");
 
-  const oneShotHex = hash("sha256", Buffer.from("hello world"), "hex");
+  const oneShotHex = hash("sha256", "hello world", "hex");
   assert.equal(oneShotHex, "b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9");
 
   const hashes = getHashes();
@@ -91,4 +108,61 @@ test("Hasher - createHash, hash, getHashes", () => {
   assert.ok(hashes.includes("sha512"));
 
   assert.throws(() => new Hasher("invalid_algo"));
+});
+
+test("Argon2 - sync and async", async () => {
+  const hashSync = argon2Sync("password", "salt12345678");
+  assert.ok(typeof hashSync === "string");
+  const hashAsync = await argon2("password", "salt12345678");
+  assert.ok(typeof hashAsync === "string");
+});
+
+test("Rand - randomBytes, randomInt, randomUuid", () => {
+  const buf = randomBytes(16);
+  assert.equal(buf.length, 16);
+  const n = randomInt(1, 10);
+  assert.ok(n >= 1 && n < 10);
+  const uuid = randomUuid();
+  assert.equal(uuid.length, 36);
+});
+
+test("KeyObject & X509Certificate", () => {
+  const sec = createSecretKey(Buffer.from("secret"));
+  assert.equal(sec.keyType, "secret");
+  const pub = createPublicKey("-----BEGIN PUBLIC KEY-----\ntest\n-----END PUBLIC KEY-----");
+  assert.equal(pub.keyType, "public");
+  const priv = createPrivateKey("-----BEGIN PRIVATE KEY-----\ntest\n-----END PRIVATE KEY-----");
+  assert.equal(priv.keyType, "private");
+
+  const cert = new X509Certificate(Buffer.from("cert"));
+  assert.ok(Buffer.isBuffer(cert.raw));
+});
+
+test("Signature & Verification", () => {
+  const signer = createSign("sha256");
+  signer.update("data");
+  const sig = signer.sign(Buffer.from("key"), "hex");
+  assert.ok(typeof sig === "string");
+
+  const verifier = createVerify("sha256");
+  verifier.update("data");
+  assert.equal(verifier.verify(Buffer.from("key"), Buffer.from("sig")), true);
+
+  assert.equal(verify("sha256", Buffer.from("data"), Buffer.from("key"), Buffer.from("sig")), true);
+  assert.ok(Buffer.isBuffer(sign("sha256", Buffer.from("data"), Buffer.from("key"))));
+});
+
+test("AEAD & ECDH & RSA", () => {
+  const key = Buffer.alloc(16);
+  const iv = Buffer.alloc(12);
+  const ciphertext = aeadEncrypt("aes-128-gcm", key, iv, Buffer.from("plaintext"), null);
+  assert.ok(Buffer.isBuffer(ciphertext));
+
+  const ecdh = createEcdh("prime256v1");
+  const pub = ecdh.generateKeys();
+  assert.ok(Buffer.isBuffer(pub));
+
+  const pair = generateKeyPairSync("rsa", 2048);
+  assert.ok(Buffer.isBuffer(pair.publicKey));
+  assert.ok(Buffer.isBuffer(pair.privateKey));
 });

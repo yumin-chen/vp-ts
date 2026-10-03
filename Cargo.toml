@@ -7,7 +7,9 @@ edition = "2024"
 crate-type = ["cdylib"]
 
 [dependencies]
+argon2 = "0.6.0"
 boring-rustls-provider = "5.0.1"
+getrandom = "0.4.3"
 napi = "3"
 napi-derive = "3"
 ring = "0.17.14"

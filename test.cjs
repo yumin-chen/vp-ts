@@ -1,7 +1,8 @@
 const assert = require("node:assert/strict");
 const test = require("node:test");
 
-void test("adds two numbers", async () => {
-  const { add } = await import("./index.js");
-  assert.equal(add(2, 3), 5);
+void test("crypto hasher works", async () => {
+  const { hash, getHashes } = await import("./index.js");
+  assert.ok(getHashes().includes("sha256"));
+  assert.equal(typeof hash("sha256", "hello", "hex"), "string");
 });

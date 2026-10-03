@@ -716,25 +716,53 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`)
 }
 
-const { Hash, Hmac, TLS, Tls, Algorithm, argon2Hash, argon2HashRaw, argon2HashRawSync, argon2HashSync, argon2ParseOptions, argon2Verify, argon2VerifySync, createHash, createHmac, getHashes, hash, pbkdf2, pbkdf2Sync, TlsProvider, Version } = nativeBinding
+const { ECDH, Ecdh, Hash, Hmac, KeyObject, Sign, TLS, Tls, Verify, X509Certificate, aeadDecrypt, aeadEncrypt, Algorithm, argon2, argon2Hash, argon2HashRaw, argon2HashRawSync, argon2HashSync, argon2ParseOptions, argon2Sync, argon2Verify, argon2VerifySync, createDiffieHellman, createDiffieHellmanGroup, createECDH, createHash, createHmac, createPrivateKey, createPublicKey, createSecretKey, createSign, createVerify, decapsulate, encapsulate, generateKeyPair, generateKeyPairSync, getHashes, hash, KeyObjectType, pbkdf2, pbkdf2Sync, randomBytes, randomFillSync, randomInt, randomUuid, sign, TlsProvider, Version } = nativeBinding
+export { ECDH }
+export { Ecdh }
 export { Hash }
 export { Hmac }
+export { KeyObject }
+export { Sign }
 export { TLS }
 export { Tls }
+export { Verify }
+export { X509Certificate }
+export { aeadDecrypt }
+export { aeadEncrypt }
 export { Algorithm }
+export { argon2 }
 export { argon2Hash }
 export { argon2HashRaw }
 export { argon2HashRawSync }
 export { argon2HashSync }
 export { argon2ParseOptions }
+export { argon2Sync }
 export { argon2Verify }
 export { argon2VerifySync }
+export { createDiffieHellman }
+export { createDiffieHellmanGroup }
+export { createECDH }
 export { createHash }
 export { createHmac }
+export { createPrivateKey }
+export { createPublicKey }
+export { createSecretKey }
+export { createSign }
+export { createVerify }
+export { decapsulate }
+export { encapsulate }
+export { generateKeyPair }
+export { generateKeyPairSync }
 export { getHashes }
 export { hash }
+export { KeyObjectType }
 export { pbkdf2 }
 export { pbkdf2Sync }
+export { randomBytes }
+export { randomFillSync }
+export { randomInt }
+export { randomUuid }
+export { sign }
 export { TlsProvider }
 export { Version }
 export const __napiBindingTarget = __napiLoadedBindingTarget

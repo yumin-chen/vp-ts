@@ -9,6 +9,15 @@
  */
 export declare const __napiBindingTarget: 'native' | 'wasm32-wasi' | 'wasm32-wasip1'
 
+export declare class ECDH {
+  constructor(curve: string)
+  generateKeys(): Buffer
+  getPrivateKey(): Buffer
+  getPublicKey(): Buffer
+  computeSecret(otherPublicKey: Uint8Array): Buffer
+}
+export type Ecdh = ECDH
+
 export declare class Hash {
   constructor(algorithm: string)
   update(data: string | Uint8Array): void
@@ -21,6 +30,19 @@ export declare class Hmac {
   digest(encoding?: string | undefined | null): Buffer | string
 }
 
+export declare class KeyObject {
+  constructor(keyType: KeyObjectType, data: string | Uint8Array, asymmetricType?: string | undefined | null)
+  get type(): string
+  get asymmetricKeyType(): string | null
+  export(): Buffer
+}
+
+export declare class Sign {
+  constructor(algorithm: string)
+  update(data: string | Uint8Array): void
+  sign(privateKeyPkcs8: Uint8Array, outputEncoding?: string | undefined | null): Buffer | string
+}
+
 export declare class TLS {
   constructor(provider?: TlsProvider | undefined | null)
   getProviderName(): string
@@ -30,6 +52,27 @@ export declare class TLS {
 }
 export type Tls = TLS
 
+export declare class Verify {
+  constructor(algorithm: string)
+  update(data: string | Uint8Array): void
+  verify(publicKey: Uint8Array, signature: Uint8Array): boolean
+}
+
+export declare class X509Certificate {
+  constructor(buffer: Uint8Array)
+  get subject(): string
+  get issuer(): string
+  get validFrom(): string
+  get validTo(): string
+  get serialNumber(): string
+  get fingerprint256(): string
+  toString(): string
+}
+
+export declare function aeadDecrypt(algorithm: string, key: Uint8Array, iv: Uint8Array, ciphertext: Uint8Array, aad?: Uint8Array): Buffer
+
+export declare function aeadEncrypt(algorithm: string, key: Uint8Array, iv: Uint8Array, plaintext: Uint8Array, aad?: Uint8Array): Buffer
+
 export declare const enum Algorithm {
   /** Optimizes against GPU cracking attacks but vulnerable to side-channels. */
   Argon2d = 0,
@@ -38,6 +81,8 @@ export declare const enum Algorithm {
   /** Default value, hybrid that mixes Argon2i and Argon2d passes. */
   Argon2id = 2,
 }
+
+export declare function argon2(password: string | Uint8Array, options?: Options | undefined | null): Promise<string>
 
 export declare function argon2Hash(password: string | Uint8Array, options?: Options | undefined | null, abortSignal?: AbortSignal | undefined | null): Promise<string>
 
@@ -49,17 +94,59 @@ export declare function argon2HashSync(password: string | Uint8Array, options?: 
 
 export declare function argon2ParseOptions(hashed: string | Uint8Array): ParsedHashOptions
 
+export declare function argon2Sync(password: string | Uint8Array, options?: Options | undefined | null): string
+
 export declare function argon2Verify(hashed: string | Uint8Array, password: string | Uint8Array, options?: Options | undefined | null, abortSignal?: AbortSignal | undefined | null): Promise<boolean>
 
 export declare function argon2VerifySync(hashed: string | Uint8Array, password: string | Uint8Array, options?: Options | undefined | null): boolean
+
+export declare function createDiffieHellman(groupNameOrPrimeLen: string | number): ECDH
+
+export declare function createDiffieHellmanGroup(groupName: string): ECDH
+
+export declare function createECDH(curveName: string): ECDH
 
 export declare function createHash(algorithm: string): Hash
 
 export declare function createHmac(algorithm: string, key: string | Uint8Array): Hmac
 
+export declare function createPrivateKey(key: string | Uint8Array, asymmetricType?: string | undefined | null): KeyObject
+
+export declare function createPublicKey(key: string | Uint8Array, asymmetricType?: string | undefined | null): KeyObject
+
+export declare function createSecretKey(key: string | Uint8Array): KeyObject
+
+export declare function createSign(algorithm: string): Sign
+
+export declare function createVerify(algorithm: string): Verify
+
+export declare function decapsulate(privateKey: Uint8Array, ciphertext: Uint8Array): Buffer
+
+export declare function encapsulate(publicKey: Uint8Array): EncapsulateResult
+
+export interface EncapsulateResult {
+  sharedKey: Buffer
+  ciphertext: Buffer
+}
+
+export declare function generateKeyPair(keyType: string, modulusLength?: number | undefined | null): Promise<KeyPairResult>
+
+export declare function generateKeyPairSync(keyType: string, modulusLength?: number | undefined | null): KeyPairResult
+
 export declare function getHashes(): Array<string>
 
 export declare function hash(algorithm: string, data: string | Uint8Array, encoding?: string | undefined | null): Buffer | string
+
+export declare const enum KeyObjectType {
+  Secret = 0,
+  Public = 1,
+  Private = 2,
+}
+
+export interface KeyPairResult {
+  publicKey: string
+  privateKey: string
+}
 
 export interface Options {
   memoryCost?: number
@@ -85,6 +172,16 @@ export interface ParsedHashOptions {
 export declare function pbkdf2(password: string | Uint8Array, salt: string | Uint8Array, iterations: number, keylen: number, digest: string): Promise<Buffer>
 
 export declare function pbkdf2Sync(password: string | Uint8Array, salt: string | Uint8Array, iterations: number, keylen: number, digest: string): Buffer
+
+export declare function randomBytes(size: number): Buffer
+
+export declare function randomFillSync(buffer: Uint8Array, offset?: number | undefined | null, size?: number | undefined | null): Uint8Array
+
+export declare function randomInt(minOrMax: number, max?: number | undefined | null): number
+
+export declare function randomUuid(): string
+
+export declare function sign(algorithm: string, data: string | Uint8Array, privateKey: Uint8Array): Buffer
 
 export declare const enum TlsProvider {
   Ring = 0,

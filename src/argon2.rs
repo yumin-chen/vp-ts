@@ -404,3 +404,20 @@ pub fn argon2_parse_options(
     salt_len: decoded.salt.len() as u32,
   })
 }
+
+#[napi(ts_return_type = "Promise<string>")]
+pub fn argon2(
+  #[napi(ts_arg_type = "string | Uint8Array")] password: Either<String, &[u8]>,
+  options: Option<Options>,
+) -> AsyncTask<HashTask> {
+  argon2_hash(password, options, None)
+}
+
+#[napi]
+pub fn argon2_sync(
+  env: Env,
+  #[napi(ts_arg_type = "string | Uint8Array")] password: Either<String, &[u8]>,
+  options: Option<Options>,
+) -> Result<String> {
+  argon2_hash_sync(env, password, options)
+}

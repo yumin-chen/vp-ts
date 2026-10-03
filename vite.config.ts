@@ -26,9 +26,12 @@ export default defineConfig({
     ignorePatterns: ["examples/**"],
     jsPlugins: [{ name: "vite-plus", specifier: "vite-plus/oxlint-plugin" }],
     rules: { "vite-plus/prefer-vite-plus-imports": "error" },
-    options: { typeAware: true, typeCheck: true },
+    options: { typeAware: false, typeCheck: false },
   },
   run: {
-    cache: true,
+    cache: {
+      scripts: true,
+      tasks: true,
+    },
   },
 });

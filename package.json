@@ -1,5 +1,5 @@
 {
-  "name": "my-addon",
+  "name": "@lib/crypto",
   "version": "0.1.0",
   "files": [
     "dist"
@@ -38,7 +38,7 @@
     "vite": "npm:@voidzero-dev/vite-plus-core@1.0.0-rc.1"
   },
   "napi": {
-    "binaryName": "my-addon",
+    "binaryName": "crypto",
     "targets": [
       "x86_64-apple-darwin",
       "aarch64-apple-darwin",

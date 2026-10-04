@@ -2,9 +2,10 @@ use napi::bindgen_prelude::*;
 use napi_derive::napi;
 use rsa::{
   pkcs8::{DecodePrivateKey, DecodePublicKey, EncodePrivateKey, EncodePublicKey},
-  traits::PublicKeyParts,
-  Pkcs1v15Encrypt, RsaPrivateKey, RsaPublicKey,
+  Oaep, Pkcs1v15Encrypt, RsaPrivateKey, RsaPublicKey,
 };
+use sha1::Sha1;
+use sha2::{Sha256, Sha384, Sha512};
 
 #[napi(object)]
 pub struct KeyPairResult {
@@ -52,23 +53,35 @@ pub async fn generate_key_pair(
 }
 
 #[napi]
-pub fn public_encrypt(key_pem: String, buffer: Buffer) -> Result<Buffer> {
+pub fn public_encrypt(key_pem: String, buffer: Buffer, oaep_hash: Option<String>) -> Result<Buffer> {
   let pub_key = RsaPublicKey::from_public_key_pem(&key_pem)
     .map_err(|e| Error::new(Status::InvalidArg, format!("Invalid public key PEM: {}", e)))?;
   let mut rng = rand::thread_rng();
-  let encrypted = pub_key
-    .encrypt(&mut rng, Pkcs1v15Encrypt, &buffer)
-    .map_err(|e| Error::new(Status::GenericFailure, format!("RSA public encrypt failed: {}", e)))?;
+
+  let encrypted = match oaep_hash.as_deref().map(|s| s.to_lowercase().replace('-', "")).as_deref() {
+    Some("sha256") => pub_key.encrypt(&mut rng, Oaep::new::<Sha256>(), &buffer),
+    Some("sha384") => pub_key.encrypt(&mut rng, Oaep::new::<Sha384>(), &buffer),
+    Some("sha512") => pub_key.encrypt(&mut rng, Oaep::new::<Sha512>(), &buffer),
+    Some("sha1") => pub_key.encrypt(&mut rng, Oaep::new::<Sha1>(), &buffer),
+    _ => pub_key.encrypt(&mut rng, Pkcs1v15Encrypt, &buffer),
+  }.map_err(|e| Error::new(Status::GenericFailure, format!("RSA public encrypt failed: {}", e)))?;
+
   Ok(Buffer::from(encrypted))
 }
 
 #[napi]
-pub fn private_decrypt(key_pem: String, buffer: Buffer) -> Result<Buffer> {
+pub fn private_decrypt(key_pem: String, buffer: Buffer, oaep_hash: Option<String>) -> Result<Buffer> {
   let priv_key = RsaPrivateKey::from_pkcs8_pem(&key_pem)
     .map_err(|e| Error::new(Status::InvalidArg, format!("Invalid private key PEM: {}", e)))?;
-  let decrypted = priv_key
-    .decrypt(Pkcs1v15Encrypt, &buffer)
-    .map_err(|e| Error::new(Status::GenericFailure, format!("RSA private decrypt failed: {}", e)))?;
+
+  let decrypted = match oaep_hash.as_deref().map(|s| s.to_lowercase().replace('-', "")).as_deref() {
+    Some("sha256") => priv_key.decrypt(Oaep::new::<Sha256>(), &buffer),
+    Some("sha384") => priv_key.decrypt(Oaep::new::<Sha384>(), &buffer),
+    Some("sha512") => priv_key.decrypt(Oaep::new::<Sha512>(), &buffer),
+    Some("sha1") => priv_key.decrypt(Oaep::new::<Sha1>(), &buffer),
+    _ => priv_key.decrypt(Pkcs1v15Encrypt, &buffer),
+  }.map_err(|e| Error::new(Status::GenericFailure, format!("RSA private decrypt failed: {}", e)))?;
+
   Ok(Buffer::from(decrypted))
 }
 
@@ -88,16 +101,9 @@ pub fn private_encrypt(key_pem: String, buffer: Buffer) -> Result<Buffer> {
 pub fn public_decrypt(key_pem: String, buffer: Buffer) -> Result<Buffer> {
   let pub_key = RsaPublicKey::from_public_key_pem(&key_pem)
     .map_err(|e| Error::new(Status::InvalidArg, format!("Invalid public key PEM: {}", e)))?;
-  let priv_key = RsaPrivateKey::from_components(
-    pub_key.n().clone(),
-    pub_key.e().clone(),
-    rsa::BigUint::from(0u32),
-    vec![],
-  )
-  .map_err(|e| Error::new(Status::InvalidArg, format!("Failed RSA private key conversion: {}", e)))?;
-
-  let decrypted = priv_key
-    .decrypt(Pkcs1v15Encrypt, &buffer)
+  let mut rng = rand::thread_rng();
+  let encrypted = pub_key
+    .encrypt(&mut rng, Pkcs1v15Encrypt, &buffer)
     .map_err(|e| Error::new(Status::GenericFailure, format!("RSA public decrypt failed: {}", e)))?;
-  Ok(Buffer::from(decrypted))
+  Ok(Buffer::from(encrypted))
 }

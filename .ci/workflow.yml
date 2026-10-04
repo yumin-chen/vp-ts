@@ -1,0 +1,33 @@
+name: Local CI Pipeline
+on:
+  push:
+    branches: [main]
+  pre-commit:
+
+jobs:
+  check:
+    name: Code Quality Check
+    run: vp run ci:check
+
+  test:
+    name: Unit & Integration Tests
+    needs: [check]
+    run: vp run ci:test
+
+  build:
+    name: Native NAPI Build
+    needs: [test]
+    run: vp run ci:build
+
+  cross-build:
+    name: Cross-Compilation Build Matrix
+    needs: [build]
+    strategy:
+      matrix:
+        target:
+          - x86_64-unknown-linux-gnu
+          - aarch64-unknown-linux-gnu
+          - x86_64-unknown-linux-musl
+          - x86_64-pc-windows-msvc
+          - x86_64-apple-darwin
+    run: vp run ci:cross-build --target ${{ matrix.target }}

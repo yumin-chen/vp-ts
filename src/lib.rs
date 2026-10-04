@@ -1,6 +1,7 @@
-use napi_derive::napi;
-
-#[napi]
-pub fn add(left: i32, right: i32) -> i32 {
-  left + right
+pub mod config {
+  pub mod features;
 }
+pub mod core;
+
+pub use config::features::*;
+pub use core::*;

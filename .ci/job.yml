@@ -34,8 +34,8 @@ jobs:
         with:
           node-version: "22"
           cache: true
-      - run: vp run scripts/cross-build.ts --dry-run
-      - run: node build.js --all
+      - run: vp run build.ts --dry-run
+      - run: vp run build.ts --all
 
   test:
     name: Local Test Suite

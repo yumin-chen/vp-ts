@@ -39,7 +39,7 @@ export default defineConfig({
       command: "vp check",
     },
     "ci:build": {
-      command: "node build.js --all",
+      command: "node build.ts --all",
       cache: {
         input: [{ auto: true }, "!dist/**", "!build/**"],
         output: ["build/**"],

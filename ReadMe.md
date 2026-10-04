@@ -85,13 +85,13 @@ To run target matrix cross-building locally across platforms:
 ```bash
 npm run build:cross
 # or
-node build.js --all
+npx vp run build.ts --all
 ```
 
 To test cross-building with dry run mode:
 
 ```bash
-npx vp run scripts/cross-build.ts --dry-run
+npx vp run build.ts --dry-run
 ```
 
 ### YAML Job Script Specification

@@ -16,6 +16,7 @@
     "build": "node build.js && vp pack",
     "build:napi": "node build.js",
     "build:all": "node build.js --all",
+    "build:cross": "vp run scripts/cross-build.ts",
     "ci": "npm run build && npm test && npm run check && npm run lint",
     "build:release": "node build.js --release",
     "dev": "vp pack --watch",

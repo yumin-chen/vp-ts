@@ -31,4 +31,16 @@ export default defineConfig({
   run: {
     cache: true,
   },
+  tasks: {
+    build: {
+      command: "node build.js && vp pack",
+      cache: {
+        output: ["dist/**", "build/**"],
+      },
+    },
+    "build:cross": {
+      command: "vp run scripts/cross-build.ts",
+      cache: false,
+    },
+  },
 });

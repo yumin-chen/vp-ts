@@ -1,0 +1,53 @@
+use napi::bindgen_prelude::*;
+use object_store::path::Path;
+use object_store::ObjectStoreExt;
+
+use crate::core::types::{ObjectStore, PutOptions, PutResult};
+
+pub async fn store_put(store: &ObjectStore, path: String, bytes: Buffer) -> Result<PutResult> {
+  let p = Path::from(path.as_str());
+  let payload = object_store::PutPayload::from(bytes.to_vec());
+  let res = store
+    .inner
+    .put(&p, payload)
+    .await
+    .map_err(|e| Error::from_reason(e.to_string()))?;
+  Ok(PutResult {
+    e_tag: res.e_tag,
+    version: res.version,
+  })
+}
+
+pub async fn store_put_opts(
+  store: &ObjectStore,
+  path: String,
+  bytes: Buffer,
+  options: PutOptions,
+) -> Result<PutResult> {
+  let p = Path::from(path.as_str());
+  let payload = object_store::PutPayload::from(bytes.to_vec());
+  let mut opts = object_store::PutOptions::default();
+  if let Some(m) = options.mode {
+    match m.as_str() {
+      "create" => opts.mode = object_store::PutMode::Create,
+      "update" => {
+        if let Some(v) = options.version {
+          opts.mode = object_store::PutMode::Update(object_store::UpdateVersion {
+            e_tag: v.e_tag,
+            version: v.version,
+          });
+        }
+      }
+      _ => opts.mode = object_store::PutMode::Overwrite,
+    }
+  }
+  let res = store
+    .inner
+    .put_opts(&p, payload, opts)
+    .await
+    .map_err(|e| Error::from_reason(e.to_string()))?;
+  Ok(PutResult {
+    e_tag: res.e_tag,
+    version: res.version,
+  })
+}

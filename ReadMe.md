@@ -8,7 +8,6 @@ TypeScript & NAPI-RS Native Addon Starter with fully offline Local CI orchestrat
 - **Native Task Orchestration & Caching**: Powered by Vite+ (`vp run`) and `@voidzero-dev/vite-task-client` for intelligent task caching. Output files and stdout/stderr are cached and instantly replayed on cache hits.
 - **Native Cross-Building**: Matrix cross-compilation powered by `@napi-rs/cli`, `cargo-zigbuild`, and `cargo-xwin` directly on host platforms without requiring heavy Docker containers or Linux kernel microVMs.
 - **Pre-Commit Hook Integration**: Pre-commit automated code checks and testing configured via `vite.config.ts` (`staged`).
-- **Declarative YAML Workflow Support**: `.github/workflows/local-ci.yml` included for YAML-compatible local runner tools (e.g. `act`).
 
 ---
 

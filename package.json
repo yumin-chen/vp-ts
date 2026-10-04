@@ -19,6 +19,7 @@
     "test:prepublish": "npm run build && npm run test",
     "postcommit": "npm run ci:build && npm run ci:test && npm run test:prepublish",
     "publish": "npm publish",
+    "ci": "vp run src/main.ts ci.ts",
     "dev": "vp pack --watch",
     "start": "vp run src/main.ts",
     "test": "node --test test.cjs",
@@ -31,6 +32,7 @@
   "devDependencies": {
     "@napi-rs/cli": "^3",
     "@types/node": "^26.6.2",
+    "@voidzero-dev/vite-task-client": "^0.2.0",
     "vite-plus": "^1.0.0-rc.1"
   },
   "peerDependencies": {

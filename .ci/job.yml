@@ -1,0 +1,52 @@
+name: Local Pure Rust & NAPI-RS Cross-Build CI Pipeline
+description: Offline local CI job orchestration for building, testing, and cross-building NAPI-RS bindings using Vite Task Runner
+
+jobs:
+  check:
+    name: Code Quality Check
+    steps:
+      - uses: voidzero-dev/setup-vp@v1
+        with:
+          node-version: "22"
+          cache: true
+      - run: vp install
+      - run: vp check
+
+  build-matrix:
+    name: Native & Cross Target Matrix Build
+    strategy:
+      matrix:
+        target:
+          - x86_64-apple-darwin
+          - aarch64-apple-darwin
+          - x86_64-pc-windows-msvc
+          - i686-pc-windows-msvc
+          - aarch64-pc-windows-msvc
+          - x86_64-unknown-linux-gnu
+          - aarch64-unknown-linux-gnu
+          - x86_64-unknown-linux-musl
+          - aarch64-unknown-linux-musl
+          - armv7-unknown-linux-gnueabihf
+          - powerpc64le-unknown-linux-gnu
+          - s390x-unknown-linux-gnu
+    steps:
+      - uses: voidzero-dev/setup-vp@v1
+        with:
+          node-version: "22"
+          cache: true
+      - run: vp run scripts/cross-build.ts --dry-run
+      - run: node build.js --all
+
+  test:
+    name: Local Test Suite
+    steps:
+      - uses: voidzero-dev/setup-vp@v1
+        with:
+          node-version: "22"
+          cache: true
+      - run: npm test
+
+  ci-local:
+    name: Complete Offline Local CI
+    steps:
+      - run: npm run ci

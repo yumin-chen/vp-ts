@@ -22,7 +22,13 @@
     "check": "vp check",
     "fmt": "vp fmt",
     "lint": "vp lint",
-    "prepublishOnly": "vp run build",
+    "ci": "tsx src/ci.ts",
+    "ci:check": "tsx src/ci.ts check",
+    "ci:build": "tsx src/ci.ts build",
+    "ci:test": "tsx src/ci.ts test",
+    "ci:cross": "tsx src/ci.ts cross",
+    "ci:publish": "tsx src/ci.ts publish",
+    "prepublishOnly": "node build.js && vp pack",
     "prepare": "vp config"
   },
   "devDependencies": {
@@ -30,11 +36,15 @@
     "@emnapi/runtime": "^1.11.3",
     "@napi-rs/cli": "^3.10.5",
     "@types/node": "^26.6.2",
+    "@voidzero-dev/vite-task-client": "^0.2.0",
     "emnapi": "^1.11.3",
-    "vite-plus": "^1.0.0-rc.1"
+    "tsx": "^4.23.15",
+    "typescript": "^5.8.2",
+    "vite-plus": "^1.0.0-rc.1",
+    "yaml": "^2.9.1"
   },
   "peerDependencies": {
-    "typescript": "^7.0.2"
+    "typescript": "^5.8.2"
   },
   "overrides": {
     "vite": "npm:@voidzero-dev/vite-plus-core@1.0.0-rc.1"

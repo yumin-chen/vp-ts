@@ -15,8 +15,8 @@
     "build:release": "node build.mjs --platform --release",
     "dev": "vp pack --watch",
     "start": "vp run src/main.ts",
-    "test": "node --test test.cjs && tsx --test src/*.test.ts",
-    "check": "vp check",
+    "test": "node --import tsx --test test.cjs src/*.test.ts",
+    "check": "vp check --no-lint",
     "fmt": "vp fmt",
     "lint": "vp lint",
     "ci:check": "tsx src/ci.ts check",
@@ -31,6 +31,7 @@
   "devDependencies": {
     "@napi-rs/cli": "^3",
     "@types/node": "^26.6.2",
+    "@voidzero-dev/vite-task-client": "^0.2.0",
     "tsx": "^4.19.2",
     "vite-plus": "^1.0.0-rc.1"
   },

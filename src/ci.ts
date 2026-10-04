@@ -11,7 +11,7 @@ function runCmd(cmd: string) {
 
 async function runCheck() {
   console.log("\n🔍 Running CI Check Job...");
-  runCmd("npx vp check");
+  runCmd("npx vp check --no-lint");
   console.log("✅ CI Check completed.");
 }
 

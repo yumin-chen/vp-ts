@@ -1,3 +1,4 @@
+use base64::Engine;
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
 use ring::hmac;
@@ -43,7 +44,7 @@ impl Hmac {
     match encoding.as_deref() {
       Some("hex") => Ok(Either::A(hex::encode(bytes))),
       Some("base64") => Ok(Either::A(
-        ring::test::from_hex(&hex::encode(bytes)).map(|_| hex::encode(bytes)).unwrap_or_default(),
+        base64::engine::general_purpose::STANDARD.encode(bytes),
       )),
       _ => Ok(Either::B(Buffer::from(bytes.to_vec()))),
     }

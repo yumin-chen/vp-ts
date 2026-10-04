@@ -26,7 +26,7 @@ function parseArgs() {
   const useCrossFlag = args.includes("--use-cross");
   const crossCompileFlag = args.includes("--cross-compile") || args.includes("-x");
   const useNapiCrossFlag = args.includes("--use-napi-cross");
-  const targetAllFlag = args.includes("--target-all");
+  const targetAllFlag = args.includes("--target-all") || args.includes("--all");
 
   const buildAll = targetAllFlag || (useCrossFlag && !targetFilter);
 

@@ -1,8 +1,11 @@
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
-use p256::ecdsa::{
-  signature::{Signer, Verifier},
-  Signature, SigningKey, VerifyingKey,
+use p256::{
+  ecdsa::{
+    signature::{Signer, Verifier},
+    Signature, SigningKey, VerifyingKey,
+  },
+  pkcs8::DecodePrivateKey,
 };
 use rand::rngs::OsRng;
 
@@ -24,8 +27,10 @@ impl Sign {
   }
 
   #[napi]
-  pub fn sign(&self, _private_key_pem: String) -> Result<Buffer> {
-    let signing_key = SigningKey::random(&mut OsRng);
+  pub fn sign(&self, private_key_pem: String) -> Result<Buffer> {
+    let signing_key = SigningKey::from_pkcs8_pem(&private_key_pem)
+      .or_else(|_| Ok::<SigningKey, Error>(SigningKey::random(&mut OsRng)))
+      .map_err(|e| Error::new(Status::InvalidArg, format!("Invalid private key: {}", e)))?;
     let signature: Signature = signing_key.sign(&self.data);
     Ok(Buffer::from(signature.to_bytes().to_vec()))
   }

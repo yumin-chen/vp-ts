@@ -44,7 +44,7 @@ export default defineConfig({
       },
     },
     test: {
-      command: "npm test",
+      command: "vp test && node --test test.cjs",
       cache: {
         input: [{ auto: true }],
       },
@@ -52,7 +52,7 @@ export default defineConfig({
     ci: {
       command: "tsx src/ci.ts",
       cache: {
-        input: [{ auto: true }, ".github/workflows/*.yml", "src/ci.ts"],
+        input: [{ auto: true }, "ci.yml", "src/ci.ts"],
         env: ["DEBUG", "MACOSX_DEPLOYMENT_TARGET"],
       },
     },

@@ -49,13 +49,19 @@ function runCommand(cmd: string, env: Record<string, string> = {}) {
 }
 
 function loadWorkflow(): Workflow | null {
-  const workflowPath = path.resolve(".github/workflows/ci.yml");
-  if (fs.existsSync(workflowPath)) {
-    try {
-      const content = fs.readFileSync(workflowPath, "utf-8");
-      return parseYaml(content) as Workflow;
-    } catch (e) {
-      console.warn("Could not parse .github/workflows/ci.yml:", e);
+  const possiblePaths = [
+    path.resolve("ci.yml"),
+    path.resolve("ci.yaml"),
+    path.resolve(".ci/ci.yml"),
+  ];
+  for (const workflowPath of possiblePaths) {
+    if (fs.existsSync(workflowPath)) {
+      try {
+        const content = fs.readFileSync(workflowPath, "utf-8");
+        return parseYaml(content) as Workflow;
+      } catch (e) {
+        console.warn(`Could not parse ${workflowPath}:`, e);
+      }
     }
   }
   return null;

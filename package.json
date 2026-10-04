@@ -13,15 +13,20 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-    "build": "node build.js && vp pack",
-    "build:napi": "node build.js",
-    "build:release": "node build.js --release",
+    "build": "node build.mjs && vp pack",
+    "build:napi": "node build.mjs",
+    "build:release": "node build.mjs --release",
     "dev": "vp pack --watch",
     "start": "vp run src/main.ts",
-    "test": "vp test && node --test test.cjs",
+    "test": "vp test",
     "check": "vp check",
     "fmt": "vp fmt",
     "lint": "vp lint",
+    "ci": "tsx src/ci.ts",
+    "ci:check": "tsx src/ci.ts check",
+    "ci:build": "tsx src/ci.ts build",
+    "ci:test": "tsx src/ci.ts test",
+    "test:prepublish": "vp run build && vp run test",
     "prepublishOnly": "vp run build",
     "prepare": "vp config"
   },
@@ -29,8 +34,12 @@
     "@emnapi/core": "^1.11.3",
     "@emnapi/runtime": "^1.11.3",
     "@napi-rs/cli": "^3.10.5",
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "^26.6.2",
+    "@voidzero-dev/vite-task-client": "^0.2.0",
     "emnapi": "^1.11.3",
+    "js-yaml": "^5.4.2",
+    "tsx": "^4.23.15",
     "vite-plus": "^1.0.0-rc.1"
   },
   "peerDependencies": {

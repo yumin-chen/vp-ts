@@ -7,6 +7,8 @@
     "build": "node build.mjs && vp pack",
     "build:napi": "node build.mjs",
     "build:release": "node build.mjs --release",
+    "ci": "vp run ci",
+    "ci:cross": "vp run ci:cross",
     "dev": "vp pack --watch",
     "start": "vp run src/main.ts",
     "test": "node --test test.cjs && vp test",
@@ -39,6 +41,7 @@
   "devDependencies": {
     "@napi-rs/cli": "^3.10.5",
     "@types/node": "^26.6.2",
+    "@voidzero-dev/vite-task-client": "^0.2.0",
     "emnapi": "2.0.0-alpha.5",
     "vite-plus": "1.0.0"
   },

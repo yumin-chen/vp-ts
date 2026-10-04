@@ -29,4 +29,20 @@ export default defineConfig({
   run: {
     cache: true,
   },
+  tasks: {
+    ci: {
+      command: "node scripts/cross-build.mjs && vp check && vp test",
+      cache: {
+        input: [{ auto: true }, "!dist/**", "!npm/**"],
+        output: ["dist/**"],
+      },
+    },
+    "ci:cross": {
+      command: "node scripts/cross-build.mjs --all",
+      cache: {
+        input: ["src/**", "Cargo.toml", "Cargo.lock"],
+        output: ["npm/**"],
+      },
+    },
+  },
 });

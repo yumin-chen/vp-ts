@@ -76,21 +76,24 @@ function parseArgs() {
 
   let targetFilter: string | null = null;
   const targetIdx = args.indexOf("--target");
-  if (targetIdx !== -1 && args[targetIdx + 1] && !args[targetIdx + 1].startsWith("-")) {
-    targetFilter = args[targetIdx + 1];
+  if (targetIdx !== -1) {
+    const nextArg = args[targetIdx + 1];
+    if (nextArg && !nextArg.startsWith("-")) {
+      targetFilter = nextArg;
+    }
   } else {
     const tIdx = args.indexOf("-t");
-    if (tIdx !== -1 && args[tIdx + 1] && !args[tIdx + 1].startsWith("-")) {
-      targetFilter = args[tIdx + 1];
+    if (tIdx !== -1) {
+      const nextArg = args[tIdx + 1];
+      if (nextArg && !nextArg.startsWith("-")) {
+        targetFilter = nextArg;
+      }
     }
   }
 
   const filteredArgs = args.filter(
     (arg) =>
-      arg !== "--target-all" &&
-      arg !== "--all" &&
-      arg !== "--dry-run" &&
-      arg !== "--build-all",
+      arg !== "--target-all" && arg !== "--all" && arg !== "--dry-run" && arg !== "--build-all",
   );
 
   return {
@@ -107,7 +110,7 @@ function parseArgs() {
 
 async function runLocalCI() {
   // Leverage vite-task-client for tracking task environment variables if running under VP Task Runner
-  const debugEnv = getEnv("DEBUG") || process.env.DEBUG;
+  const debugEnv = getEnv("DEBUG") || process.env["DEBUG"];
   if (debugEnv) {
     console.log(`[Local CI] Running with DEBUG=${debugEnv}`);
   }
@@ -132,9 +135,7 @@ async function runLocalCI() {
 
   if (targetFilter) {
     const match = TARGET_MATRIX.find((t) => t.target === targetFilter);
-    targetsToBuild = match
-      ? [match]
-      : [{ target: targetFilter, flags: "-x" }];
+    targetsToBuild = match ? [match] : [{ target: targetFilter, flags: "-x" }];
   } else if (buildAll) {
     targetsToBuild = TARGET_MATRIX;
   } else {
@@ -172,11 +173,11 @@ async function runLocalCI() {
       };
 
       if (target) {
-        buildOpts.target = target;
+        buildOpts["target"] = target;
       }
-      if (useCross) buildOpts.useCross = true;
-      if (effectiveUseNapiCross) buildOpts.useNapiCross = true;
-      if (effectiveCrossCompile) buildOpts.crossCompile = true;
+      if (useCross) buildOpts["useCross"] = true;
+      if (effectiveUseNapiCross) buildOpts["useNapiCross"] = true;
+      if (effectiveCrossCompile) buildOpts["crossCompile"] = true;
 
       const { task } = await cli.build(buildOpts as any);
       await task;

@@ -1,5 +1,5 @@
 import { expect, test } from "vite-plus/test";
-import { Sign, createSign, sign, KeyObject } from "../dist/index.js";
+import { Sign, createSign, sign, Verify, KeyObject } from "../dist/index.js";
 
 test("Sign class update and sign", () => {
   const signer = new Sign("sha256");
@@ -9,6 +9,11 @@ test("Sign class update and sign", () => {
 
   expect(typeof sig).toBe("string");
   expect((sig as string).length).toBeGreaterThan(0);
+
+  const verifier = new Verify("sha256");
+  verifier.update("message to sign");
+  const isValid = verifier.verify(keyObj, Buffer.from(sig as string, "hex"));
+  expect(isValid).toBe(true);
 });
 
 test("createSign helper", () => {

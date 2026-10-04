@@ -1,13 +1,20 @@
 #![deny(clippy::all)]
 
 use crate::key_object::KeyObject;
+use ed25519_dalek::{ed25519::SignatureEncoding, Signer, SigningKey};
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
-use ring::digest;
+use rsa::{
+  pkcs8::DecodePrivateKey,
+  pkcs1v15::SigningKey as RsaSigningKey,
+  signature::Signer as RsaSigner,
+  RsaPrivateKey,
+};
+use rsa::sha2::Sha256;
 
 #[napi]
 pub struct Sign {
-  algorithm: String,
+  pub algorithm: String,
   buffer: Vec<u8>,
 }
 
@@ -41,33 +48,51 @@ impl Sign {
       Either::B(k) => k.export().to_vec(),
     };
 
-    // Calculate digest or HMAC signature using ring
-    let alg = match self.algorithm.to_lowercase().replace(['-', '_'], "").as_str() {
-      "sha1" | "rsa-sha1" => &digest::SHA1_FOR_LEGACY_USE_ONLY,
-      "sha256" | "rsa-sha256" => &digest::SHA256,
-      "sha384" | "rsa-sha384" => &digest::SHA384,
-      "sha512" | "rsa-sha512" => &digest::SHA512,
-      _ => &digest::SHA256,
+    let sig_bytes = if key_bytes.len() == 32 {
+      // Ed25519 32-byte secret key
+      if let Ok(key_array) = key_bytes.as_slice().try_into() {
+        let signing_key = SigningKey::from_bytes(key_array);
+        let signature = signing_key.sign(&self.buffer);
+        signature.to_vec()
+      } else {
+        return Err(Error::new(Status::InvalidArg, "Invalid Ed25519 secret key length"));
+      }
+    } else if let Ok(pem_str) = String::from_utf8(key_bytes.clone()) {
+      if let Ok(priv_key) = RsaPrivateKey::from_pkcs8_pem(&pem_str) {
+        let signing_key = RsaSigningKey::<Sha256>::new(priv_key);
+        let signature = signing_key.sign(&self.buffer);
+        use rsa::signature::SignatureEncoding;
+        signature.to_vec()
+      } else {
+        // Fallback SHA-256 HMAC / digest signature
+        let mut mac_ctx = ring::hmac::Context::with_key(&ring::hmac::Key::new(
+          ring::hmac::HMAC_SHA256,
+          &key_bytes,
+        ));
+        mac_ctx.update(&self.buffer);
+        mac_ctx.sign().as_ref().to_vec()
+      }
+    } else {
+      let mut mac_ctx = ring::hmac::Context::with_key(&ring::hmac::Key::new(
+        ring::hmac::HMAC_SHA256,
+        &key_bytes,
+      ));
+      mac_ctx.update(&self.buffer);
+      mac_ctx.sign().as_ref().to_vec()
     };
-
-    let mut ctx = digest::Context::new(alg);
-    ctx.update(&key_bytes);
-    ctx.update(&self.buffer);
-    let tag = ctx.finish();
-    let bytes = tag.as_ref();
 
     let enc = encoding.unwrap_or_else(|| "buffer".to_string());
     match enc.to_lowercase().as_str() {
       "hex" => {
-        let hex_str = bytes.iter().map(|b| format!("{b:02x}")).collect::<String>();
+        let hex_str = sig_bytes.iter().map(|b| format!("{b:02x}")).collect::<String>();
         Ok(Either::A(hex_str))
       }
       "base64" => {
-        let b64 = base64_encode(bytes);
+        let b64 = base64_encode(&sig_bytes);
         Ok(Either::A(b64))
       }
-      "buffer" | "" => Ok(Either::B(Buffer::from(bytes))),
-      _ => Ok(Either::B(Buffer::from(bytes))),
+      "buffer" | "" => Ok(Either::B(Buffer::from(sig_bytes))),
+      _ => Ok(Either::B(Buffer::from(sig_bytes))),
     }
   }
 }

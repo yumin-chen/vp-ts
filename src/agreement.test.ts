@@ -3,6 +3,7 @@ import {
   createPublicKey,
   createSecretKey,
   createMac,
+  Sign,
   Verify,
   createVerify,
   encapsulate,
@@ -21,9 +22,16 @@ test("createPublicKey and createSecretKey", () => {
 });
 
 test("Verify class and createVerify", () => {
+  const message = "data-to-verify";
+  const hmacKey = "my-hmac-secret-key-1234567890"; // non 32 byte key for HMAC
+
+  const signer = new Sign("sha256");
+  signer.update(message);
+  const sig = signer.sign(hmacKey, "buffer") as Buffer;
+
   const verifier = createVerify("sha256");
-  verifier.update("data");
-  const isValid = verifier.verify("public-key", Buffer.from("sig"));
+  verifier.update(message);
+  const isValid = verifier.verify(hmacKey, sig);
   expect(isValid).toBe(true);
 });
 
@@ -35,4 +43,5 @@ test("encapsulate and decapsulate", () => {
 
   const sharedDec = decapsulate(key, ciphertext);
   expect(Buffer.isBuffer(sharedDec)).toBe(true);
+  expect(sharedDec.toString("hex")).toBe(sharedKey.toString("hex"));
 });

@@ -4,8 +4,8 @@ use crate::key_object::{CryptoKeyPair, KeyObject};
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
 use rsa::{
-  pkcs8::{EncodePrivateKey, EncodePublicKey},
-  RsaPrivateKey, RsaPublicKey,
+  pkcs8::{DecodePrivateKey, DecodePublicKey, EncodePrivateKey, EncodePublicKey},
+  Pkcs1v15Encrypt, RsaPrivateKey, RsaPublicKey,
 };
 
 #[napi(object)]
@@ -56,9 +56,17 @@ pub fn public_encrypt(key: Either<String, &KeyObject>, buffer: Uint8Array) -> Re
     Either::B(k) => k.export().to_vec(),
   };
 
-  let mut cipher = key_bytes;
-  cipher.extend_from_slice(buffer.as_ref());
-  Ok(Buffer::from(cipher))
+  let pem_str = String::from_utf8(key_bytes)
+    .map_err(|_| Error::new(Status::InvalidArg, "Key must be UTF-8 PEM string"))?;
+  let pub_key = RsaPublicKey::from_public_key_pem(&pem_str)
+    .map_err(|_| Error::new(Status::InvalidArg, "Invalid RSA public key PEM"))?;
+
+  let mut rng = rsa::rand_core::OsRng;
+  let encrypted = pub_key
+    .encrypt(&mut rng, Pkcs1v15Encrypt, buffer.as_ref())
+    .map_err(|_| Error::new(Status::GenericFailure, "RSA public encryption failed"))?;
+
+  Ok(Buffer::from(encrypted))
 }
 
 #[napi]
@@ -68,17 +76,40 @@ pub fn private_decrypt(key: Either<String, &KeyObject>, buffer: Uint8Array) -> R
     Either::B(k) => k.export().to_vec(),
   };
 
-  let mut plain = key_bytes;
-  plain.extend_from_slice(buffer.as_ref());
-  Ok(Buffer::from(plain))
+  let pem_str = String::from_utf8(key_bytes)
+    .map_err(|_| Error::new(Status::InvalidArg, "Key must be UTF-8 PEM string"))?;
+  let priv_key = RsaPrivateKey::from_pkcs8_pem(&pem_str)
+    .map_err(|_| Error::new(Status::InvalidArg, "Invalid RSA private key PEM"))?;
+
+  let decrypted = priv_key
+    .decrypt(Pkcs1v15Encrypt, buffer.as_ref())
+    .map_err(|_| Error::new(Status::GenericFailure, "RSA private decryption failed"))?;
+
+  Ok(Buffer::from(decrypted))
 }
 
 #[napi]
 pub fn private_encrypt(key: Either<String, &KeyObject>, buffer: Uint8Array) -> Result<Buffer> {
-  public_encrypt(key, buffer)
+  let key_bytes = match key {
+    Either::A(s) => s.into_bytes(),
+    Either::B(k) => k.export().to_vec(),
+  };
+
+  let pem_str = String::from_utf8(key_bytes)
+    .map_err(|_| Error::new(Status::InvalidArg, "Key must be UTF-8 PEM string"))?;
+  let priv_key = RsaPrivateKey::from_pkcs8_pem(&pem_str)
+    .map_err(|_| Error::new(Status::InvalidArg, "Invalid RSA private key PEM"))?;
+
+  let pub_key = RsaPublicKey::from(&priv_key);
+  let mut rng = rsa::rand_core::OsRng;
+  let encrypted = pub_key
+    .encrypt(&mut rng, Pkcs1v15Encrypt, buffer.as_ref())
+    .map_err(|_| Error::new(Status::GenericFailure, "RSA private encryption failed"))?;
+
+  Ok(Buffer::from(encrypted))
 }
 
 #[napi]
 pub fn public_decrypt(key: Either<String, &KeyObject>, buffer: Uint8Array) -> Result<Buffer> {
-  private_decrypt(key, buffer)
+  public_encrypt(key, buffer)
 }

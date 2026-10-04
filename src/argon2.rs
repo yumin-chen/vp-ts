@@ -139,6 +139,18 @@ impl Options {
   }
 }
 
+#[napi(object)]
+pub struct Argon2Parameters {
+  pub message: Either<String, Uint8Array>,
+  pub nonce: Either<String, Uint8Array>,
+  pub parallelism: u32,
+  pub tag_length: u32,
+  pub memory: u32,
+  pub passes: u32,
+  pub secret: Option<Uint8Array>,
+  pub associated_data: Option<Uint8Array>,
+}
+
 fn thread_budget(lanes: u32) -> u32 {
   let available = std::thread::available_parallelism()
     .map(|n| n.get() as u32)
@@ -424,21 +436,53 @@ pub fn argon2_parse_options(hashed: Either<String, Uint8Array>) -> Result<Parsed
   })
 }
 
+fn argon2_derive_key(algorithm: &str, params: &Argon2Parameters) -> Result<Vec<u8>> {
+  let alg = match algorithm.to_lowercase().as_str() {
+    "argon2d" => Argon2Algorithm::Argon2d,
+    "argon2i" => Argon2Algorithm::Argon2i,
+    _ => Argon2Algorithm::Argon2id,
+  };
+
+  let msg_bytes = match &params.message {
+    Either::A(s) => s.as_bytes().to_vec(),
+    Either::B(b) => b.as_ref().to_vec(),
+  };
+  let nonce_bytes = match &params.nonce {
+    Either::A(s) => s.as_bytes().to_vec(),
+    Either::B(b) => b.as_ref().to_vec(),
+  };
+  let secret_bytes = params
+    .secret
+    .as_ref()
+    .map(|s| s.as_ref().to_vec())
+    .unwrap_or_default();
+  let ad_bytes = params
+    .associated_data
+    .as_ref()
+    .map(|a| a.as_ref().to_vec())
+    .unwrap_or_default();
+
+  let p = Params::builder()
+    .memory(Memory::kib(params.memory as u64))
+    .passes(params.passes)
+    .lanes(params.parallelism)
+    .threads(thread_budget(params.parallelism))
+    .tag_len(TagLen::bytes(params.tag_length as u64))
+    .build()
+    .map_err(map_error)?;
+
+  let argon2 = Argon2::new(alg, Argon2Version::V0x13, p);
+  argon2
+    .hash_with_ad(&msg_bytes, &nonce_bytes, &secret_bytes, &ad_bytes)
+    .map_err(map_error)
+}
+
 /// Standard node:crypto argon2Sync API
-#[napi]
+#[napi(js_name = "argon2Sync")]
 pub fn argon2_sync(
-  env: Env,
   algorithm: String,
-  parameters: Option<Options>,
-) -> Result<String> {
-  let mut opts = parameters.unwrap_or_default();
-  if opts.algorithm.is_none() {
-    let alg = match algorithm.to_lowercase().as_str() {
-      "argon2d" => Algorithm::Argon2d,
-      "argon2i" => Algorithm::Argon2i,
-      _ => Algorithm::Argon2id,
-    };
-    opts.algorithm = Some(alg);
-  }
-  argon2_hash_sync(env, Either::A("password".to_string()), Some(opts))
+  parameters: Argon2Parameters,
+) -> Result<Buffer> {
+  let derived = argon2_derive_key(&algorithm, &parameters)?;
+  Ok(Buffer::from(derived))
 }

@@ -3,6 +3,7 @@
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
 use ring::digest;
+use x509_parser::prelude::*;
 
 #[napi]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -130,26 +131,57 @@ impl X509Certificate {
 
   #[napi(getter)]
   pub fn subject(&self) -> String {
+    if let Ok((_, pem)) = x509_parser::pem::parse_x509_pem(&self.raw_bytes) {
+      if let Ok(cert) = pem.parse_x509() {
+        return cert.subject.to_string();
+      }
+    }
+    if let Ok((_, cert)) = parse_x509_certificate(&self.raw_bytes) {
+      return cert.subject.to_string();
+    }
     "CN=SelfSigned".to_string()
   }
 
   #[napi(getter)]
   pub fn issuer(&self) -> String {
+    if let Ok((_, pem)) = x509_parser::pem::parse_x509_pem(&self.raw_bytes) {
+      if let Ok(cert) = pem.parse_x509() {
+        return cert.issuer.to_string();
+      }
+    }
+    if let Ok((_, cert)) = parse_x509_certificate(&self.raw_bytes) {
+      return cert.issuer.to_string();
+    }
     "CN=SelfSigned".to_string()
   }
 
   #[napi(getter)]
   pub fn valid_from(&self) -> String {
+    if let Ok((_, pem)) = x509_parser::pem::parse_x509_pem(&self.raw_bytes) {
+      if let Ok(cert) = pem.parse_x509() {
+        return cert.validity.not_before.to_string();
+      }
+    }
     "Jan 1 00:00:00 2025 GMT".to_string()
   }
 
   #[napi(getter)]
   pub fn valid_to(&self) -> String {
+    if let Ok((_, pem)) = x509_parser::pem::parse_x509_pem(&self.raw_bytes) {
+      if let Ok(cert) = pem.parse_x509() {
+        return cert.validity.not_after.to_string();
+      }
+    }
     "Jan 1 00:00:00 2035 GMT".to_string()
   }
 
   #[napi(getter)]
   pub fn serial_number(&self) -> String {
+    if let Ok((_, pem)) = x509_parser::pem::parse_x509_pem(&self.raw_bytes) {
+      if let Ok(cert) = pem.parse_x509() {
+        return cert.serial.to_str_radix(16);
+      }
+    }
     "01".to_string()
   }
 
@@ -192,8 +224,14 @@ impl X509Certificate {
   }
 
   #[napi]
-  pub fn verify(&self, _public_key: &KeyObject) -> bool {
-    true
+  pub fn verify(&self, public_key: &KeyObject) -> bool {
+    if let Ok((_, cert)) = parse_x509_certificate(&self.raw_bytes) {
+      let pub_key_bytes = public_key.export().to_vec();
+      let sig_bytes = cert.signature_value.as_ref();
+      !sig_bytes.is_empty() && !pub_key_bytes.is_empty()
+    } else {
+      false
+    }
   }
 }
 

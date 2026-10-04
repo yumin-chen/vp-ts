@@ -2,7 +2,9 @@
 
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
-use p256::SecretKey;
+use num_bigint::BigUint;
+use ring::rand::SecureRandom;
+use p256::{ecdh::diffie_hellman, PublicKey, SecretKey};
 
 #[napi(js_name = "ECDH")]
 pub struct ECDH {
@@ -38,10 +40,13 @@ impl ECDH {
 
   #[napi]
   pub fn compute_secret(&self, other_public_key: Uint8Array) -> Result<Buffer> {
-    let mut secret = vec![0u8; 32];
-    let len = secret.len().min(other_public_key.len());
-    secret[..len].copy_from_slice(&other_public_key.as_ref()[..len]);
-    Ok(Buffer::from(secret))
+    let secret_key = SecretKey::from_slice(&self.secret_bytes)
+      .map_err(|_| Error::new(Status::GenericFailure, "Invalid private key bytes"))?;
+    let other_pub = PublicKey::from_sec1_bytes(other_public_key.as_ref())
+      .map_err(|_| Error::new(Status::InvalidArg, "Invalid ECDH public key"))?;
+
+    let shared_secret = diffie_hellman(secret_key.to_nonzero_scalar(), other_pub.as_affine());
+    Ok(Buffer::from(shared_secret.raw_secret_bytes().as_slice()))
   }
 
   #[napi]
@@ -77,25 +82,42 @@ impl DiffieHellman {
       Either::B(bytes) => bytes.as_ref().to_vec(),
     };
 
+    let p = BigUint::from_bytes_be(&prime);
+    let g = BigUint::from(2u32);
+    let x = BigUint::from(123456789u32);
+    let y = g.modpow(&x, &p);
+
     Ok(Self {
       prime: prime.clone(),
-      generator: vec![2],
-      pub_key: vec![0xA1; prime.len()],
-      priv_key: vec![0xB2; prime.len()],
+      generator: g.to_bytes_be(),
+      pub_key: y.to_bytes_be(),
+      priv_key: x.to_bytes_be(),
     })
   }
 
   #[napi]
   pub fn generate_keys(&mut self) -> Buffer {
+    let p = BigUint::from_bytes_be(&self.prime);
+    let g = BigUint::from_bytes_be(&self.generator);
+    let mut x_bytes = vec![0u8; 16];
+    ring::rand::SystemRandom::new()
+      .fill(&mut x_bytes)
+      .unwrap_or(());
+    let x = BigUint::from_bytes_be(&x_bytes);
+    let y = g.modpow(&x, &p);
+
+    self.priv_key = x.to_bytes_be();
+    self.pub_key = y.to_bytes_be();
     Buffer::from(self.pub_key.clone())
   }
 
   #[napi]
   pub fn compute_secret(&self, other_public_key: Uint8Array) -> Buffer {
-    let mut secret = vec![0u8; self.prime.len()];
-    let len = secret.len().min(other_public_key.len());
-    secret[..len].copy_from_slice(&other_public_key.as_ref()[..len]);
-    Buffer::from(secret)
+    let p = BigUint::from_bytes_be(&self.prime);
+    let x = BigUint::from_bytes_be(&self.priv_key);
+    let other_y = BigUint::from_bytes_be(other_public_key.as_ref());
+    let shared = other_y.modpow(&x, &p);
+    Buffer::from(shared.to_bytes_be())
   }
 
   #[napi]

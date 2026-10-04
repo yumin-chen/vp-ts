@@ -1,6 +1,15 @@
-import { createHash as nodeCreateHash } from "node:crypto";
+import { createHash as nodeCreateHash, timingSafeEqual as nodeTimingSafeEqual } from "node:crypto";
 import { expect, test } from "vite-plus/test";
-import { CryptoHasher, createHash, cryptoHash } from "../dist/index.js";
+import {
+  CryptoHasher,
+  createHash,
+  cryptoHash,
+  getHashes,
+  getMacs,
+  getCiphers,
+  getCurves,
+  timingSafeEqual,
+} from "../dist/index.js";
 
 test("CryptoHasher sha256 matches node:crypto createHash", () => {
   const data = "Hello, world!";
@@ -33,4 +42,25 @@ test("cryptoHash helper function", () => {
   const nodeHasher = nodeCreateHash("sha256");
   nodeHasher.update(data);
   expect(nativeDigest).toBe(nodeHasher.digest("hex"));
+});
+
+test("getHashes, getMacs, getCiphers, getCurves", () => {
+  expect(getHashes()).toContain("sha256");
+  expect(getMacs()).toContain("hmac");
+  expect(getCiphers()).toContain("aes-256-gcm");
+  expect(getCurves()).toContain("prime256v1");
+});
+
+test("timingSafeEqual matches node:crypto", () => {
+  const buf1 = Buffer.from("a-secret-value");
+  const buf2 = Buffer.from("a-secret-value");
+  const buf3 = Buffer.from("a-wrong--value");
+
+  expect(timingSafeEqual(buf1, buf2)).toBe(true);
+  expect(timingSafeEqual(buf1, buf3)).toBe(false);
+  expect(nodeTimingSafeEqual(buf1, buf2)).toBe(true);
+  expect(nodeTimingSafeEqual(buf1, buf3)).toBe(false);
+
+  const diffLen = Buffer.from("different-length");
+  expect(() => timingSafeEqual(buf1, diffLen)).toThrow();
 });

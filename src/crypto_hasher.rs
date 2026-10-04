@@ -128,3 +128,43 @@ pub fn crypto_hash(
   hasher.update(data, None)?;
   hasher.digest(encoding)
 }
+
+#[napi(js_name = "getHashes")]
+pub fn get_hashes() -> Vec<String> {
+  vec![
+    "sha1".to_string(),
+    "sha256".to_string(),
+    "sha384".to_string(),
+    "sha512".to_string(),
+  ]
+}
+
+#[napi(js_name = "getMacs")]
+pub fn get_macs() -> Vec<String> {
+  vec!["hmac".to_string()]
+}
+
+#[napi(js_name = "getCiphers")]
+pub fn get_ciphers() -> Vec<String> {
+  vec!["aes-256-gcm".to_string(), "aes-128-ccm".to_string()]
+}
+
+#[napi(js_name = "getCurves")]
+pub fn get_curves() -> Vec<String> {
+  vec!["prime256v1".to_string(), "secp256k1".to_string()]
+}
+
+#[napi(js_name = "timingSafeEqual")]
+pub fn timing_safe_equal(a: Uint8Array, b: Uint8Array) -> Result<bool> {
+  if a.len() != b.len() {
+    return Err(Error::new(
+      Status::InvalidArg,
+      "Input buffers must have the same length",
+    ));
+  }
+  let mut diff = 0u8;
+  for (&x, &y) in a.as_ref().iter().zip(b.as_ref().iter()) {
+    diff |= x ^ y;
+  }
+  Ok(diff == 0)
+}

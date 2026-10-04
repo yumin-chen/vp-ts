@@ -17,7 +17,7 @@ export default defineConfig({
     include: ["src/**/*.{test,spec}.ts"],
   },
   staged: {
-    "*": "vp check --fix",
+    "*": ["vp check --fix", "vp test"],
   },
   fmt: {
     ignore: ["examples/**"],
@@ -30,5 +30,40 @@ export default defineConfig({
   },
   run: {
     cache: true,
+  },
+  tasks: {
+    check: {
+      command: "vp check",
+      cache: {
+        input: [{ auto: true }],
+      },
+    },
+    test: {
+      command: "vp test",
+      cache: {
+        input: [{ auto: true }],
+      },
+    },
+    build: {
+      command: "node build.ts && vp pack",
+      cache: {
+        input: [{ auto: true }, "!dist/**", "!target/**"],
+        output: ["dist/**"],
+      },
+    },
+    "build:cross": {
+      command: "node scripts/cross-build.ts",
+      cache: {
+        input: [{ auto: true }, "!dist/**", "!target/**"],
+        output: ["dist/**"],
+      },
+    },
+    ci: {
+      command: "node src/ci.ts",
+      cache: {
+        input: [{ auto: true }, "!dist/**", "!target/**"],
+        output: ["dist/**"],
+      },
+    },
   },
 });

@@ -1,0 +1,5 @@
+examples
+examples/**
+target
+dist
+*.node

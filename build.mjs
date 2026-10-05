@@ -128,6 +128,7 @@ async function runBuild() {
         ...options,
         cwd: options.cwd || process.cwd(),
         outputDir: options.outputDir || "./dist",
+        platform: true,
         release: isRelease,
         cargoOptions: buildCommand.cargoOptions,
       };

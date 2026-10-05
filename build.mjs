@@ -40,13 +40,24 @@ export async function build(options = {}) {
     })
   }
 
-  // Copy built .node / .wasm files from npm/ to dist/ and root directory so prebuilds can be distributed and loaded
+  // Copy built .node, .wasm, .cjs, and .mjs files from npm/ to dist/ and root directory
   if (fs.existsSync('npm')) {
     const files = fs.readdirSync('npm')
     for (const file of files) {
-      if (file.endsWith('.node') || file.endsWith('.wasm')) {
-        fs.copyFileSync(path.join('npm', file), path.join('.', file))
-        fs.copyFileSync(path.join('npm', file), path.join('dist', file))
+      const ext = path.extname(file)
+      if (
+        ext === '.node' ||
+        ext === '.wasm' ||
+        ext === '.cjs' ||
+        ext === '.mjs' ||
+        file.endsWith('.d.ts') ||
+        file.endsWith('.d.cts')
+      ) {
+        const srcPath = path.join('npm', file)
+        if (fs.statSync(srcPath).isFile()) {
+          fs.copyFileSync(srcPath, path.join('.', file))
+          fs.copyFileSync(srcPath, path.join('dist', file))
+        }
       }
     }
   }

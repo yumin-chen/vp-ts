@@ -1,8 +1,19 @@
 const assert = require("node:assert/strict");
 const test = require("node:test");
 
-const { add } = require("./index.js");
+const { createHmac, randomBytes, createHash, getHashes } = require("./index.js");
 
-test("adds two numbers", () => {
-  assert.equal(add(2, 3), 5);
+test("@lib/crypto basic exports", () => {
+  const bytes = randomBytes(16);
+  assert.equal(bytes.length, 16);
+
+  const hmac = createHmac("sha256", Buffer.from("key"));
+  hmac.update(Buffer.from("data"));
+  assert.equal(typeof hmac.digest("hex"), "string");
+
+  const hash = createHash("sha256");
+  hash.update(Buffer.from("data"));
+  assert.equal(typeof hash.digest("hex"), "string");
+
+  assert.ok(getHashes().includes("sha256"));
 });

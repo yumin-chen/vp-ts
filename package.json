@@ -1,11 +1,11 @@
 {
-  "name": "my-addon",
+  "name": "@lib/crypto",
   "version": "0.1.0",
-  "main": "index.js",
-  "types": "index.d.ts",
   "files": [
     "dist"
   ],
+  "main": "index.js",
+  "types": "index.d.ts",
   "exports": {
     ".": "./index.js",
     "./package.json": "./package.json"
@@ -15,15 +15,34 @@
     "build:release": "node build.mjs --platform --release",
     "dev": "vp pack --watch",
     "start": "vp run src/main.ts",
-    "test": "node --test test.cjs",
-    "check": "vp check",
+    "test": "node --import tsx --test test.cjs src/*.test.ts",
+    "check": "vp check --no-lint",
     "fmt": "vp fmt",
     "lint": "vp lint",
+    "ci:check": "tsx src/ci.ts check",
+    "ci:build": "tsx src/ci.ts build",
+    "ci:test": "tsx src/ci.ts test",
+    "test:prepublish": "tsx src/ci.ts prepublish",
+    "ci:publish": "tsx src/ci.ts publish",
+    "ci": "tsx src/ci.ts",
     "prepublishOnly": "vp run build",
     "prepare": "vp config"
   },
+  "devDependencies": {
+    "@napi-rs/cli": "^3",
+    "@types/node": "^26.6.2",
+    "@voidzero-dev/vite-task-client": "^0.2.0",
+    "tsx": "^4.19.2",
+    "vite-plus": "^1.0.0-rc.1"
+  },
+  "peerDependencies": {
+    "typescript": "^7.0.2"
+  },
+  "overrides": {
+    "vite": "npm:@voidzero-dev/vite-plus-core@1.0.0-rc.1"
+  },
   "napi": {
-    "binaryName": "my-addon",
+    "binaryName": "lib_crypto_native",
     "targets": [
       "x86_64-apple-darwin",
       "aarch64-apple-darwin",
@@ -40,17 +59,6 @@
       "x86_64-unknown-freebsd",
       "wasm32-wasip1-threads"
     ]
-  },
-  "devDependencies": {
-    "@napi-rs/cli": "^3",
-    "@types/node": "^26.6.2",
-    "vite-plus": "^1.0.0-rc.1"
-  },
-  "peerDependencies": {
-    "typescript": "^7.0.2"
-  },
-  "overrides": {
-    "vite": "npm:@voidzero-dev/vite-plus-core@1.0.0-rc.1"
   },
   "devEngines": {
     "packageManager": {

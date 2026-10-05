@@ -1,5 +1,5 @@
 [package]
-name = "my-addon-native"
+name = "lib_crypto_native"
 version = "0.1.0"
 edition = "2024"
 
@@ -7,8 +7,22 @@ edition = "2024"
 crate-type = ["cdylib"]
 
 [dependencies]
-napi = "3"
+napi = { version = "3", features = ["napi4", "async"] }
 napi-derive = "3"
+ring = "0.17"
+rustls = { version = "0.23", default-features = false, features = ["ring"] }
+argon2 = "0.5"
+sha2 = "0.10"
+sha1 = "0.10"
+hmac = "0.12"
+pbkdf2 = "0.12"
+rand = "0.8"
+rsa = "0.9"
+aes-gcm = "0.10"
+uuid = { version = "1.10", features = ["v4", "v7"] }
+pkcs8 = { version = "0.10", features = ["pem", "encryption"] }
+sec1 = { version = "0.7", features = ["pem"] }
+hkdf = "0.12"
 
 [build-dependencies]
 napi-build = "2"

@@ -45,7 +45,7 @@ export default defineConfig({
       },
     },
     build: {
-      command: "node build.ts && vp pack",
+      command: "vp pack && node build.ts",
       cache: {
         input: [{ auto: true }, "!dist/**", "!target/**"],
         output: ["dist/**"],

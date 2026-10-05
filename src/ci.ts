@@ -18,16 +18,16 @@ const STAGES: Stage[] = [
     command: "npx vp test",
   },
   {
-    name: "3. Host Native Build",
+    name: "3. Package Bundle Verification",
+    command: "npx vp pack",
+  },
+  {
+    name: "4. Host Native Build",
     command: "node build.ts",
   },
   {
-    name: "4. Cross-Build Matrix Dry-Run",
+    name: "5. Cross-Build Matrix Dry-Run",
     command: "node scripts/cross-build.ts --all --dry-run",
-  },
-  {
-    name: "5. Package Verification",
-    command: "npx vp pack",
   },
 ];
 

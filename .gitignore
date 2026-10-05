@@ -1,7 +1,8 @@
 # compiled output files and executables
 build
 out
-dist
+dist/*
+!dist/*.node
 target
 
 # dependencies
@@ -13,6 +14,6 @@ logs
 *.log
 
 # NAPI generated files
-*.node
+!*.node
 index.js
 index.d.ts

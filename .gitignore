@@ -1,10 +1,11 @@
 # compiled output files and executables
 build
 out
-dist
-dist-test
+dist/
+!dist/**/*.node
+!npm/**/*.node
+!*.node
 target
-*.node
 .*.tmp
 .*.napi-stage*
 .napi-rs*

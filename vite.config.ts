@@ -7,7 +7,7 @@ export default defineConfig({
     outDir: "dist",
     exports: true,
     dts: {
-      generator: "tsgo",
+      generator: "oxc",
     },
     deps: {
       resolveDepSubpath: true,
@@ -28,5 +28,49 @@ export default defineConfig({
   },
   run: {
     cache: true,
+  },
+  tasks: {
+    build: {
+      command: "node build.mjs && vp pack",
+      cache: {
+        input: [{ auto: true }, "!dist/**", "!npm/**"],
+        output: ["dist/**", "*.node", "npm/**"],
+        env: ["NODE_ENV"],
+      },
+    },
+    check: {
+      command: "vp check src/",
+      cache: {
+        input: [{ auto: true }],
+      },
+    },
+    test: {
+      command: "node --test test.cjs && vp test",
+      cache: {
+        input: [{ auto: true }],
+        env: ["NODE_ENV"],
+      },
+    },
+    "cross-build": {
+      command: "node build.mjs --use-cross",
+      cache: {
+        input: [{ auto: true }, "!dist/**", "!npm/**"],
+        output: ["npm/**", "*.node"],
+      },
+    },
+    ci: {
+      command: "node --experimental-strip-types src/ci.ts",
+      cache: {
+        input: [{ auto: true }],
+        env: ["CI", "NODE_ENV"],
+      },
+    },
+    "publish:local": {
+      command: "npm run build",
+      cache: {
+        input: [{ auto: true }],
+        output: ["dist/**"],
+      },
+    },
   },
 });

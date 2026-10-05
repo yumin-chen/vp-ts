@@ -1,0 +1,85 @@
+name: Local CI Pipeline
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+env:
+  DEBUG: 'napi:*'
+  MACOSX_DEPLOYMENT_TARGET: '10.13'
+
+jobs:
+  check:
+    name: Code Check & Lint
+    steps:
+      - uses: actions/checkout@v4
+      - uses: voidzero-dev/setup-vp@v1
+        with:
+          node-version: '22'
+          cache: true
+      - run: vp check src/
+
+  build:
+    name: Build & Cross-Compile
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - target: x86_64-apple-darwin
+            flags: '-x'
+          - target: aarch64-apple-darwin
+            flags: '-x'
+          - target: x86_64-pc-windows-msvc
+            flags: '-x'
+          - target: i686-pc-windows-msvc
+            flags: '-x'
+          - target: aarch64-pc-windows-msvc
+            flags: '-x'
+          - target: x86_64-unknown-linux-gnu
+            flags: '--use-napi-cross'
+          - target: aarch64-unknown-linux-gnu
+            flags: '--use-napi-cross'
+          - target: x86_64-unknown-linux-musl
+            flags: '-x'
+          - target: aarch64-unknown-linux-musl
+            flags: '-x'
+          - target: armv7-unknown-linux-gnueabihf
+            flags: '--use-napi-cross'
+          - target: powerpc64le-unknown-linux-gnu
+            flags: '--use-napi-cross'
+          - target: s390x-unknown-linux-gnu
+            flags: '--use-napi-cross'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: voidzero-dev/setup-vp@v1
+        with:
+          node-version: '22'
+          cache: true
+      - run: vp run build
+
+  test:
+    name: Run Unit Tests
+    needs:
+      - build
+    steps:
+      - uses: actions/checkout@v4
+      - uses: voidzero-dev/setup-vp@v1
+        with:
+          node-version: '22'
+          cache: true
+      - run: vp run test
+
+  publish:
+    name: Package & Publish
+    needs:
+      - check
+      - build
+      - test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: voidzero-dev/setup-vp@v1
+        with:
+          node-version: '22'
+          cache: true
+      - run: vp run publish:local

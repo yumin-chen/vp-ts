@@ -13,6 +13,10 @@
     "check": "vp check src/",
     "fmt": "vp fmt src/",
     "lint": "vp lint src/",
+    "ci": "vp run ci",
+    "ci:ts": "node --experimental-strip-types src/ci.ts",
+    "build:cross": "node build.mjs --use-cross",
+    "publish:local": "vp run build",
     "prepublishOnly": "vp run build",
     "prepare": "vp config"
   },

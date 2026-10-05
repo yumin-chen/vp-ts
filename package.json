@@ -13,6 +13,10 @@
     "check": "vp check src/",
     "fmt": "vp fmt src/",
     "lint": "vp lint src/",
+    "ci": "vp run ci",
+    "ci:ts": "node --experimental-strip-types src/ci.ts",
+    "build:cross": "node build.mjs --use-cross",
+    "publish:local": "vp run build",
     "prepublishOnly": "vp run build",
     "prepare": "vp config"
   },
@@ -38,6 +42,7 @@
   "devDependencies": {
     "@napi-rs/cli": "^3.10.5",
     "@types/node": "^26.6.2",
+    "@voidzero-dev/vite-task-client": "^0.2.0",
     "emnapi": "2.0.0-alpha.5",
     "vite-plus": "1.0.0"
   },

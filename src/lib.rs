@@ -18,3 +18,6 @@ pub(crate) mod pbkdf2;
 
 #[path = "tls.rs"]
 pub(crate) mod tls;
+
+#[path = "rsa.rs"]
+pub(crate) mod rsa;

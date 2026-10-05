@@ -30,6 +30,7 @@ rcgen = "0.13"
 rand = "0.8"
 base64 = "0.22"
 hex = "0.4"
+rsa = { version = "0.9", features = ["sha2", "pem"] }
 
 [build-dependencies]
 napi-build = "2"

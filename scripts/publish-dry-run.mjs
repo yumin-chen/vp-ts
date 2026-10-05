@@ -8,8 +8,8 @@ if (fs.existsSync("./npm")) {
   console.log("📁 Staging directory ./npm exists and is ready.");
 }
 
-if (fs.existsSync("./build")) {
-  console.log("📁 Output directory ./build exists.");
+if (fs.existsSync("./dist")) {
+  console.log("📁 Output directory ./dist exists.");
 }
 
 console.log("✅ Publish Dry-Run complete.");

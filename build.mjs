@@ -84,7 +84,7 @@ async function runBuild() {
       const buildOpts = {
         ...options,
         cwd: options.cwd || process.cwd(),
-        outputDir: options.outputDir || "./build",
+        outputDir: options.outputDir || "./dist",
         release: isRelease,
         cargoOptions: buildCommand.cargoOptions,
       };

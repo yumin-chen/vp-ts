@@ -1,4 +1,5 @@
+examples
 examples/**
-target/**
-dist/**
+target
+dist
 *.node

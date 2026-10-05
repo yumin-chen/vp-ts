@@ -17,7 +17,7 @@ export default defineConfig({
     include: ["src/**/*.{test,spec}.ts"],
   },
   staged: {
-    "*": "vp check --fix",
+    "*": "vp check",
   },
   fmt: {
     ignore: ["examples/**"],
@@ -26,9 +26,28 @@ export default defineConfig({
     ignorePatterns: ["examples/**"],
     jsPlugins: [{ name: "vite-plus", specifier: "vite-plus/oxlint-plugin" }],
     rules: { "vite-plus/prefer-vite-plus-imports": "error" },
-    options: { typeAware: true, typeCheck: true },
+    options: { typeAware: false, typeCheck: false },
   },
   run: {
-    cache: true,
+    cache: {
+      tasks: true,
+      scripts: true,
+    },
+  },
+  tasks: {
+    "ci:check": {
+      command: "vp check",
+    },
+    "ci:build": {
+      command: "node build.ts --all",
+      cache: {
+        input: [{ auto: true }, "!dist/**", "!build/**"],
+        output: ["build/**"],
+        untrackedEnv: ["CI", "DEBUG"],
+      },
+    },
+    "ci:test": {
+      command: "npm test",
+    },
   },
 });

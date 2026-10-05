@@ -165,6 +165,7 @@ async function runLocalCI() {
     try {
       const buildOpts: Record<string, any> = {
         ...options,
+        platform: true,
         cwd: options.cwd || process.cwd(),
         outputDir: options.outputDir || "./dist",
         release: isRelease,

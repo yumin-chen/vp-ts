@@ -146,6 +146,7 @@ async function runCrossBuild() {
         esm: true,
         release,
         target,
+        outputDir: "dist",
         useNapiCross: targetUseNapiCross,
         crossCompile: targetCrossCompile,
         useCross: targetUseCross,

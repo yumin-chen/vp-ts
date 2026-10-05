@@ -13,7 +13,7 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-    "build": "node scripts/build.ts && vp pack",
+    "build": "vp pack && node scripts/build.ts",
     "build:napi": "node scripts/build.ts",
     "build:release": "node scripts/build.ts --release",
     "dev": "vp pack --watch",

@@ -90,11 +90,13 @@ export async function runBuild() {
 
   for (const targetEntry of targetsToBuild) {
     const target = typeof targetEntry === "string" ? targetEntry : targetEntry?.target;
+    const isWasmTarget = target?.startsWith("wasm32");
     const isNapiCrossTarget =
       target &&
       (target.includes("gnueabihf") || target.includes("powerpc") || target.includes("s390x"));
     const effectiveUseNapiCross = useNapiCross || (target ? isNapiCrossTarget : false);
-    const effectiveCrossCompile = crossCompile || (target ? !isNapiCrossTarget : false);
+    const effectiveCrossCompile =
+      !isWasmTarget && (crossCompile || (target ? !isNapiCrossTarget : false));
 
     console.log(`\n⚙️  Building target: ${target || "default host"}`);
     if (dryRun) {
@@ -125,7 +127,12 @@ export async function runBuild() {
       if (fs.existsSync(buildDir)) {
         const files = fs.readdirSync(buildDir);
         for (const file of files) {
-          if (file.endsWith(".node")) {
+          if (
+            file.endsWith(".node") ||
+            file.endsWith(".wasm") ||
+            file.endsWith(".cjs") ||
+            file.endsWith(".mjs")
+          ) {
             fs.copyFileSync(path.join(buildDir, file), path.resolve(process.cwd(), file));
           }
         }

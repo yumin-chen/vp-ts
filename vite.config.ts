@@ -31,4 +31,40 @@ export default defineConfig({
   run: {
     cache: true,
   },
+  tasks: {
+    build: {
+      command: "node build.mjs",
+      cache: {
+        input: [{ auto: true }, "!dist/**"],
+        output: ["dist/**"],
+      },
+    },
+    check: {
+      command: "vp check",
+      cache: true,
+    },
+    test: {
+      command: "vp test",
+      cache: true,
+    },
+    ci: {
+      command: "tsx src/ci.ts",
+      cache: false,
+    },
+    "ci:check": {
+      command: "tsx src/ci.ts check",
+      cache: true,
+    },
+    "ci:build": {
+      command: "tsx src/ci.ts build",
+      cache: {
+        input: [{ auto: true }, "!dist/**"],
+        output: ["dist/**"],
+      },
+    },
+    "ci:test": {
+      command: "tsx src/ci.ts test",
+      cache: true,
+    },
+  },
 });

@@ -1,0 +1,32 @@
+name: Local CI Workflow
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+env:
+  DEBUG: "napi:*"
+
+jobs:
+  check:
+    name: Check & Lint
+    steps:
+      - name: Code check
+        run: npx vp check
+      - name: Lint check
+        run: npx vp lint
+      - name: Format check
+        run: npx vp fmt
+
+  build:
+    name: Build Addon & Bundle
+    steps:
+      - name: Build native binary and bundle
+        run: node build.mjs --release
+
+  test:
+    name: Test Suite
+    steps:
+      - name: Run tests
+        run: npx vp test

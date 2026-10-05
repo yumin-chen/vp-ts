@@ -26,9 +26,13 @@
     "prepare": "vp config"
   },
   "devDependencies": {
+    "@emnapi/core": "^1.11.3",
+    "@emnapi/runtime": "^1.11.3",
     "@napi-rs/cli": "^3",
     "@types/node": "^26.6.2",
     "@voidzero-dev/vite-task-client": "^0.2.0",
+    "@ziglang/cli": "^0.0.14",
+    "emnapi": "^1.11.3",
     "vite-plus": "^1.0.0-rc.1"
   },
   "peerDependencies": {

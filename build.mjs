@@ -3,6 +3,8 @@ import path from "node:path";
 import process from "node:process";
 import { createBuildCommand, NapiCli } from "@napi-rs/cli";
 
+process.env.PATH = `${path.resolve(process.cwd(), "node_modules/.bin")}:${process.env.PATH}`;
+
 const pkgPath = path.resolve(process.cwd(), "package.json");
 const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
 const packageTargets = pkg.napi?.targets || [];
@@ -85,6 +87,7 @@ async function runBuild() {
         ...options,
         cwd: options.cwd || process.cwd(),
         outputDir: options.outputDir || "./dist",
+        platform: options.platform ?? true,
         release: isRelease,
         cargoOptions: buildCommand.cargoOptions,
       };

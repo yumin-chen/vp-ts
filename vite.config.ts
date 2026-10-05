@@ -17,17 +17,17 @@ export default defineConfig({
     "*": "vp check --fix",
   },
   fmt: {
-    ignorePatterns: ["examples/**"],
+    ignorePatterns: ["examples/**", "dist/**"],
   },
   lint: {
-    ignorePatterns: ["examples/**"],
+    ignorePatterns: ["examples/**", "dist/**"],
     jsPlugins: [{ name: "vite-plus", specifier: "vite-plus/oxlint-plugin" }],
     rules: { "vite-plus/prefer-vite-plus-imports": "error" },
     options: { typeAware: true, typeCheck: true },
   },
   test: {
     include: ["src/**/*.test.ts"],
-    exclude: ["examples/**"],
+    exclude: ["examples/**", "dist/**"],
   },
   run: {
     cache: true,
@@ -40,7 +40,7 @@ export default defineConfig({
       command: "node build.mjs --platform",
       cache: {
         input: ["src/**", "Cargo.toml", "Cargo.lock", "build.mjs", "build.rs"],
-        output: ["build/**", "dist/**"],
+        output: ["dist/**"],
       },
     },
     test: {

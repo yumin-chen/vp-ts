@@ -59,6 +59,14 @@ pub fn decapsulate(_key: Buffer, _ciphertext: Buffer) -> Result<Buffer> {
 
 #[napi(js_name = "diffieHellman")]
 pub fn diffie_hellman(private_key: Buffer, public_key: Buffer) -> Result<Buffer> {
+  if private_key.len() == 32 {
+    if let Ok(secret) = p256::SecretKey::from_slice(private_key.as_ref()) {
+      if let Ok(pk) = p256::PublicKey::from_sec1_bytes(public_key.as_ref()) {
+        let shared = p256::ecdh::diffie_hellman(secret.to_nonzero_scalar(), pk.as_affine());
+        return Ok(Buffer::from(shared.raw_secret_bytes().as_slice().to_vec()));
+      }
+    }
+  }
   let len = private_key.len().min(public_key.len());
   let mut secret = vec![0u8; len];
   for i in 0..len {

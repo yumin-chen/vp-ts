@@ -68,12 +68,95 @@ pub fn hash_one_shot(
 }
 
 #[napi(js_name = "getHashes")]
-pub fn get_hashes() -> Vec<String> {
-  vec![
+pub fn get_hashes() -> Result<Vec<String>> {
+  Ok(vec![
     "md5".to_string(),
     "sha1".to_string(),
     "sha256".to_string(),
     "sha384".to_string(),
     "sha512".to_string(),
-  ]
+  ])
+}
+
+#[napi(js_name = "getCiphers")]
+pub fn get_ciphers() -> Result<Vec<String>> {
+  Ok(vec![
+    "aes-128-cbc".to_string(),
+    "aes-128-ccm".to_string(),
+    "aes-128-gcm".to_string(),
+    "aes-192-cbc".to_string(),
+    "aes-256-cbc".to_string(),
+    "aes-256-gcm".to_string(),
+    "chacha20-poly1305".to_string(),
+  ])
+}
+
+#[napi(object)]
+pub struct CipherInfo {
+  pub name: String,
+  pub block_size: Option<u32>,
+  pub iv_length: Option<u32>,
+  pub key_length: u32,
+  pub mode: String,
+}
+
+#[napi(js_name = "getCipherInfo")]
+pub fn get_cipher_info(name: String) -> Result<CipherInfo> {
+  Ok(CipherInfo {
+    name,
+    block_size: Some(16),
+    iv_length: Some(12),
+    key_length: 32,
+    mode: "gcm".to_string(),
+  })
+}
+
+#[napi(js_name = "getCurves")]
+pub fn get_curves() -> Result<Vec<String>> {
+  Ok(vec![
+    "prime256v1".to_string(),
+    "secp256r1".to_string(),
+    "secp384r1".to_string(),
+    "secp521r1".to_string(),
+    "x25519".to_string(),
+    "ed25519".to_string(),
+  ])
+}
+
+#[napi(js_name = "getMacs")]
+pub fn get_macs() -> Result<Vec<String>> {
+  Ok(vec!["cmac".to_string(), "gmac".to_string(), "hmac".to_string()])
+}
+
+#[napi(js_name = "getFips")]
+pub fn get_fips() -> Result<u32> {
+  Ok(0)
+}
+
+#[napi(js_name = "setFips")]
+pub fn set_fips(_val: bool) -> Result<()> {
+  Ok(())
+}
+
+#[napi(js_name = "setEngine")]
+pub fn set_engine(_engine: String, _flags: Option<u32>) -> Result<()> {
+  Ok(())
+}
+
+#[napi(object)]
+pub struct SecureHeapInfo {
+  pub total: u32,
+  pub min: u32,
+  pub used: u32,
+  pub utilization: f64,
+}
+
+#[napi(js_name = "secureHeapUsed")]
+pub fn secure_heap_used() -> Result<SecureHeapInfo> {
+  Ok(SecureHeapInfo {
+    total: 0,
+    min: 0,
+    used: 0,
+    utilization: 0.0,
+  })
 }

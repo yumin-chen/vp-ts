@@ -8,6 +8,7 @@ export declare class Cipher {
   final(): Buffer;
   getAuthTag(): Buffer;
 }
+export { Cipher as Cipheriv };
 
 export declare class CryptoKeyPair {
   constructor(publicKey: Buffer, privateKey: Buffer);
@@ -22,6 +23,7 @@ export declare class Decipher {
   update(data: Buffer | string): Buffer;
   final(): Buffer;
 }
+export { Decipher as Decipheriv };
 
 export declare class Ecdh {
   constructor(curveName: string);
@@ -33,6 +35,8 @@ export declare class Ecdh {
   setPublicKey(publicKey: Buffer): void;
 }
 export type ECDH = Ecdh;
+export type DiffieHellman = Ecdh;
+export type DiffieHellmanGroup = Ecdh;
 
 export declare class Hash {
   constructor(algorithm: string);
@@ -94,7 +98,17 @@ export declare class X509Certificate {
   toString(): string;
 }
 
-export declare function argon2(algorithm: string, parameters: Argon2Parameters): Buffer;
+export declare class Certificate {
+  static exportChallenge(spkac: Buffer): Buffer;
+  static exportPublicKey(spkac: Buffer): Buffer;
+  static verifySpkac(spkac: Buffer): boolean;
+}
+
+export declare function argon2(
+  algorithm: string,
+  parameters: Argon2Parameters,
+  callback?: (err: Error | null, derivedKey?: Buffer) => void,
+): Buffer | void;
 
 export interface Argon2Parameters {
   message: Buffer | string;
@@ -109,6 +123,52 @@ export interface Argon2Parameters {
 
 export declare function argon2Sync(algorithm: string, parameters: Argon2Parameters): Buffer;
 
+export declare function checkPrimeSync(candidate: Buffer): boolean;
+export declare function checkPrime(
+  candidate: Buffer,
+  callback?: (err: Error | null, isPrime?: boolean) => void,
+): boolean | void;
+
+export declare function generatePrimeSync(size: number): Buffer;
+export declare function generatePrime(
+  size: number,
+  callback?: (err: Error | null, prime?: Buffer) => void,
+): Buffer | void;
+
+export declare function timingSafeEqual(a: Buffer, b: Buffer): boolean;
+
+export interface GenerateKeyOptions {
+  length: number;
+}
+export declare function generateKeySync(type: string, options: GenerateKeyOptions): KeyObject;
+export declare function generateKey(
+  type: string,
+  options: GenerateKeyOptions,
+  callback?: (err: Error | null, key?: KeyObject) => void,
+): KeyObject | void;
+
+export declare function scryptSync(
+  password: Buffer | string,
+  salt: Buffer | string,
+  keylen: number,
+  options?: ScryptOptions | undefined | null,
+): Buffer;
+
+export declare function scrypt(
+  password: Buffer | string,
+  salt: Buffer | string,
+  keylen: number,
+  options?: ScryptOptions | undefined | null,
+  callback?: (err: Error | null, key?: Buffer) => void,
+): Buffer | void;
+
+export interface ScryptOptions {
+  cost?: number;
+  blockSize?: number;
+  parallelization?: number;
+  maxmem?: number;
+}
+
 export declare function createCipheriv(algorithm: string, key: Buffer, iv: Buffer): Cipher;
 
 export declare function createDecipheriv(algorithm: string, key: Buffer, iv: Buffer): Decipher;
@@ -116,6 +176,8 @@ export declare function createDecipheriv(algorithm: string, key: Buffer, iv: Buf
 export declare function createDiffieHellman(primeOrLength: number | Buffer): Ecdh;
 
 export declare function createDiffieHellmanGroup(groupName: string): Ecdh;
+
+export declare const getDiffieHellman: typeof createDiffieHellmanGroup;
 
 export declare function createECDH(curveName: string): Ecdh;
 
@@ -148,6 +210,12 @@ export interface EncapsulateResult {
 
 export declare function exportPkcs8(keyBytes: Buffer): string;
 
+export declare function parsePKCS12(bundle: Buffer): Pkcs12Result;
+export interface Pkcs12Result {
+  privateKey?: string;
+  certificate?: string;
+}
+
 export declare function generateKeyPair(
   type: string,
   options?: RsaGenerateOptions | undefined | null,
@@ -158,7 +226,28 @@ export declare function generateKeyPairSync(
   options?: RsaGenerateOptions | undefined | null,
 ): KeyPairResult;
 
+export declare function getCiphers(): Array<string>;
+export interface CipherInfo {
+  name: string;
+  blockSize?: number;
+  ivLength?: number;
+  keyLength: number;
+  mode: string;
+}
+export declare function getCipherInfo(name: string): CipherInfo;
+export declare function getCurves(): Array<string>;
 export declare function getHashes(): Array<string>;
+export declare function getMacs(): Array<string>;
+export declare function getFips(): number;
+export declare function setFips(val: boolean): void;
+export declare function setEngine(engine: string, flags?: number): void;
+export interface SecureHeapInfo {
+  total: number;
+  min: number;
+  used: number;
+  utilization: number;
+}
+export declare function secureHeapUsed(): SecureHeapInfo;
 
 export declare function hash(
   algorithm: string,
@@ -211,10 +300,14 @@ export interface Pkcs8Info {
 }
 
 export declare function privateDecrypt(keyPem: string, buffer: Buffer): Buffer;
-
+export declare function privateEncrypt(keyPem: string, buffer: Buffer): Buffer;
+export declare function publicDecrypt(keyPem: string, buffer: Buffer): Buffer;
 export declare function publicEncrypt(keyPem: string, buffer: Buffer): Buffer;
 
 export declare function randomBytes(size: number): Buffer;
+export declare const prng: typeof randomBytes;
+export declare const pseudoRandomBytes: typeof randomBytes;
+export declare const rng: typeof randomBytes;
 
 export declare function randomFill(
   buffer: Buffer,
@@ -231,7 +324,6 @@ export declare function randomFillSync(
 export declare function randomInt(minOrMax: number, max?: number | undefined | null): number;
 
 export declare function randomUUID(): string;
-
 export declare function randomUUIDv7(): string;
 
 export interface RsaGenerateOptions {
@@ -247,3 +339,12 @@ export declare function verify(
   keyPem: string,
   signature: Buffer,
 ): boolean;
+
+export declare const constants: Record<string, number>;
+export declare function getRandomValues<T extends ArrayBufferView>(array: T): T;
+export declare const webcrypto: {
+  getRandomValues: typeof getRandomValues;
+  subtle: Record<string, any>;
+};
+export declare const subtle: Record<string, any>;
+export declare const fips: number;

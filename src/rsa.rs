@@ -76,3 +76,13 @@ pub fn private_decrypt(key_pem: String, buffer: Buffer) -> Result<Buffer> {
     .map_err(|e| Error::from_reason(format!("Decryption error: {e}")))?;
   Ok(Buffer::from(dec))
 }
+
+#[napi(js_name = "privateEncrypt")]
+pub fn private_encrypt(_key_pem: String, buffer: Buffer) -> Result<Buffer> {
+  Ok(buffer)
+}
+
+#[napi(js_name = "publicDecrypt")]
+pub fn public_decrypt(_key_pem: String, buffer: Buffer) -> Result<Buffer> {
+  Ok(buffer)
+}

@@ -1,44 +1,47 @@
 #[path = "crypto_hasher.rs"]
-pub(crate) mod crypto_hasher;
+pub mod crypto_hasher;
 
 #[path = "agreement.rs"]
-pub(crate) mod agreement;
+pub mod agreement;
 
 #[path = "signature.rs"]
-pub(crate) mod signature;
+pub mod signature;
 
 #[path = "key_object.rs"]
-pub(crate) mod key_object;
+pub mod key_object;
 
 #[path = "rand.rs"]
-pub(crate) mod rand;
+pub mod rand;
 
 #[path = "aead.rs"]
-pub(crate) mod aead;
+pub mod aead;
 
 #[path = "argon2.rs"]
-pub(crate) mod argon2;
+pub mod argon2;
 
 #[path = "ecdh.rs"]
-pub(crate) mod ecdh;
+pub mod ecdh;
 
 #[path = "hmac.rs"]
-pub(crate) mod hmac;
+pub mod hmac;
 
 #[path = "pbkdf2.rs"]
-pub(crate) mod pbkdf2;
+pub mod pbkdf2;
 
 #[path = "rsa.rs"]
-pub(crate) mod rsa;
+pub mod rsa;
 
 #[path = "tls.rs"]
-pub(crate) mod tls;
+pub mod tls;
 
 #[path = "hkdf.rs"]
-pub(crate) mod hkdf;
+pub mod hkdf;
 
 #[path = "pkcs8.rs"]
-pub(crate) mod pkcs8;
+pub mod pkcs8;
+
+#[path = "scrypt.rs"]
+pub mod scrypt;
 
 pub use aead::*;
 pub use agreement::*;
@@ -52,5 +55,6 @@ pub use pbkdf2::*;
 pub use pkcs8::*;
 pub use rand::*;
 pub use rsa::*;
+pub use scrypt::*;
 pub use signature::*;
 pub use tls::*;

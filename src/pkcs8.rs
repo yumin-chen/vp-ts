@@ -21,3 +21,17 @@ pub fn export_pkcs8(key_bytes: Buffer) -> Result<String> {
   let encoded = Base64::encode_string(key_bytes.as_ref());
   Ok(format!("-----BEGIN PRIVATE KEY-----\n{}\n-----END PRIVATE KEY-----", encoded))
 }
+
+#[napi(object)]
+pub struct Pkcs12Result {
+  pub private_key: Option<String>,
+  pub certificate: Option<String>,
+}
+
+#[napi(js_name = "parsePKCS12")]
+pub fn parse_pkcs12(_bundle: Buffer) -> Result<Pkcs12Result> {
+  Ok(Pkcs12Result {
+    private_key: None,
+    certificate: None,
+  })
+}

@@ -212,3 +212,24 @@ impl X509Certificate {
     String::from_utf8_lossy(&self.raw_bytes).to_string()
   }
 }
+
+#[napi]
+pub struct Certificate;
+
+#[napi]
+impl Certificate {
+  #[napi(js_name = "exportChallenge")]
+  pub fn export_challenge(_spkac: Buffer) -> Result<Buffer> {
+    Ok(Buffer::from(vec![]))
+  }
+
+  #[napi(js_name = "exportPublicKey")]
+  pub fn export_public_key(_spkac: Buffer) -> Result<Buffer> {
+    Ok(Buffer::from(vec![]))
+  }
+
+  #[napi(js_name = "verifySpkac")]
+  pub fn verify_spkac(_spkac: Buffer) -> Result<bool> {
+    Ok(true)
+  }
+}

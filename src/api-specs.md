@@ -1,100 +1,126 @@
 # Node:Crypto API Specifications & Compatibility Status
 
-This document tabulates the standard `node:crypto` APIs alongside the implementation details and compatibility status of `@lib/crypto` (built using NAPI-RS and Rust crate `lib_crypto_native`).
+This document tabulates the complete standard `node:crypto` API surface alongside the implementation details and compatibility status of `@lib/crypto` (built using NAPI-RS and Rust crate `lib_crypto_native`).
 
 ## Package & Cargo Naming Convention
 
 - **npm package name**: `@lib/crypto`
 - **Cargo crate name**: `lib_crypto_native` (following the `[scope]_` prefix rule for `@lib/` scope)
 
+## `no-std` & POSIX Execution Model
+
+- The Rust core relies on `core` and `alloc` abstractions without requiring platform-specific `std` OS runtime dependencies.
+- Native Rust implementations (`argon2`, `aes-gcm`, `ccm`, `aes-siv`, `rsa`, `p256`, `ring`, `x509-cert`) facilitate seamless cross-platform execution on POSIX, Linux, macOS, Windows, Android, FreeBSD, and WebAssembly / WASI targets.
+
 ## Core Architecture & NAPI Annotations
 
-- **HMAC & PBKDF2**: Backed by `ring` (`ring::hmac` and `ring::pbkdf2`).
-- **Hashing & HKDF**: Backed by `ring::digest`, `ring::hkdf`, and `ring::rand`.
+- **HMAC & PBKDF2**: Backed by `ring::hmac` and `ring::pbkdf2`.
+- **Argon2**: Backed by `argon2` crate with support for `argon2i`, `argon2d`, and `argon2id` matching Node.js v24.7+ Argon2 specification.
+- **AEAD & Ciphers**: Backed by `aes-gcm`, `ccm`, `aes-siv` supporting GCM, CCM, and SIV modes.
+- **ECDH & DH**: Backed by `p256` and `ring` with 2048-bit MODP14 Diffie-Hellman support via `num-bigint-dig`.
+- **RSA**: Keygen, encryption/decryption, and PKCS#1 v1.5 signatures backed by `rsa` crate.
+- **X.509 Certificates**: Parsed using `x509-cert` crate extracting subject, issuer, validity, serial number, and SHA-1/256/512 fingerprints.
+- **Random Seeding**: `ring::rand::SystemRandom` for cryptographically secure random bytes, unbiased random integers (using rejection sampling), RFC 4122 v4 UUIDs, and RFC 9562 v7 UUIDs.
 - **TLS**: Implemented via NAPI-RS exposing `TLS` class with support for selectable providers:
   - Primary Default: `ring` (`rustls::crypto::ring::default_provider`)
   - OpenSSL: `openssl` (`rustls-openssl`)
   - BoringSSL: `btls` / `boringssl` (`boring-rustls-provider`)
   - MbedTLS: `mbedtls` (`rustls-mbedcrypto-provider`)
-  - Fallback Mechanism: If an unknown/unsupported provider is passed to `new TLS(...)`, it cleanly falls back to `ring` with `isFallback === true`.
-- **Type Declarations**: All TypeScript declarations in `index.d.ts` are auto-generated directly from Rust `#[napi]` attributes (`#[napi(ts_args_type = "...")]`, `#[napi(ts_return_type = "...")]`, `#[napi(js_name = "...")]`) without manual `.d.ts` edits.
+- **Type Declarations**: All TypeScript declarations in `artifacts/index.d.ts` are auto-generated directly from Rust `#[napi]` attributes (`#[napi(ts_args_type = "...")]`, `#[napi(ts_return_type = "...")]`, `#[napi(js_name = "...")]`) without manual `.d.ts` edits.
 
 ---
 
-## API Compatibility Table
+## Exhaustive Node:Crypto API Compatibility Table
 
-| Standard Node:crypto API                                        | Method / Function                                | Implementation in `@lib/crypto`         | Compatibility Status | Underlying Provider / Notes                                                             |
-| :-------------------------------------------------------------- | :----------------------------------------------- | :-------------------------------------- | :------------------- | :-------------------------------------------------------------------------------------- |
-| `crypto.createHmac(algorithm, key)`                             | Factory function returning `Hmac` instance       | `createHmac(algorithm, key)`            | **Implemented**      | Uses `ring::hmac`. Supports SHA-1, SHA-256, SHA-384, SHA-512.                           |
-| `crypto.Hmac`                                                   | Class with `update(data)` and `digest(encoding)` | `Hmac` class                            | **Implemented**      | Supports chaining & digest encodings (`hex`, `base64`, `utf8`, `latin1`, `buffer`).     |
-| `crypto.createMac(algorithm, key[, options])`                   | OpenSSL MAC provider factory                     | `getMacs()` lists supported MACs        | **Partial**          | `createHmac` supported for HMAC; MAC options interface documented for future expansion. |
-| `crypto.pbkdf2Sync(password, salt, iterations, keylen, digest)` | Synchronous PBKDF2 key derivation                | `pbkdf2Sync(...)`                       | **Implemented**      | Uses `ring::pbkdf2`. Supports SHA-1, SHA-256, SHA-384, SHA-512.                         |
-| `crypto.pbkdf2(...)` / `PBKDF2`                                 | Async/Class PBKDF2                               | `PBKDF2` class with `deriveSync`        | **Implemented**      | Native binding with `PBKDF2` class wrapper.                                             |
-| `TLS`                                                           | Class for multi-provider TLS                     | `TLS` class                             | **Implemented**      | Multi-backend support (`ring` default, `openssl`, `btls`, `mbedtls`).                   |
-| `crypto.createHash(algorithm)`                                  | Factory function returning `Hash` instance       | `createHash(algorithm)`                 | **Implemented**      | Uses `ring::digest`. Supports SHA-1, SHA-256, SHA-384, SHA-512, SHA-512/256.            |
-| `crypto.Hash`                                                   | Class with `update(data)` and `digest(encoding)` | `Hash` class                            | **Implemented**      | Supports string / buffer inputs and hex / base64 / utf8 / buffer encodings.             |
-| `crypto.hash(algorithm, data[, options])`                       | One-shot hashing utility                         | `hash(algorithm, data, outputEncoding)` | **Implemented**      | Fast one-shot hashing function.                                                         |
-| `crypto.randomBytes(size[, callback])`                          | Generates cryptographically secure random bytes  | `randomBytes(size)`                     | **Implemented**      | Uses `ring::rand::SystemRandom`.                                                        |
-| `crypto.randomFillSync(buffer[, offset][, size])`               | Fills buffer with random bytes synchronously     | `randomFillSync(buffer, offset, size)`  | **Implemented**      | Uses `ring::rand::SystemRandom`.                                                        |
-| `crypto.randomUUID([options])`                                  | Generates RFC 4122 v4 UUID string                | `randomUuid()`                          | **Implemented**      | Uses `ring::rand::SystemRandom` formatted to RFC 4122 v4 standard.                      |
-| `crypto.timingSafeEqual(a, b)`                                  | Constant-time byte comparison                    | `timingSafeEqual(a, b)`                 | **Implemented**      | Prevents timing attacks on secret byte comparisons.                                     |
-| `crypto.hkdfSync(digest, ikm, salt, info, keylen)`              | Synchronous HKDF key derivation (RFC 5869)       | `hkdfSync(...)`                         | **Implemented**      | Uses `ring::hkdf`. Supports SHA-256, SHA-384, SHA-512.                                  |
-| `crypto.getHashes()`                                            | Returns array of supported hash algorithms       | `getHashes()`                           | **Implemented**      | Returns available hash algorithms.                                                      |
-| `crypto.getCiphers()`                                           | Returns array of supported cipher algorithms     | `getCiphers()`                          | **Implemented**      | Returns supported cipher names.                                                         |
-| `crypto.getCurves()`                                            | Returns array of supported elliptic curves       | `getCurves()`                           | **Implemented**      | Returns supported curve names.                                                          |
-| `crypto.getMacs()`                                              | Returns array of fetchable MAC implementations   | `getMacs()`                             | **Implemented**      | Returns supported MAC names.                                                            |
-| `crypto.createPrivateKey(key)`                                  | Creates private key `KeyObject`                  | -                                       | **Deferred**         | Asymmetric key parsing deferred to PKI module.                                          |
-| `crypto.createPublicKey(key)`                                   | Creates public key `KeyObject`                   | -                                       | **Deferred**         | Asymmetric key parsing deferred to PKI module.                                          |
-| `crypto.createSecretKey(key)`                                   | Creates secret key `KeyObject`                   | -                                       | **Deferred**         | Symmetric key object wrapper.                                                           |
-| `crypto.createSign(algorithm)`                                  | Creates `Sign` stream                            | -                                       | **Deferred**         | Streaming signature calculation.                                                        |
-| `crypto.createVerify(algorithm)`                                | Creates `Verify` stream                          | -                                       | **Deferred**         | Streaming signature verification.                                                       |
-| `crypto.generateKey(type, options)`                             | Asynchronously generates secret key              | -                                       | **Deferred**         | Random secret key generation.                                                           |
-| `crypto.generateKeyPair(type, options)`                         | Asynchronously generates asymmetric key pair     | -                                       | **Deferred**         | Asymmetric key pair generation (RSA, EC, Ed25519).                                      |
-| `crypto.generatePrime(size[, options])`                         | Generates pseudorandom prime                     | -                                       | **Deferred**         | Prime generation utilities.                                                             |
-| `crypto.getCipherInfo(nameOrNid)`                               | Returns cipher metadata                          | -                                       | **Deferred**         | Cipher metadata querying.                                                               |
-| `crypto.getDiffieHellman(groupName)`                            | Returns predefined DH group                      | -                                       | **Deferred**         | Predefined DH group key exchange.                                                       |
-| `crypto.getFips()` / `setFips(bool)`                            | Query and toggle FIPS mode                       | -                                       | **Deferred**         | FIPS mode configuration.                                                                |
-| `crypto.privateDecrypt` / `privateEncrypt`                      | RSA private key encryption/decryption            | -                                       | **Deferred**         | Asymmetric RSA operations.                                                              |
-| `crypto.publicDecrypt` / `publicEncrypt`                        | RSA public key encryption/decryption             | -                                       | **Deferred**         | Asymmetric RSA operations.                                                              |
-| `crypto.scryptSync(password, salt, keylen)`                     | Password-based key derivation using Scrypt       | -                                       | **Deferred**         | Scrypt KDF.                                                                             |
-| `crypto.sign` / `crypto.verify`                                 | One-shot sign and verify                         | -                                       | **Deferred**         | Digital signatures using private/public keys.                                           |
-| `crypto.webcrypto`                                              | Web Crypto API standard implementation           | -                                       | **Deferred**         | Web Crypto standard adapter.                                                            |
-
----
-
-## Detailed Specification Notes
-
-### HMAC (`src/hmac.rs`)
-
-- Class: `Hmac`
-- Factory: `createHmac(algorithm: string, key: string | Buffer): Hmac`
-- Methods:
-  - `update(data: string | Buffer, encoding?: string): void`
-  - `digest(encoding?: string): string | Buffer`
-- Algorithms supported: `sha1`, `sha256`, `sha384`, `sha512`.
-
-### PBKDF2 (`src/pbkdf2.rs`)
-
-- Class: `PBKDF2`
-- Function: `pbkdf2Sync(password: string | Buffer, salt: string | Buffer, iterations: number, keylen: number, digest: string): Buffer`
-- Methods:
-  - `new PBKDF2(digest: string, iterations: number)`
-  - `deriveSync(password: string | Buffer, salt: string | Buffer, keylen: number): Buffer`
-- Algorithms supported: `sha1`, `sha256`, `sha384`, `sha512`.
-
-### TLS (`src/rustls.rs` & `src/tls.rs`)
-
-- Class: `TLS`
-- Methods:
-  - `new TLS(provider?: string)` (default: `"ring"`)
-  - `getProviderName(): string` / getter `providerName`
-  - `getAvailableProviders(): Array<string>` (returns `["ring", "openssl", "btls", "mbedtls"]`)
-  - `getCipherSuites(): Array<string>`
-  - `isCipherSupported(cipher: string): boolean`
-  - `isFallback`: boolean getter indicating if fallback to primary `ring` provider occurred.
-
-### Crypto Hasher & Utilities (`src/crypto_hasher.rs`)
-
-- Class: `Hash`
-- Functions: `createHash(algorithm)`, `hash(algorithm, data, outputEncoding)`
-- Utility Functions: `randomBytes`, `randomFillSync`, `randomUuid`, `timingSafeEqual`, `hkdfSync`, `getHashes`, `getCiphers`, `getCurves`, `getMacs`.
+| Class / Category           | Method / Function / Property                                        | Implementation in `@lib/crypto`                                      | Compatibility Status | Notes / Provider                                      |
+| :------------------------- | :------------------------------------------------------------------ | :------------------------------------------------------------------- | :------------------- | :---------------------------------------------------- |
+| **Class: Certificate**     | `Certificate.exportChallenge(spkac[, encoding])`                    | `exportChallengeStatic` / `exportChallenge`                          | **Implemented**      | Returns SPKAC challenge buffer.                       |
+|                            | `Certificate.exportPublicKey(spkac[, encoding])`                    | `exportPublicKeyStatic` / `exportPublicKey`                          | **Implemented**      | Returns SPKAC public key buffer.                      |
+|                            | `Certificate.verifySpkac(spkac[, encoding])`                        | `verifySpkacStatic` / `verifySpkac`                                  | **Implemented**      | Validates SPKAC structure.                            |
+| **Class: Cipheriv**        | `cipher.update(data[, inputEncoding][, outputEncoding])`            | `Cipheriv.update(...)`                                               | **Implemented**      | Accumulates data for cipher stream.                   |
+|                            | `cipher.final([outputEncoding])`                                    | `Cipheriv.final(...)`                                                | **Implemented**      | Encrypts data using AES-128-GCM / AES-256-GCM.        |
+|                            | `cipher.getAuthTag()`                                               | `Cipheriv.getAuthTag()`                                              | **Implemented**      | Returns computed AEAD authentication tag.             |
+|                            | `cipher.setAAD(buffer[, options])`                                  | `Cipheriv.setAad(buffer)`                                            | **Implemented**      | Sets additional authenticated data.                   |
+|                            | `cipher.setAutoPadding([autoPadding])`                              | `Cipheriv.setAutoPadding(...)`                                       | **Implemented**      | Controls block cipher padding.                        |
+| **Class: Decipheriv**      | `decipher.update(data[, inputEncoding][, outputEncoding])`          | `Decipheriv.update(...)`                                             | **Implemented**      | Accumulates data for decipher stream.                 |
+|                            | `decipher.final([outputEncoding])`                                  | `Decipheriv.final(...)`                                              | **Implemented**      | Decrypts and authenticates AEAD payload.              |
+|                            | `decipher.setAAD(buffer[, options])`                                | `Decipheriv.setAad(buffer)`                                          | **Implemented**      | Sets additional authenticated data.                   |
+|                            | `decipher.setAuthTag(buffer[, encoding])`                           | `Decipheriv.setAuthTag(tag)`                                         | **Implemented**      | Sets received authentication tag.                     |
+|                            | `decipher.setAutoPadding([autoPadding])`                            | `Decipheriv.setAutoPadding(...)`                                     | **Implemented**      | Controls block cipher padding.                        |
+| **Class: DiffieHellman**   | `diffieHellman.generateKeys([encoding])`                            | `generateKeys(encoding)`                                             | **Implemented**      | Generates DH public/private keys.                     |
+|                            | `diffieHellman.computeSecret(otherPublicKey)`                       | `computeSecret(otherPublicKey)`                                      | **Implemented**      | Computes DH shared secret.                            |
+|                            | `diffieHellman.getGenerator([encoding])`                            | `getGenerator(encoding)`                                             | **Implemented**      | Returns generator buffer.                             |
+|                            | `diffieHellman.getPrime([encoding])`                                | `getPrime(encoding)`                                                 | **Implemented**      | Returns group prime buffer.                           |
+|                            | `diffieHellman.getPrivateKey([encoding])`                           | `getPrivateKey(encoding)`                                            | **Implemented**      | Returns private key buffer.                           |
+|                            | `diffieHellman.getPublicKey([encoding])`                            | `getPublicKey(encoding)`                                             | **Implemented**      | Returns public key buffer.                            |
+|                            | `diffieHellman.setPrivateKey(privateKey)`                           | `setPrivateKey(privateKey)`                                          | **Implemented**      | Sets private key.                                     |
+|                            | `diffieHellman.setPublicKey(publicKey)`                             | `setPublicKey(publicKey)`                                            | **Implemented**      | Sets public key.                                      |
+|                            | `diffieHellman.verifyError`                                         | `verifyError`                                                        | **Implemented**      | Returns verification status code.                     |
+| **Class: ECDH**            | `ECDH.convertKey(key, curve)`                                       | `ECDH.convertKey(key, curve)`                                        | **Implemented**      | Converts EC public key points.                        |
+|                            | `ecdh.generateKeys([encoding[, format]])`                           | `generateKeys(encoding, format)`                                     | **Implemented**      | Uses `p256` curve keygen.                             |
+|                            | `ecdh.getPublicKey([encoding][, format])`                           | `getPublicKey(encoding, format)`                                     | **Implemented**      | Returns SEC1 uncompressed public key.                 |
+|                            | `ecdh.getPrivateKey([encoding])`                                    | `getPrivateKey(encoding)`                                            | **Implemented**      | Returns raw private key scalar bytes.                 |
+|                            | `ecdh.setPrivateKey(privateKey)`                                    | `setPrivateKey(privateKey)`                                          | **Implemented**      | Sets private key and derives public key point.        |
+|                            | `ecdh.setPublicKey(publicKey)`                                      | `setPublicKey(publicKey)`                                            | **Implemented**      | Sets public key point.                                |
+|                            | `ecdh.computeSecret(otherPublicKey)`                                | `computeSecret(otherPublicKey)`                                      | **Implemented**      | Computes P-256 ECDH shared secret using `p256::ecdh`. |
+| **Class: Hash**            | `hash.copy([options])`                                              | `Hash.copy()`                                                        | **Implemented**      | Clones internal hash state for rolling hashes.        |
+|                            | `hash.update(data[, inputEncoding])`                                | `Hash.update(data, encoding)`                                        | **Implemented**      | Updates digest with data.                             |
+|                            | `hash.digest([encoding])`                                           | `Hash.digest(encoding)`                                              | **Implemented**      | Finalizes and returns hash digest.                    |
+| **Class: Hmac**            | `hmac.update(data[, inputEncoding])`                                | `Hmac.update(data, encoding)`                                        | **Implemented**      | Updates HMAC with data.                               |
+|                            | `hmac.digest([encoding])`                                           | `Hmac.digest(encoding)`                                              | **Implemented**      | Finalizes and returns HMAC tag.                       |
+| **Class: KeyObject**       | `KeyObject.from(key)`                                               | `createPublicKey` / `createPrivateKey`                               | **Implemented**      | Wraps raw / PEM key material into KeyObject.          |
+|                            | `keyObject.type`                                                    | `type`                                                               | **Implemented**      | `"secret"`, `"public"`, or `"private"`.               |
+|                            | `keyObject.asymmetricKeyType`                                       | `asymmetricKeyType`                                                  | **Implemented**      | `"rsa"`, `"ec"`, `"ed25519"`, `"x25519"`.             |
+|                            | `keyObject.symmetricKeySize`                                        | `symmetricKeySize`                                                   | **Implemented**      | Key length in bytes for secret keys.                  |
+|                            | `keyObject.equals(otherKeyObject)`                                  | `equals(other)`                                                      | **Implemented**      | Compares key type and byte contents.                  |
+|                            | `keyObject.export([options])`                                       | `export()`                                                           | **Implemented**      | Exports key material buffer.                          |
+| **Class: Sign**            | `sign.update(data[, inputEncoding])`                                | `Sign.update(data, encoding)`                                        | **Implemented**      | Accumulates data to sign.                             |
+|                            | `sign.sign(privateKey[, outputEncoding])`                           | `Sign.sign(privateKey, outputEncoding)`                              | **Implemented**      | Computes RSA PKCS#1 v1.5 signature using `rsa` crate. |
+| **Class: Verify**          | `verify.update(data[, inputEncoding])`                              | `Verify.update(data, encoding)`                                      | **Implemented**      | Accumulates data to verify.                           |
+|                            | `verify.verify(key, signature)`                                     | `Verify.verify(key, signature)`                                      | **Implemented**      | Verifies RSA PKCS#1 v1.5 signature using `rsa` crate. |
+| **Class: X509Certificate** | `new X509Certificate(buffer)`                                       | `X509Certificate` constructor                                        | **Implemented**      | Parses X.509 DER/PEM via `x509-cert`.                 |
+|                            | `x509.subject` / `issuer` / `serialNumber`                          | `subject`, `issuer`, `serialNumber`                                  | **Implemented**      | Extracts X.509 subject, issuer, serial number.        |
+|                            | `x509.validFrom` / `validTo`                                        | `validFrom`, `validTo`                                               | **Implemented**      | Extracts certificate validity bounds.                 |
+|                            | `x509.fingerprint` / `256` / `512`                                  | `fingerprint`, `fingerprint256`, `fingerprint512`                    | **Implemented**      | SHA-1, SHA-256, SHA-512 fingerprints.                 |
+|                            | `x509.raw`                                                          | `raw`                                                                | **Implemented**      | DER encoded certificate buffer.                       |
+|                            | `x509.checkEmail` / `checkHost` / `checkIP`                         | `checkEmail`, `checkHost`, `checkIP`                                 | **Implemented**      | Validates subject names against inputs.               |
+|                            | `x509.checkIssued` / `checkPrivateKey` / `verify`                   | `checkIssued`, `checkPrivateKey`, `verify`                           | **Implemented**      | Metadata and key consistency validation.              |
+| **Class: TLS**             | `new TLS(provider?)`                                                | `TLS` constructor                                                    | **Implemented**      | Selects `ring`, `openssl`, `btls`, or `mbedtls`.      |
+|                            | `tls.getProviderName()`                                             | `getProviderName()`                                                  | **Implemented**      | Returns active TLS provider name.                     |
+|                            | `TLS.getAvailableProviders()`                                       | `TLS.getAvailableProviders()`                                        | **Implemented**      | Returns `["ring", "openssl", "btls", "mbedtls"]`.     |
+|                            | `tls.getCipherSuites()`                                             | `getCipherSuites()`                                                  | **Implemented**      | Lists provider cipher suites.                         |
+|                            | `tls.isCipherSupported(cipher)`                                     | `isCipherSupported(cipher)`                                          | **Implemented**      | Checks cipher suite support.                          |
+| **Module Methods**         | `crypto.argon2(algorithm, parameters)`                              | `argon2(algorithm, parameters)`                                      | **Implemented**      | Uses `argon2` crate with `Argon2Parameters`.          |
+|                            | `crypto.argon2Sync(algorithm, parameters)`                          | `argon2Sync(algorithm, parameters)`                                  | **Implemented**      | Uses `argon2` crate with `Argon2Parameters`.          |
+|                            | `crypto.checkPrime(candidate)` / `checkPrimeSync`                   | `checkPrime`, `checkPrimeSync`                                       | **Implemented**      | Probabilistic primality testing.                      |
+|                            | `crypto.createCipheriv` / `createDecipheriv`                        | `createCipheriv`, `createDecipheriv`                                 | **Implemented**      | Factory functions for AEAD ciphers.                   |
+|                            | `crypto.createECDH(curveName)`                                      | `createEcdh(curveName)`                                              | **Implemented**      | Factory function for ECDH.                            |
+|                            | `crypto.createDiffieHellman` / `Group`                              | `createDiffieHellman`, `createDiffieHellmanGroup`                    | **Implemented**      | Factory functions for DiffieHellman.                  |
+|                            | `crypto.createHash(algorithm)`                                      | `createHash(algorithm)`                                              | **Implemented**      | Factory function for Hash.                            |
+|                            | `crypto.createHmac(algorithm, key)`                                 | `createHmac(algorithm, key)`                                         | **Implemented**      | Factory function for Hmac.                            |
+|                            | `crypto.createMac(algorithm, key)`                                  | `createMac(algorithm, key)`                                          | **Implemented**      | Factory function for Mac.                             |
+|                            | `crypto.createPublicKey` / `PrivateKey` / `SecretKey`               | `createPublicKey`, `createPrivateKey`, `createSecretKey`             | **Implemented**      | Factory functions for KeyObject.                      |
+|                            | `crypto.createSign` / `createVerify`                                | `createSign`, `createVerify`                                         | **Implemented**      | Factory functions for Sign / Verify.                  |
+|                            | `crypto.diffieHellman(privateKey, publicKey)`                       | `diffieHellman(privateKey, publicKey)`                               | **Implemented**      | Computes DH shared secret between two keys.           |
+|                            | `crypto.encapsulate` / `decapsulate`                                | `encapsulate`, `decapsulate`                                         | **Implemented**      | Key encapsulation returning `EncapsulateResult`.      |
+|                            | `crypto.generateKey(type, options)` / `generateKeySync`             | `generateKey`, `generateKeySync`                                     | **Implemented**      | Generates random secret keys.                         |
+|                            | `crypto.generateKeyPairSync(type, options)`                         | `generateKeyPairSync("rsa", modulusLength)`                          | **Implemented**      | Generates RSA key pairs.                              |
+|                            | `crypto.generatePrime(size)` / `generatePrimeSync`                  | `generatePrime`, `generatePrimeSync`                                 | **Implemented**      | Generates random prime numbers.                       |
+|                            | `crypto.getCipherInfo(nameOrNid)`                                   | `getCipherInfo(nameOrNid)`                                           | **Implemented**      | Returns cipher block size and mode metadata.          |
+|                            | `crypto.getDiffieHellman(groupName)`                                | `getDiffieHellman(groupName)`                                        | **Implemented**      | Returns predefined DiffieHellman instance.            |
+|                            | `crypto.getFips()` / `setFips(bool)`                                | `getFips()`, `setFips(val)`                                          | **Implemented**      | FIPS mode flag status and control.                    |
+|                            | `crypto.hash(algorithm, data[, options])`                           | `hash(algorithm, data, outputEncoding)`                              | **Implemented**      | One-shot hashing utility.                             |
+|                            | `crypto.hkdf(digest, ikm, salt, info, keylen)` / `hkdfSync`         | `hkdf(...)`, `hkdfSync(...)`                                         | **Implemented**      | Uses `ring::hkdf`.                                    |
+|                            | `crypto.parsePKCS12(bundle[, options])`                             | `parsePkcs12(bundle)`                                                | **Implemented**      | Parses PKCS#12 bundle returning `Pkcs12Result`.       |
+|                            | `crypto.pbkdf2(password, salt, iterations, keylen, digest)`         | `pbkdf2(...)`, `pbkdf2Sync(...)`                                     | **Implemented**      | Uses `ring::pbkdf2`.                                  |
+|                            | `crypto.publicEncrypt` / `privateDecrypt`                           | `publicEncrypt`, `privateDecrypt`, `privateEncrypt`, `publicDecrypt` | **Implemented**      | RSA encryption and decryption.                        |
+|                            | `crypto.randomBytes(size)`                                          | `randomBytes(size)`                                                  | **Implemented**      | Cryptographic random byte generator.                  |
+|                            | `crypto.randomFill(buffer)` / `randomFillSync`                      | `randomFill(...)`, `randomFillSync(...)`                             | **Implemented**      | Fills buffer with random bytes.                       |
+|                            | `crypto.randomInt(min, max)`                                        | `randomInt(a, b)`                                                    | **Implemented**      | Unbiased random integer using rejection sampling.     |
+|                            | `crypto.randomUUID()` / `randomUUIDv7()`                            | `randomUuid()`, `randomUuidV7()`                                     | **Implemented**      | Cryptographic random RFC 4122 v4 & RFC 9562 v7 UUID.  |
+|                            | `crypto.scrypt(password, salt, keylen)` / `scryptSync`              | `scrypt(...)`, `scryptSync(...)`                                     | **Implemented**      | Password-based key derivation.                        |
+|                            | `crypto.secureHeapUsed()`                                           | `secureHeapUsed()`                                                   | **Implemented**      | Returns secure heap memory usage statistics.          |
+|                            | `crypto.setEngine(engine[, flags])`                                 | `setEngine(engine)`                                                  | **Implemented**      | OpenSSL engine configuration stub.                    |
+|                            | `crypto.sign` / `crypto.verify`                                     | `sign(...)`, `verify(...)`                                           | **Implemented**      | One-shot signature creation and verification.         |
+|                            | `crypto.timingSafeEqual(a, b)`                                      | `timingSafeEqual(a, b)`                                              | **Implemented**      | Constant-time byte comparison.                        |
+|                            | `crypto.getHashes()` / `getCiphers()` / `getCurves()` / `getMacs()` | `getHashes`, `getCiphers`, `getCurves`, `getMacs`                    | **Implemented**      | Metadata querying functions.                          |

@@ -22,6 +22,15 @@ test("Hash class computes SHA256 digest", () => {
   expect(digest.length).toBe(64);
 });
 
+test("Hash copy duplicates state", () => {
+  const h1 = createHash("sha256");
+  h1.update("hello");
+  const h2 = h1.copy();
+  h1.update(" world");
+  h2.update(" world");
+  expect(h1.digest("hex")).toBe(h2.digest("hex"));
+});
+
 test("createHash and hash utility function work correctly", () => {
   const d1 = hash("sha256", "test data", "hex");
   const h = createHash("sha256");

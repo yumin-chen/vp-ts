@@ -4,6 +4,7 @@ use napi_derive::napi;
 use ring::pbkdf2::{
   derive, Algorithm, PBKDF2_HMAC_SHA1, PBKDF2_HMAC_SHA256, PBKDF2_HMAC_SHA384, PBKDF2_HMAC_SHA512,
 };
+use scrypt::{scrypt as scrypt_kdf, Params};
 
 use crate::hmac::decode_input;
 
@@ -38,6 +39,48 @@ pub fn pbkdf2_sync(
   derive(algo, iter, &salt_bytes, &pass_bytes, &mut out);
 
   Ok(Buffer::from(out))
+}
+
+#[napi(
+  ts_args_type = "password: string | Buffer, salt: string | Buffer, iterations: number, keylen: number, digest: string"
+)]
+pub fn pbkdf2(
+  password: Either<String, Buffer>,
+  salt: Either<String, Buffer>,
+  iterations: u32,
+  keylen: u32,
+  digest: String,
+) -> napi::Result<Buffer> {
+  pbkdf2_sync(password, salt, iterations, keylen, digest)
+}
+
+#[napi(
+  ts_args_type = "password: string | Buffer, salt: string | Buffer, keylen: number"
+)]
+pub fn scrypt_sync(
+  password: Either<String, Buffer>,
+  salt: Either<String, Buffer>,
+  keylen: u32,
+) -> napi::Result<Buffer> {
+  let pass_bytes = decode_input(&password, None);
+  let salt_bytes = decode_input(&salt, None);
+  let params = Params::new(14, 8, 1, keylen as usize)
+    .map_err(|e| napi::Error::from_reason(format!("Invalid scrypt params: {}", e)))?;
+  let mut out = vec![0u8; keylen as usize];
+  scrypt_kdf(&pass_bytes, &salt_bytes, &params, &mut out)
+    .map_err(|e| napi::Error::from_reason(format!("Scrypt derivation failed: {}", e)))?;
+  Ok(Buffer::from(out))
+}
+
+#[napi(
+  ts_args_type = "password: string | Buffer, salt: string | Buffer, keylen: number"
+)]
+pub fn scrypt(
+  password: Either<String, Buffer>,
+  salt: Either<String, Buffer>,
+  keylen: u32,
+) -> napi::Result<Buffer> {
+  scrypt_sync(password, salt, keylen)
 }
 
 #[napi(js_name = "PBKDF2")]

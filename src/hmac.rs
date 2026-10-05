@@ -148,3 +148,32 @@ impl Hmac {
 pub fn create_hmac(algorithm: String, key: Either<String, Buffer>) -> napi::Result<Hmac> {
   Hmac::new(algorithm, key)
 }
+
+#[napi(js_name = "Mac")]
+pub struct Mac {
+  hmac: Hmac,
+}
+
+#[napi]
+impl Mac {
+  #[napi(constructor, ts_args_type = "algorithm: string, key: string | Buffer")]
+  pub fn new(algorithm: String, key: Either<String, Buffer>) -> napi::Result<Self> {
+    let hmac = Hmac::new(algorithm, key)?;
+    Ok(Mac { hmac })
+  }
+
+  #[napi(ts_args_type = "data: string | Buffer, encoding?: string")]
+  pub fn update(&mut self, data: Either<String, Buffer>, encoding: Option<String>) -> napi::Result<()> {
+    self.hmac.update(data, encoding)
+  }
+
+  #[napi(js_name = "final", ts_args_type = "outputEncoding?: string", ts_return_type = "string | Buffer")]
+  pub fn final_mac(&mut self, encoding: Option<String>) -> napi::Result<Either<String, Buffer>> {
+    self.hmac.digest(encoding)
+  }
+}
+
+#[napi(ts_args_type = "algorithm: string, key: string | Buffer")]
+pub fn create_mac(algorithm: String, key: Either<String, Buffer>) -> napi::Result<Mac> {
+  Mac::new(algorithm, key)
+}

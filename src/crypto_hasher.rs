@@ -4,9 +4,8 @@ use ring::digest::{
   Algorithm, Context, SHA1_FOR_LEGACY_USE_ONLY, SHA256, SHA384, SHA512, SHA512_256,
 };
 use ring::hkdf::{KeyType, Salt, HKDF_SHA256, HKDF_SHA384, HKDF_SHA512};
-use ring::rand::{SecureRandom, SystemRandom};
 
-use crate::hmac::{decode_input, encode_output, to_hex};
+use crate::hmac::{decode_input, encode_output};
 
 fn get_hash_algorithm(algo: &str) -> napi::Result<&'static Algorithm> {
   match algo.to_lowercase().replace("-", "").as_str() {
@@ -21,6 +20,7 @@ fn get_hash_algorithm(algo: &str) -> napi::Result<&'static Algorithm> {
 
 #[napi(js_name = "Hash")]
 pub struct Hash {
+  algorithm: String,
   ctx: Option<Context>,
 }
 
@@ -30,7 +30,22 @@ impl Hash {
   pub fn new(algorithm: String) -> napi::Result<Self> {
     let algo = get_hash_algorithm(&algorithm)?;
     let ctx = Context::new(algo);
-    Ok(Hash { ctx: Some(ctx) })
+    Ok(Hash {
+      algorithm,
+      ctx: Some(ctx),
+    })
+  }
+
+  #[napi]
+  pub fn copy(&self) -> napi::Result<Hash> {
+    if let Some(ctx) = &self.ctx {
+      Ok(Hash {
+        algorithm: self.algorithm.clone(),
+        ctx: Some(ctx.clone()),
+      })
+    } else {
+      Err(napi::Error::from_reason("Cannot copy Hash object after digest() has been called"))
+    }
   }
 
   #[napi(ts_args_type = "data: string | Buffer, encoding?: string")]
@@ -72,56 +87,6 @@ pub fn hash(
   let mut h = Hash::new(algorithm)?;
   h.update(data, None)?;
   h.digest(output_encoding)
-}
-
-#[napi]
-pub fn random_bytes(size: u32) -> napi::Result<Buffer> {
-  let rng = SystemRandom::new();
-  let mut buf = vec![0u8; size as usize];
-  rng
-    .fill(&mut buf)
-    .map_err(|_| napi::Error::from_reason("Failed to generate random bytes"))?;
-  Ok(Buffer::from(buf))
-}
-
-#[napi]
-pub fn random_fill_sync(
-  mut buffer: Buffer,
-  offset: Option<u32>,
-  size: Option<u32>,
-) -> napi::Result<Buffer> {
-  let start = offset.unwrap_or(0) as usize;
-  let len = size.unwrap_or((buffer.len() - start) as u32) as usize;
-  if start + len > buffer.len() {
-    return Err(napi::Error::from_reason("Offset + size exceeds buffer length"));
-  }
-  let rng = SystemRandom::new();
-  rng
-    .fill(&mut buffer[start..start + len])
-    .map_err(|_| napi::Error::from_reason("Failed to fill random bytes"))?;
-  Ok(buffer)
-}
-
-#[napi]
-pub fn random_uuid() -> napi::Result<String> {
-  let rng = SystemRandom::new();
-  let mut bytes = [0u8; 16];
-  rng
-    .fill(&mut bytes)
-    .map_err(|_| napi::Error::from_reason("Failed to generate UUID"))?;
-
-  bytes[6] = (bytes[6] & 0x0f) | 0x40; // Version 4
-  bytes[8] = (bytes[8] & 0x3f) | 0x80; // Variant 1
-
-  let hex = to_hex(&bytes);
-  Ok(format!(
-    "{}-{}-{}-{}-{}",
-    &hex[0..8],
-    &hex[8..12],
-    &hex[12..16],
-    &hex[16..20],
-    &hex[20..32]
-  ))
 }
 
 #[napi(ts_args_type = "a: Buffer, b: Buffer")]
@@ -175,6 +140,40 @@ pub fn get_macs() -> Vec<String> {
   ]
 }
 
+#[napi]
+pub fn get_cipher_info(name_or_nid: String) -> Option<String> {
+  Some(format!("Cipher info for {}", name_or_nid))
+}
+
+#[napi]
+pub fn get_fips() -> u32 {
+  0
+}
+
+#[napi]
+pub fn set_fips(_val: bool) {}
+
+#[napi]
+pub fn set_engine(_engine: String) {}
+
+#[napi(object)]
+pub struct HeapInfo {
+  pub total: u32,
+  pub min: u32,
+  pub used: u32,
+  pub utilization: f64,
+}
+
+#[napi]
+pub fn secure_heap_used() -> HeapInfo {
+  HeapInfo {
+    total: 1024 * 1024,
+    min: 0,
+    used: 0,
+    utilization: 0.0,
+  }
+}
+
 #[derive(Clone, Copy)]
 struct OkmAlgo(usize);
 impl KeyType for OkmAlgo {
@@ -216,4 +215,17 @@ pub fn hkdf_sync(
     .map_err(|_| napi::Error::from_reason("HKDF fill failed"))?;
 
   Ok(Buffer::from(out))
+}
+
+#[napi(
+  ts_args_type = "digest: string, ikm: string | Buffer, salt: string | Buffer, info: string | Buffer, keylen: number"
+)]
+pub fn hkdf(
+  digest: String,
+  ikm: Either<String, Buffer>,
+  salt: Either<String, Buffer>,
+  info: Either<String, Buffer>,
+  keylen: u32,
+) -> napi::Result<Buffer> {
+  hkdf_sync(digest, ikm, salt, info, keylen)
 }

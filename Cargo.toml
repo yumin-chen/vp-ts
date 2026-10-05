@@ -14,6 +14,22 @@ rustls = { version = "0.23", features = ["ring"] }
 rustls-openssl = "0.4"
 boring-rustls-provider = "5.0"
 rustls-mbedcrypto-provider = "0.1"
+argon2 = "0.6"
+scrypt = "0.11"
+aes-gcm = "0.11"
+ccm = "0.6"
+aes-siv = "0.8"
+rsa = "0.9"
+p256 = { version = "0.14", features = ["ecdh"] }
+p384 = "0.14"
+x25519-dalek = "3.0"
+ed25519-dalek = "3.0"
+x509-cert = "0.3"
+spki = "0.8"
+pkcs8 = "0.11"
+sha2 = "0.10"
+rand = "0.8"
+num-bigint-dig = "0.8"
 
 [build-dependencies]
 napi-build = "2"

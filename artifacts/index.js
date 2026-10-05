@@ -886,39 +886,149 @@ if (!nativeBinding) {
 }
 
 const {
+  Certificate,
+  Cipheriv,
+  CryptoKeyPair,
+  Decipheriv,
+  DiffieHellman,
+  ECDH,
   Hash,
   Hmac,
+  KeyObject,
+  Mac,
   PBKDF2,
+  Pkcs12Result,
+  Sign,
   TLS,
+  Verify,
+  X509Certificate,
+  argon2,
+  argon2Sync,
+  checkPrime,
+  checkPrimeSync,
+  createCipheriv,
+  createDecipheriv,
+  createDiffieHellman,
+  createDiffieHellmanGroup,
+  createEcdh,
   createHash,
   createHmac,
+  createMac,
+  createPrivateKey,
+  createPublicKey,
+  createSecretKey,
+  createSign,
+  createVerify,
+  decapsulate,
+  diffieHellman,
+  encapsulate,
+  generateKey,
+  generateKeyPairSync,
+  generateKeySync,
+  generatePrime,
+  generatePrimeSync,
+  getCipherInfo,
   getCiphers,
   getCurves,
+  getDiffieHellman,
+  getFips,
   getHashes,
   getMacs,
   hash,
+  hkdf,
   hkdfSync,
+  parsePkcs12,
+  pbkdf2,
   pbkdf2Sync,
+  privateDecrypt,
+  privateEncrypt,
+  publicDecrypt,
+  publicEncrypt,
   randomBytes,
+  randomFill,
   randomFillSync,
+  randomInt,
   randomUuid,
+  randomUuidV7,
+  scrypt,
+  scryptSync,
+  secureHeapUsed,
+  setEngine,
+  setFips,
+  sign,
   timingSafeEqual,
+  verify,
 } = nativeBinding;
+export { Certificate };
+export { Cipheriv };
+export { CryptoKeyPair };
+export { Decipheriv };
+export { DiffieHellman };
+export { ECDH };
 export { Hash };
 export { Hmac };
+export { KeyObject };
+export { Mac };
 export { PBKDF2 };
+export { Pkcs12Result };
+export { Sign };
 export { TLS };
+export { Verify };
+export { X509Certificate };
+export { argon2 };
+export { argon2Sync };
+export { checkPrime };
+export { checkPrimeSync };
+export { createCipheriv };
+export { createDecipheriv };
+export { createDiffieHellman };
+export { createDiffieHellmanGroup };
+export { createEcdh };
 export { createHash };
 export { createHmac };
+export { createMac };
+export { createPrivateKey };
+export { createPublicKey };
+export { createSecretKey };
+export { createSign };
+export { createVerify };
+export { decapsulate };
+export { diffieHellman };
+export { encapsulate };
+export { generateKey };
+export { generateKeyPairSync };
+export { generateKeySync };
+export { generatePrime };
+export { generatePrimeSync };
+export { getCipherInfo };
 export { getCiphers };
 export { getCurves };
+export { getDiffieHellman };
+export { getFips };
 export { getHashes };
 export { getMacs };
 export { hash };
+export { hkdf };
 export { hkdfSync };
+export { parsePkcs12 };
+export { pbkdf2 };
 export { pbkdf2Sync };
+export { privateDecrypt };
+export { privateEncrypt };
+export { publicDecrypt };
+export { publicEncrypt };
 export { randomBytes };
+export { randomFill };
 export { randomFillSync };
+export { randomInt };
 export { randomUuid };
+export { randomUuidV7 };
+export { scrypt };
+export { scryptSync };
+export { secureHeapUsed };
+export { setEngine };
+export { setFips };
+export { sign };
 export { timingSafeEqual };
+export { verify };
 export const __napiBindingTarget = __napiLoadedBindingTarget;

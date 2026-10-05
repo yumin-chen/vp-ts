@@ -25,7 +25,7 @@ export async function build(options = {}) {
           outputDir,
           ...options,
           target,
-          useCross: true,
+          useCross: false,
         })
       } catch (err) {
         console.warn(`Warning: failed to build target ${target}:`, err.message || err)
@@ -40,11 +40,11 @@ export async function build(options = {}) {
     })
   }
 
-  // Copy built .node files from npm/ to dist/ and root directory so prebuilds can be distributed and loaded
+  // Copy built .node / .wasm files from npm/ to dist/ and root directory so prebuilds can be distributed and loaded
   if (fs.existsSync('npm')) {
     const files = fs.readdirSync('npm')
     for (const file of files) {
-      if (file.endsWith('.node')) {
+      if (file.endsWith('.node') || file.endsWith('.wasm')) {
         fs.copyFileSync(path.join('npm', file), path.join('.', file))
         fs.copyFileSync(path.join('npm', file), path.join('dist', file))
       }

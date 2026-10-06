@@ -1,5 +1,5 @@
 {
-  "name": "@lib/module",
+  "name": "@lib/crypto",
   "version": "0.0.0",
   "files": [
     "dist",
@@ -22,6 +22,13 @@
     "check": "vp check",
     "fmt": "vp fmt",
     "lint": "vp lint",
+    "ci:build": "npm run build",
+    "ci:check": "vp check",
+    "ci:test": "npm test",
+    "ci:cross-build": "node build.js --use-napi-cross",
+    "ci:local": "node .ci/local-ci.mjs",
+    "ci:publish": "vp run ci:check && vp run ci:test && vp run build",
+    "pre-commit": "node .ci/local-ci.mjs",
     "prepublishOnly": "vp run build",
     "prepare": "vp config"
   },
@@ -30,6 +37,7 @@
     "@emnapi/runtime": "^1.11.3",
     "@napi-rs/cli": "^3.10.5",
     "@types/node": "^26.6.2",
+    "@voidzero-dev/vite-task-client": "^0.2.0",
     "emnapi": "^1.11.3",
     "vite-plus": "^1.0.0-rc.1"
   },

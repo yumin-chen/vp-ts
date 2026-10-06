@@ -1,13 +1,20 @@
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
-use ring::rand::{SystemRandom, SecureRandom};
+use ring::rand::{SecureRandom, SystemRandom};
 use uuid::Uuid;
 
 #[napi]
 pub fn random_bytes(size: u32) -> Result<Buffer> {
+  if size > 2147483647 {
+    return Err(Error::new(
+      Status::InvalidArg,
+      "The value of \"size\" is out of range. It must be <= 2147483647.",
+    ));
+  }
   let rng = SystemRandom::new();
   let mut bytes = vec![0u8; size as usize];
-  rng.fill(&mut bytes)
+  rng
+    .fill(&mut bytes)
     .map_err(|_| Error::new(Status::GenericFailure, "Failed to generate random bytes"))?;
   Ok(Buffer::from(bytes))
 }
@@ -25,7 +32,8 @@ pub fn random_fill_sync(
   }
 
   let rng = SystemRandom::new();
-  rng.fill(&mut buffer[start..start + len])
+  rng
+    .fill(&mut buffer[start..start + len])
     .map_err(|_| Error::new(Status::GenericFailure, "Failed to fill random bytes"))?;
   Ok(buffer)
 }
@@ -44,19 +52,20 @@ pub fn random_int(min_or_max: i64, max: Option<i64>) -> Result<i64> {
   let range = (max_val - min) as u64;
   let rng = SystemRandom::new();
   let mut bytes = [0u8; 8];
-  rng.fill(&mut bytes)
+  rng
+    .fill(&mut bytes)
     .map_err(|_| Error::new(Status::GenericFailure, "Failed to generate random int"))?;
   let val = u64::from_le_bytes(bytes);
   let res = (val % range) as i64 + min;
   Ok(res)
 }
 
-#[napi]
+#[napi(js_name = "randomUUID")]
 pub fn random_uuid() -> String {
   Uuid::new_v4().to_string()
 }
 
-#[napi]
+#[napi(js_name = "randomUUIDv7")]
 pub fn random_uuidv7() -> String {
   Uuid::now_v7().to_string()
 }
@@ -64,7 +73,8 @@ pub fn random_uuidv7() -> String {
 #[napi]
 pub fn get_random_values(mut buffer: Buffer) -> Result<Buffer> {
   let rng = SystemRandom::new();
-  rng.fill(&mut buffer)
+  rng
+    .fill(&mut buffer)
     .map_err(|_| Error::new(Status::GenericFailure, "Failed to fill random values"))?;
   Ok(buffer)
 }

@@ -1,47 +1,13 @@
+use crate::key_object::KeyObject;
 use ed25519_dalek::{Signer, SigningKey, Verifier, VerifyingKey};
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
 use p256::PublicKey;
 use rand::rngs::OsRng;
-use sha2::{Digest, Sha256, Sha512};
 use sha1::Sha1;
+use sha2::{Digest, Sha256, Sha512};
 use x25519_dalek::{PublicKey as XPublicKey, StaticSecret as XStaticSecret};
 use x509_parser::prelude::*;
-
-#[napi]
-#[derive(Clone)]
-pub struct KeyObject {
-  pub key_type: String, // "secret", "public", "private"
-  pub asymmetric_key_type: Option<String>,
-  pub raw: Vec<u8>,
-}
-
-#[napi]
-impl KeyObject {
-  #[napi(constructor)]
-  pub fn new(key_type: String, asymmetric_key_type: Option<String>, raw: Buffer) -> Self {
-    KeyObject {
-      key_type,
-      asymmetric_key_type,
-      raw: raw.as_ref().to_vec(),
-    }
-  }
-
-  #[napi(getter)]
-  pub fn get_type(&self) -> String {
-    self.key_type.clone()
-  }
-
-  #[napi(getter)]
-  pub fn get_asymmetric_key_type(&self) -> Option<String> {
-    self.asymmetric_key_type.clone()
-  }
-
-  #[napi]
-  pub fn export(&self) -> Buffer {
-    Buffer::from(self.raw.clone())
-  }
-}
 
 #[napi]
 pub struct CryptoKeyPair {
@@ -390,11 +356,7 @@ impl X509Certificate {
 
   #[napi(getter)]
   pub fn public_key(&self) -> KeyObject {
-    KeyObject {
-      key_type: "public".to_string(),
-      asymmetric_key_type: Some("rsa".to_string()),
-      raw: self.raw_bytes.clone(),
-    }
+    KeyObject::new("public".to_string(), Some("rsa".to_string()), Buffer::from(self.raw_bytes.clone()))
   }
 
   #[napi(getter)]

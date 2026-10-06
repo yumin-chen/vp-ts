@@ -4,12 +4,15 @@ import {
   CryptoHasher,
   ECDH,
   Hmac,
-  KeyObject,
+  KeyObject as NativeKeyObject,
   Sign,
   Verify,
   X509Certificate,
   argon2 as nativeArgon2,
   argon2Sync as nativeArgon2Sync,
+  createPrivateKey as nativeCreatePrivateKey,
+  createPublicKey as nativeCreatePublicKey,
+  createSecretKey as nativeCreateSecretKey,
   getHashes as nativeGetHashes,
   hash as nativeHash,
   pbkdf2 as nativePbkdf2,
@@ -24,6 +27,12 @@ import {
   randomUuid as nativeRandomUuid,
   randomUuidV7 as nativeRandomUuidV7,
 } from "../build/index.js";
+
+// Re-export KeyObject
+export const KeyObject = NativeKeyObject;
+export const createSecretKey = nativeCreateSecretKey;
+export const createPublicKey = nativeCreatePublicKey;
+export const createPrivateKey = nativeCreatePrivateKey;
 
 // Re-export native Argon2
 export const argon2 = nativeArgon2;
@@ -121,18 +130,6 @@ export function createCipheriv(algorithm: string, key: Buffer, iv: Buffer, optio
 
 export function createDecipheriv(algorithm: string, key: Buffer, iv: Buffer, options?: any) {
   return nodeCrypto.createDecipheriv(algorithm, key, iv, options);
-}
-
-export function createPrivateKey(key: any) {
-  return nodeCrypto.createPrivateKey(key);
-}
-
-export function createPublicKey(key: any) {
-  return nodeCrypto.createPublicKey(key);
-}
-
-export function createSecretKey(key: any, encoding?: string) {
-  return nodeCrypto.createSecretKey(key, encoding as any);
 }
 
 export function createDiffieHellman(

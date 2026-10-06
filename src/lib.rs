@@ -24,3 +24,6 @@ pub(crate) mod rsa;
 
 #[path = "random.rs"]
 pub(crate) mod random;
+
+#[path = "key_object.rs"]
+pub(crate) mod key_object;

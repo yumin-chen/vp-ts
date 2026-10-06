@@ -21,3 +21,6 @@ pub(crate) mod tls;
 
 #[path = "rsa.rs"]
 pub(crate) mod rsa;
+
+#[path = "random.rs"]
+pub(crate) mod random;

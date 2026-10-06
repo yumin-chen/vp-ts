@@ -18,6 +18,11 @@ import {
   privateEncrypt as nativePrivateEncrypt,
   publicDecrypt as nativePublicDecrypt,
   publicEncrypt as nativePublicEncrypt,
+  randomBytesSync as nativeRandomBytesSync,
+  randomFillSync as nativeRandomFillSync,
+  randomIntSync as nativeRandomIntSync,
+  randomUuid as nativeRandomUuid,
+  randomUuidV7 as nativeRandomUuidV7,
 } from "../build/index.js";
 
 // Re-export native Argon2
@@ -33,6 +38,57 @@ export const publicEncrypt = nativePublicEncrypt;
 export const privateDecrypt = nativePrivateDecrypt;
 export const publicDecrypt = nativePublicDecrypt;
 export const privateEncrypt = nativePrivateEncrypt;
+
+// Random APIs
+export function randomBytes(size: number, callback?: (err: Error | null, buf: Buffer) => void) {
+  const buf = nativeRandomBytesSync(size);
+  if (callback) {
+    queueMicrotask(() => callback(null, buf));
+    return;
+  }
+  return buf;
+}
+
+export function randomFillSync(buffer: Buffer, offset?: number, size?: number) {
+  return nativeRandomFillSync(buffer, offset, size);
+}
+
+export function randomFill(buffer: Buffer, offset: any, size?: any, callback?: any) {
+  let cb = callback;
+  let off = offset;
+  let sz = size;
+  if (typeof offset === "function") {
+    cb = offset;
+    off = 0;
+    sz = undefined;
+  } else if (typeof size === "function") {
+    cb = size;
+    sz = undefined;
+  }
+  const filled = nativeRandomFillSync(buffer, off, sz);
+  if (cb) {
+    queueMicrotask(() => cb(null, filled));
+  }
+  return filled;
+}
+
+export function randomInt(min: number, max?: any, callback?: any) {
+  let cb = callback;
+  let m = max;
+  if (typeof max === "function") {
+    cb = max;
+    m = undefined;
+  }
+  const val = nativeRandomIntSync(min, m);
+  if (cb) {
+    queueMicrotask(() => cb(null, val));
+    return;
+  }
+  return val;
+}
+
+export const randomUUID = nativeRandomUuid;
+export const randomUUIDv7 = nativeRandomUuidV7;
 
 // Factory Functions
 export function createHash(algorithm: string, _options?: any) {
@@ -95,12 +151,6 @@ export function createDiffieHellmanGroup(name: string) {
 export const getDiffieHellman = createDiffieHellmanGroup;
 
 // Utilities
-export const randomBytes = nodeCrypto.randomBytes;
-export const randomFill = nodeCrypto.randomFill;
-export const randomFillSync = nodeCrypto.randomFillSync;
-export const randomInt = nodeCrypto.randomInt;
-export const randomUUID = nodeCrypto.randomUUID;
-export const randomUUIDv7 = (nodeCrypto as any).randomUUIDv7 || nodeCrypto.randomUUID;
 export const scrypt = nodeCrypto.scrypt;
 export const scryptSync = nodeCrypto.scryptSync;
 export const hkdf = nodeCrypto.hkdf;

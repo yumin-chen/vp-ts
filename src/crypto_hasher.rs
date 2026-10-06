@@ -23,7 +23,7 @@ fn to_base64(bytes: &[u8]) -> String {
 
 #[napi]
 pub struct CryptoHasher {
-  ctx: Context,
+  ctx: Option<Context>,
 }
 
 #[napi]
@@ -32,23 +32,28 @@ impl CryptoHasher {
   pub fn new(algorithm: String) -> Result<Self> {
     let alg = get_digest_algorithm(&algorithm)?;
     let ctx = Context::new(alg);
-    Ok(CryptoHasher { ctx })
+    Ok(CryptoHasher { ctx: Some(ctx) })
   }
 
   #[napi]
   pub fn update(&mut self, data: Either<String, Buffer>) -> Result<()> {
+    let ctx = self.ctx.as_mut().ok_or_else(|| {
+      Error::from_reason("ERR_CRYPTO_HASH_FINALIZED: Digest already called")
+    })?;
     let bytes = match data {
       Either::A(s) => s.into_bytes(),
       Either::B(b) => b.to_vec(),
     };
-    self.ctx.update(&bytes);
+    ctx.update(&bytes);
     Ok(())
   }
 
   #[napi]
-  pub fn digest(&self, encoding: Option<String>) -> Result<Either<String, Buffer>> {
-    let clone_ctx = self.ctx.clone();
-    let digest = clone_ctx.finish();
+  pub fn digest(&mut self, encoding: Option<String>) -> Result<Either<String, Buffer>> {
+    let ctx = self.ctx.take().ok_or_else(|| {
+      Error::from_reason("ERR_CRYPTO_HASH_FINALIZED: Digest already called")
+    })?;
+    let digest = ctx.finish();
     let bytes = digest.as_ref();
     match encoding.as_deref() {
       Some("hex") => Ok(Either::A(to_hex(bytes))),

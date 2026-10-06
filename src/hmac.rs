@@ -23,7 +23,7 @@ fn to_base64(bytes: &[u8]) -> String {
 
 #[napi]
 pub struct Hmac {
-  key: Key,
+  key: Option<Key>,
   data: Vec<u8>,
 }
 
@@ -38,13 +38,16 @@ impl Hmac {
     };
     let hmac_key = Key::new(alg, &key_bytes);
     Ok(Hmac {
-      key: hmac_key,
+      key: Some(hmac_key),
       data: vec![],
     })
   }
 
   #[napi]
   pub fn update(&mut self, data: Either<String, Buffer>) -> Result<()> {
+    if self.key.is_none() {
+      return Err(Error::from_reason("ERR_CRYPTO_HASH_FINALIZED: Digest already called"));
+    }
     let bytes = match data {
       Either::A(s) => s.into_bytes(),
       Either::B(b) => b.to_vec(),
@@ -55,7 +58,10 @@ impl Hmac {
 
   #[napi]
   pub fn digest(&mut self, encoding: Option<String>) -> Result<Either<String, Buffer>> {
-    let mut ctx = Context::with_key(&self.key);
+    let key = self.key.take().ok_or_else(|| {
+      Error::from_reason("ERR_CRYPTO_HASH_FINALIZED: Digest already called")
+    })?;
+    let mut ctx = Context::with_key(&key);
     ctx.update(&self.data);
     let tag = ctx.sign();
     let bytes = tag.as_ref();
